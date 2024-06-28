@@ -1,12 +1,26 @@
-# Transport MAIC
-
-# Version Date: June 27th 2024
-# Richard Yan @Core Clinical Sciences
-
+#' Title
+#' 
+#' Quang - fill in argument descriptions here
+#'
+#' @param msmFormula 
+#' @param propensityScoreModel 
+#' @param matchingCovariates
+#' @param propensityWeights 
+#' @param participationWeights 
+#' @param treatment 
+#' @param response 
+#' @param family 
+#' @param studyData
+#' @param aggregateTargetData
+#'
+#' @return
+#' @export
+#'
+#' @examples
 transportMAIC() <- function(msmFormula, 
                             
                             propensityScoreModel = NULL, 
-                            match_cov = NULL, # user-specified matching covariates inputs
+                            matchingCovariates = NULL, # User-specified matching covariates inputs
                             
                             propensityWeights = NULL, # vector of weights
                             participationWeights = NULL, # vector of weights
@@ -16,11 +30,12 @@ transportMAIC() <- function(msmFormula,
                             
                             family = stats::gaussian, # any available family for glm such as "gaussian", OR, "coxph" / "survreg"
                             
-                            IPD, # data of study population (IPD): N rows, data.frame with responses and variables
-                            AgD  # data of target population (AgD): 1 row, data.frame with only aggregate variables
+                            studyData, # data of study population (studyData): N rows, data.frame with responses and variables
+                            aggregateTargetData  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
 
                             ) {
   
+  # Please change all variable names to camelCase instead of snake_case
   if (is.null(response)) response <- all.vars(msmFormula)[1] 
   
   if (is.null(treatment) & !is.null(propensityScoreModel)) { 
@@ -28,43 +43,46 @@ transportMAIC() <- function(msmFormula,
     else treatment <- all.vars(propensityScoreModel)[1] 
   }
 
+  # Quang - why are the datasets set to NULL here? Should there be an if statement, and for what purpose?
   studyData <- NULL
-  targetData <- NULL
+  aggregateTargetData <- NULL
   
-  stopifnot(is.data.frame(IPD), is.data.frame(AgD)) # input format checking
-  stopifnot(!(response %in% names(IPD))) # there must be "response" in IPD dataset
-  stopifnot(!(nrow(AgD) == 1)) # AgD can only be 1 row data.frame
+  stopifnot(is.data.frame(studyData), is.data.frame(aggregateTargetData)) # input format checking
+  stopifnot(!(response %in% names(studyData))) # there must be "response" in studyData dataset
+  stopifnot(!(nrow(aggregateTargetData) == 1)) # aggregateTargetData can only be 1 row data.frame
   
   # Check input formats
-  stopifnot(is.data.frame(IPD), is.data.frame(AgD))
-  stopifnot('response' %in% names(IPD))
-  stopifnot(nrow(AgD) == 1)
+  stopifnot(is.data.frame(studyData), is.data.frame(aggregateTargetData))
+  stopifnot(response %in% names(studyData))
+  stopifnot(nrow(aggregateTargetData) == 1)
   
   # Determine matching covariates
-  if (!is.null(match_cov)) {
-    # Check if the user-specified matching covariates exist in both IPD and AgD
-    valid_cov <- intersect(match_cov, names(IPD))
-    valid_cov <- intersect(valid_cov, names(AgD))
+  if (!is.null(matchingCovariates)) {
+    # Check if the user-specified matching covariates exist in both studyData and aggregateTargetData
+    validCov <- intersect(matchingCovariates, names(studyData))
+    validCov <- intersect(validCov, names(aggregateTargetData))
     
     # If there are any covariates in the user input that don't match, give a warning and remove them
-    if (length(valid_cov) != length(match_cov)) {
-      removed_cov <- setdiff(match_cov, valid_cov)
-      cat("The following user-specfied matching covariates were not found in neither IPD or AgD and have been removed:", toString(removed_cov), "\n")
-      match_cov <- valid_cov
+    if (length(validCov) != length(matchCovariates)) {
+      removedCov <- setdiff(matchingCovariates, validCov)
+      cat("The following user-specfied matching covariates were not found in neither studyData or aggregateTargetData and have been removed:", toString(removed_cov), "\n")
+      matchCovariates <- validCov
     }
     
   } else {
     # If no user input for matching covariates, use all possible matching covariates from both datasets
-    match_cov <- intersect(names(IPD), names(AgD)) # initial covariates could be used for matching
+    matchingCovariates <- intersect(names(studyData), names(aggregateTargetData)) # initial covariates could be used for matching
+    # Quang - this behavior is error-prone. Let's discuss
   }
   
   # If all user-specified matching covariates are invalid, raise an error and stop execution
-  if (length(match_cov) == 0) {
-    stop("All user-specified matching covariates are not found in neither IPD or AgD, execution stopped!")
+  if (length(matchingCovariates) == 0) {
+    stop("All user-specified matching covariates are not found in neither studyData or aggregateTargetData, execution stopped!")
   }
   
-  studyData <- IPD[ ,names(IPD) %in% c("response", match_cov)] 
-  targetData <- AgD[ ,names(AgD) %in% match_cov] 
+  # Quang - there's no need to do this. In fact, this would mess with the MSM fitting code later.
+  studyData <- studyData[ , names(studyData) %in% c(response, match_cov)] 
+  targetData <- aggregateTargetData[ , names(aggregateTargetData) %in% match_cov] 
   
   
   #  If formula is provided for treatment and participation models, fit models ourselves
@@ -91,18 +109,20 @@ transportMAIC() <- function(msmFormula,
   
   if (is.null(participationWeights)) # MoM but not the same function, so not the same here (might be helpful to write another helper to do so)
    {    
-     study_vars <- names(studyData)
-      for (var in study_vars) {
-        mean_var <- var  
-        sd_var <- paste(var, "sd", sep = "_")  
+     studyVars <- names(studyData)
+      for (var in studyVars) {
+        meanVar <- var
+        sdVar <- paste(var, "sd", sep = "_")
+        # Quang - this code makes an assumption that the SDs are named Variable_sd. Let's discuss this
       
-        if (mean_var %in% names(targetData)) {
-          studyData[var] <- studyData[var] - targetData[[mean_var]]
+        # Quang - this code centers the columns in studyData within studyData itself. I don't think this is a good idea because you would want to keep the original study data in the result object. You should make a separate data frame with the centered columns.
+        if (meanVar %in% names(aggregateTargetData)) {
+          studyData[var] <- studyData[var] - targetData[[meanVar]]
         }
       
-        if (mean_var %in% names(targetData) && sd_var %in% names(targetData)) {
-          squared_var_name <- paste(var, "squared_centered", sep = "_")
-          studyData[[squared_var_name]] <- studyData[[var]]^2 - (targetData[[mean_var]]^2 + targetData[[sd_var]]^2)
+        if (meanVar %in% names(aggregateTargetData) && sdVar %in% names(aggregateTargetData)) {
+          squaredVarName <- paste(var, "squared_centered", sep = "_")
+          studyData[[squaredVarName]] <- studyData[[var]]^2 - (aggregateTargetData[[meanVar]]^2 + aggreagteTargetData[[sdVar]]^2)
         }
       }
     
@@ -133,7 +153,7 @@ transportMAIC() <- function(msmFormula,
   # The model fitting functions require weights to be part of the data frame
   toAnalyze$finalWeights <- finalWeights # add new column
   
-  # *** NOTE: a reminder that we just need to use the finalWeights to match the studyData(IPD) only. It is the transportability all about ***
+  # *** NOTE: a reminder that we just need to use the finalWeights to match the studyData(studyData) only. It is the transportability all about ***
   
   if (is.character(family)) {
     if (family == "coxph") {
@@ -150,6 +170,7 @@ transportMAIC() <- function(msmFormula,
     }
   } 
   else {  ## *** debug *** when [family] has an input with character but not any correct type of distribution we need a warning to notify the user (## for example when user actually input cox instead of coxph it would be led to glm but not the thing user actually wants [family = family might also lead problem])
+      ## Quang - good catch. Can you implement this? I'll use your code for the other functions as well.
       model <- stats::glm(msmFormula, 
                           family = family, 
                           data = toAnalyze, 
@@ -170,14 +191,14 @@ transportMAIC() <- function(msmFormula,
                               finalWeights = finalWeights,
                               
                               customPropensity = customPropensity,
-                              #customParticipation = customParticipation,
+                              customParticipation = customParticipation,
                               
                               treatment = treatment,
                               #participation = participation,
                               response = response,
                               
-                              IPD = IPD,
-                              AgD = AgD
+                              studyData = studyData,
+                              aggregateTargetData = aggregateTargetData
                               
                               )
   
@@ -188,12 +209,10 @@ transportMAIC() <- function(msmFormula,
   # ------------- The End of the Function ------------- #
 }
 
-
-
 # Helper function that extracts weights from models
-# *** In MAIC ***: this function is only used for the propensity weights (inverse-prob for IPD)
-obtainPropensityWeights <- function(model, type = c("probability") {
-  type <- match.arg(type, c("probability")
+# *** In MAIC ***: this function is only used for the propensity weights (inverse-prob for studyData)
+obtainPropensityWeights <- function(model, type = c("probability")) {
+  type <- match.arg(type, c("probability"))
   
   if (type == "probability") {
     return(ifelse(model$y == T | model$y == 1, # here, model$y == 1 equals to A = 1
@@ -203,8 +222,10 @@ obtainPropensityWeights <- function(model, type = c("probability") {
 }
 
 # Helper function that detects glms
-is.glm <- function(x) inherits(x, "glm")
+is.glm <- function(x) {inherits(x, "glm")}
 
+
+# Please remove this line. I'll go over test data generation with you once we have more progress on this module.
 
 # ***Test dataset generator: MAIC***
 
@@ -212,7 +233,7 @@ is.glm <- function(x) inherits(x, "glm")
 generateTestData_MAIC <- function() {
   expit <- function(x) 1/(1+exp(-x))
 
-  # Generate study data: IPD
+  # Generate study data: studyData
   nStudy <- 1000
   
   sexStudy <- rbinom(nStudy, 1, 0.5) # Male is 1, so female is baseline
@@ -233,7 +254,7 @@ generateTestData_MAIC <- function() {
   
   
   
-  # Generate target data: AgD
+  # Generate target data: aggregateTargetData
   nTarget <- 3000
   
   sexTarget <- rbinom(nTarget, 1, 0.3) # Male is 1, so female is baseline
@@ -246,9 +267,9 @@ generateTestData_MAIC <- function() {
                            stress = mean(stressTarget),
                            med2 = mean(med2Target), 
                            percentBodyFat = mean(percentBodyFatTarget), # mean
-                           percentBodyFat_sd = sd(percentBodyFatTarget)) #sd: applying by matching X^2 in IPD with (sd^2-mean^2) in AgD
+                           percentBodyFat_sd = sd(percentBodyFatTarget)) #sd: applying by matching X^2 in studyData with (sd^2-mean^2) in aggregateTargetData
   
-  return(list(IPD = studyData, 
-              AgD = targetData))
+  return(list(studyData = studyData, 
+              aggregateTargetData = targetData))
 }
 
