@@ -1,6 +1,6 @@
 Package: TransportHealthR
 Title: Transportability Analysis
-Version: 0.1.1.9000
+Version: 0.2.0
 Authors@R: 
     person("Quang", "Vuong", , "quang@coreclinicalsciences.com", role = c("aut", "cre"))
 Description: Perform generalizability and transportability analysis for mergable and unmergable individual patient data, as well as aggregate treatment-level data. This package supports basic IP weighting, g-computation and (insert aggregate data method here) approaches, with some room for customization.
