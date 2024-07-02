@@ -55,7 +55,7 @@ testData <- generateTestData()
 
 Transportability analysis is the statistical problem of estimating causal effects of a treatment on a response for a target population using data gathered from a different population i.e. the study population. It is often used to apply findings from a randomized clinical trial to a population with substantially different characteristics or when it is too difficult to collect data from the population of interest. Marginal causal effects of the study and target populations are often not equal due to the different distributions of effect modifiers between the two populations, so causal effect estimates calculated using samples from the study population are biased for the causal effect of the treatment in the target population. Therefore, effect modification must be accounted for to obtain unbiased causal effect estimates in the target population using data from the study population.
 
-A approach to transportability analysis is inverse odds of participation weighting (IOPW), which weighs observations in the study data by the inverse odds of each observation participating in the study given its effect modifiers in addition to previous weights used for covariate adjustment. The `TransportHealthR` package provides functions that streamline this approach.
+An approach to transportability analysis is inverse odds of participation weighting (IOPW), which weighs observations in the study data by the inverse odds of each observation participating in the study given its effect modifiers in addition to previous weights used for covariate adjustment. The `TransportHealthR` package provides functions that streamline this approach.
 
 # Example
 
@@ -97,6 +97,7 @@ result <- transportIP(msmFormula = sysBloodPressure ~ med1, # MSM formula
                       transport = T # Perform transportability analysis or generalizability analysis
                       )
 ```
+
 To show the results of the analysis, use the `summary` function like you would for `lm`. This prints out covariate balance tables pre- and post-weighting for covariates between treatment groups (using propensity weights only) and effect modifiers (using participation weights only) between study and target data, as well as a summary output of the MSM model fit with the correct standard errors calculated by `sandwich::vcovBS`. For the effect modifiers balance table, the weights used are inverse odds for study data and 1 for target data in a transportability analysis, and inverse probability for all observations in a generalizability analysis. Note that if custom participation weights are provided, the balance tables default to a transportability analysis since only the weights for observations in the study data are provided.
 
 ```{r IPWeighting-summary, echo = T}

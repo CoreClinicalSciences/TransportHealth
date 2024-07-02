@@ -21,6 +21,7 @@ Depends:
 Suggests: 
     knitr,
     markdown,
+    rmarkdown,
     simsurv,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr

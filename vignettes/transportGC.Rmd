@@ -1,0 +1,118 @@
+---
+title: "Transportability analysis using g-computation with TransportHealthR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Transportability analysis using g-computation with TransportHealthR}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = F}
+library(TransportHealthR)
+set.seed(20240501)
+
+expit <- function(x) 1/(1+exp(-x))
+
+# Generate test data for TransportHealth. This data is not meant to be officially put in the package. It is simply to test whether the implemented functions in the package accept the correct inputs and outputs.
+generateTestData <- function() {
+  # Generate study data
+  nStudy <- 1000
+  sexStudy <- rbinom(nStudy, 1, 0.5) # Male is 1, so female is baseline
+  stressStudy <- rbinom(nStudy, 1, 0.4) # Stressed is 1
+  med2Study <- rbinom(nStudy, 1, 0.1) # 1 means taking other med
+  percentBodyFatStudy <- rnorm(nStudy, 28 - 13 * sexStudy, 2)
+  med1Study <- rbinom(nStudy, 1, expit(0.2 * sexStudy - 0.02 * percentBodyFatStudy + 0.1 * stressStudy))
+  sysBloodPressureStudy <- rnorm(nStudy, 100 + 5 * sexStudy + 0.5 * percentBodyFatStudy + 5 * stressStudy -
+                                   5 * med1Study + med1Study * (-5 * med2Study + 7 * stressStudy))
+  
+  # Put all variables together
+  studyData <- data.frame(sysBloodPressure = sysBloodPressureStudy, med1 = as.factor(med1Study), sex = as.factor(sexStudy), stress = as.factor(stressStudy), med2 = as.factor(med2Study), percentBodyFat = percentBodyFatStudy)
+  
+  # Generate target data
+  nTarget <- 1500
+  sexTarget <- rbinom(nTarget, 1, 0.3) # Male is 1, so female is baseline
+  stressTarget <- rbinom(nTarget, 1, 0.7) # Stressed is 1
+  med2Target <- rbinom(nTarget, 1, 0.3) # 1 means taking other med
+  percentBodyFatTarget <- rnorm(nTarget, 26 - 12 * sexTarget, 2)
+  
+  # Put all variables together
+  targetData <- data.frame(sex = as.factor(sexTarget), stress = as.factor(stressTarget), med2 = as.factor(med2Target), percentBodyFat = percentBodyFatTarget)
+  
+  return(list(studyData = studyData, targetData = targetData))
+}
+
+testData <- generateTestData()
+```
+
+# Introduction
+
+Transportability analysis is the statistical problem of estimating causal effects of a treatment on a response for a target population using data gathered from a different population i.e. the study population. It is often used to apply findings from a randomized clinical trial to a population with substantially different characteristics or when it is too difficult to collect data from the population of interest. Marginal causal effects of the study and target populations are often not equal due to the different distributions of effect modifiers between the two populations, so causal effect estimates calculated using samples from the study population are biased for the causal effect of the treatment in the target population. Therefore, effect modification must be accounted for to obtain unbiased causal effect estimates in the target population using data from the study population.
+
+An approach to transportability analysis is g-computation, which standardizes outcomes in the study population to the distribution of effect modifiers in the target population, thereby allowing unbiased estimation of causal effects. The `TransportHealthR` package provides functions that streamline this approach.
+
+# Example
+
+Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex (1 for male), percent body fat, and stress (binary, 1 for stressed). Suppose further that using domain knowledge, we know that the effectiveness of the medication depends on stress levels and whether patients are taking another medication (yes or no), so these variables are effect modifiers. Notice that covariates adjusted for in the study data can also be effect modifiers. We can perform this analysis as follows.
+
+Firstly, the data from the study and target population may be separate or merged. If they are separate, put them together in a list. Make sure that the study data has the response and treatment columns, while the target data do not (which is the case 99\% of the time). If they are merged, make sure that
+
+1. The response and treatment columns for the target data are `NA`, and
+2. There is a binary variable indicating which observations are in the study data and the target data, with participation being coded as `1` or `TRUE`.
+
+Suppose that we have the study and target data separately as follows.
+
+```{r exampleData, echo = T}
+names(testData)
+print("Study data:")
+head(testData$studyData)
+print("Target data:")
+head(testData$targetData)
+
+```
+
+We can now perform transportability analysis using g-computation with the `transportGC` function. Firstly, we fit a regression model of the outcome in terms of the covariates and effect modifiers, making sure to include interaction terms of the effect modifiers. We need to wrap the results using the `transportGCPreparedModel` function to be able to use the `transportGC` function, as follows.
+
+```{r PreparedModel, echo = T}
+preparedModel <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
+                                          treatment = "med1",
+                                          family = gaussian,
+                                          studyData = testData$studyData,
+                                          wipe = F)
+```
+
+To estimate the average treatment effect of using the medication on systolic blood pressure in the target population, we can use the `transportGC` function as follows.
+
+```{r GComputation, echo = T}
+result <- transportGC(sysBloodPressure ~ med1,
+                      preparedModel,
+                      testData$targetData)
+```
+
+To show the results of the analysis, use `summary` like you would for `lm`. This will print out the variable names of the treatment and the response, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the latter.
+
+```{r GComputation-summary, echo = T}
+summary(result)
+```
+
+The workflow is constructed like this to accommodate situations where the source data and target data cannot be merged to comply with security regulations. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in a `.rds` file. Then the owners of the target data can extract the objecto to conduct g-computation using `transportGC`. Note that this workflow does not enable the calculation of the correct variance estimators using bootstrap (which is the approach `transportGC` uses) when `wipe = T` to comply with regulations. One work around is that the owners of the source data can resample the source data and provide `transportGCPreparedModel` objects for each resample of the source data, and the owners of the target data can independently resample the target data and apply `transportGC` using each `transportGCPreparedModel` object to each resampled target dataset to obtain bootstrap samples of the MSM coefficient estimates.
+
+To obtain a coefficient plot of estimates, use the `plot` function.
+
+```{r GComputation-plot, echo = T}
+plot(result)
+```
+
+One can assess the appropriateness of the outcome model by performing usual diagnostic techniques on the outcome model. For example, we can look at the residual plot of the outcome model.
+
+```{r OutcomeModelResidualPlot, echo = T}
+plot(preparedModel$outcomeModel, which = 1)
+```
+
+The residual plot of the outcome model is patternless, indicating that it is appropriate.
