@@ -349,6 +349,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
   treatmentIndex <- which(names(studyData) == treatment)
   
   # Calculate SMDs for covariates (should optimize)
+  if (length(covariates != 0)) {
   prePropensitySMD <- sapply(covariates, function (covariate) as.double(smd::smd(x = studyData[, which(names(studyData) == covariate)],
                                                                        g = studyData[, treatmentIndex])$estimate))
   prePropensityBalance <- data.frame(variable = covariates, smd = abs(prePropensitySMD), method = rep("Observed", length(covariates)))
@@ -358,6 +359,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
   postPropensityBalance <- data.frame(variable = covariates, smd = abs(postPropensitySMD), method = rep("Weighted", length(covariates)))
   
   propensityBalance <- rbind(prePropensityBalance, postPropensityBalance)
+  } else propensityBalance <- NULL
   
   # Calculate SMDs for effect modifiers
   
@@ -396,6 +398,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
   }
   
   # Should also optimize
+  if (length(effectModifiers) != 0) {
   preParticipationSMD <- sapply(effectModifiers, function (effectModifier) as.double(smd::smd(x = participationData[, which(names(participationData) == effectModifier)],
                                                                                  g = participationData[, participationIndex])$estimate))
   preParticipationBalance <- data.frame(variable = effectModifiers, smd = abs(preParticipationSMD), method = rep("Observed", length(effectModifiers)))
@@ -404,6 +407,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
                                                                                               w = participationWeights)$estimate))
   postParticipationBalance <- data.frame(variable = effectModifiers, smd = abs(postParticipationSMD), method = rep("Weighted", length(effectModifiers)))
   participationBalance <- rbind(preParticipationBalance, postParticipationBalance)
+  } else participationBalance <- NULL
   
   # If model is glm, calculate and replace correct SEs
   
@@ -498,6 +502,7 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates =
   } else if (type == "propensitySMD") {
     # SMD plot of covariates
       propensitySMD <- summaryTransportIP$propensitySMD
+      if (is.null(propensitySMD)) stop("No covariates to plot, please provide some.")
       resultPlot <- ggplot2::ggplot(propensitySMD, ggplot2::aes(x = .data$variable, y = .data$smd, group = .data$method, color = .data$method)) + 
         ggplot2::geom_line() +
         ggplot2::geom_point() +
@@ -519,6 +524,7 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates =
     } else if (type == "participationSMD") {
     # SMD plots of effect modifiers
       participationSMD <- summaryTransportIP$participationSMD
+      if (is.null(participationSMD)) stop("No effect modifiers to plot, please provide some.")
       resultPlot <- ggplot2::ggplot(participationSMD, ggplot2::aes(x = .data$variable, y = .data$smd, group = .data$method, color = .data$method)) + 
         ggplot2::geom_line() +
         ggplot2::geom_point() +
