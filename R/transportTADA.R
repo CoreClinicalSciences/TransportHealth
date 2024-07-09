@@ -49,7 +49,6 @@ transportTADA() <- function(msmFormula,
                             response = NULL, # string, name of response
                             
                             family = stats::gaussian, # any available family for glm such as "gaussian", OR, "coxph" / "survreg"
-                            
                             studyData, # data of study population (studyData): N rows, data.frame with responses and variables
                             aggregateTargetData  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
 
@@ -102,8 +101,10 @@ transportTADA() <- function(msmFormula,
     # # Richard - the point here is some possible variables existing in both datasets, but not meaningful at all for the analysis (like Index) 
     # # Richard - updated with user notice with the selected ready-to-use covariates, since it's not easy to comprehensively consider input formats and we let it to users. 
   
-  
-
+  # If all user-specified matching covariates are invalid, raise an error and stop execution
+  if (length(matchingCovariates) == 0) { # Here should be OR validCov???
+    stop("All user-specified matching covariates are not found in neither studyData or aggregateTargetData, execution stopped!")
+  }
   
   #  If formula is provided for treatment and participation models, fit models ourselves
   if (inherits(propensityScoreModel, "formula")) { # if it is in the format of formula 
@@ -137,6 +138,7 @@ transportTADA() <- function(msmFormula,
     customParticipation <- T
   }
   
+<<<<<<< HEAD
   # obtain participation weights when no custom weights (pending in individual testing scripts)
   if (is.null(participationWeights)) {
     # ----- Participation Weight Estimation ----- #
@@ -153,9 +155,6 @@ transportTADA() <- function(msmFormula,
     participationWeights <- participationWeightCalculation$weights
   }
 
-  
-  
-  
   # final weights: propensityWeights accounts for the confounding and participationWeights accounts for the EM distribution difference between populations
   finalWeights <-  propensityWeights * participationWeights
   
@@ -179,7 +178,6 @@ transportTADA() <- function(msmFormula,
     if (!(family %in% c("coxph", "survreg"))) {
       stop("Please check the family input and set it as one of the following in character: coxph, survreg.")
       }
-    
     family <- match.arg(family, c("coxph", "survreg"))
     
     if (family == "coxph") {
@@ -229,7 +227,6 @@ transportTADA() <- function(msmFormula,
 }
 # ------------- The End of the Function ------------- #
 
-
 # Helper function that extracts weights from models
 # *** In TADA ***: this function is only used for the propensity weights (inverse-prob for studyData)
 obtainPropensityWeights <- function(model, type = c("probability")) {
@@ -244,6 +241,7 @@ obtainPropensityWeights <- function(model, type = c("probability")) {
 
 # Helper function that detects glms
 is.glm <- function(x) {inherits(x, "glm")}
+
 
 # Summary 
 
