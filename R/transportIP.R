@@ -12,7 +12,7 @@
 #' @param treatment String indicating name of treatment variable. If \code{NULL}, it will be auto-detected from \code{propensityScoreModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{treatment} should be provided so that \code{summary.transportIP} and \code{plot.transportIP} works.
 #' @param participation String indicating name of participation variable. If \code{NULL}, it will be auto-detected from \code{participationModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{participation} should be provided so that \code{summary.transportIP} and \code{plot.transportIP} works.
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.
-#' @param family Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", coxph", "survreg")}.
+#' @param family Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", "coxph", "survreg")}.
 #' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.
 #' @param data Either a single data frame containing merged study and target datasets, or a list containing the study dataset and the target dataset. Note that if participationModel is a glm object, the datasets would have been merged, so provide the merged dataset containing response, treatment, covariates controlled for in the original study, study participation and effect modifiers if this is the case. Make sure to code treatment and participation as 0-1 or TRUE-FALSE, with 1 and TRUE representing treatment group and study data, respectively.
 #' @param transport A boolean indicating whether a generalizability analysis (false) or a transportability analysis (true) is done.
@@ -498,8 +498,9 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates =
       }
       resultPlot <- ggplot2::ggplot(data = studyData, mapping = ggplot2::aes(.data$propensityScore)) +
         halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!treatmentVar]], fill = .data[[!!treatmentVar]]), bins = bins) +
-        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[1]],], ggplot2::aes(x = propensityScore, y = -after_stat(density)), color = "black", alpha = 0) + 
-        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[2]],], ggplot2::aes(x = propensityScore, y = after_stat(density)), color = "black", alpha = 0)
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[1]],], ggplot2::aes(x = propensityScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[2]],], ggplot2::aes(x = propensityScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
+        ggplot2::ylab("Count")
     } else {
       stop("Custom propensity weights were used. Please plot your previously estimated propensity scores using the halfmoon package, if desired.")
     }
@@ -527,8 +528,9 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates =
         }
         resultPlot <- ggplot2::ggplot(allData, ggplot2::aes(.data$participationScore)) +
           halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!participationVar]], fill = .data[[!!participationVar]]), bins = bins) +
-          ggplot2::stat_density(data = allData[participationGroupIdx[[1]],], ggplot2::aes(x = participationScore, y = -after_stat(density)), color = "black", alpha = 0) + 
-          ggplot2::stat_density(data = allData[participationGroupIdx[[2]],], ggplot2::aes(x = participationScore, y = after_stat(density)), color = "black", alpha = 0)
+          ggplot2::stat_density(data = allData[participationGroupIdx[[1]],], ggplot2::aes(x = participationScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
+          ggplot2::stat_density(data = allData[participationGroupIdx[[2]],], ggplot2::aes(x = participationScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
+          ggplot2::ylab("Count")
       } else {
         stop("Custom participation weights were used. Please plot your previously estimated participation scores using the halfmoon package, if desired.")
       }

@@ -37,7 +37,7 @@ transportIP(
 
 \item{response}{String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.}
 
-\item{family}{Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", coxph", "survreg")}.}
+\item{family}{Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", "coxph", "survreg")}.}
 
 \item{method}{Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.}
 
