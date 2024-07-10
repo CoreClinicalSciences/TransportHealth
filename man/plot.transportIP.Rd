@@ -7,7 +7,7 @@
 \method{plot}{transportIP}(
   x,
   type = "propensityHist",
-  bins = 30,
+  bins = 50,
   covariates = NULL,
   effectModifiers = NULL,
   ...

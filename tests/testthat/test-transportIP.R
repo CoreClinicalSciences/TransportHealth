@@ -34,7 +34,9 @@ test_that("Scenario 1: separate study and target data, formula provided for prop
   expect_no_warning(testPlot <- plot(testResult, type = "msm"))
   expect_true(ggplot2::is.ggplot(testPlot))
   
-  # Test if function works properly when study data and target data are provided in opposite order
+  testPlot + ggplot2::scale_fill_manual(values = c("#073660", "#2FB9AB")) + ggplot2::theme(text = ggplot2::element_text(size = 15))
+  
+# Test if function works properly when study data and target data are provided in opposite order
   
   swapData <- list()
   

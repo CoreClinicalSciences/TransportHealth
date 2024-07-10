@@ -1,7 +1,7 @@
 #' @title Transportability analysis using IOPW
 #' 
 #' @description
-#' Estimates the coefficients of a marginal structural model (MSM) using IP weighting in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively.
+#' Estimates the coefficients of a marginal structural model (MSM) using IP weighting in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively. Currently, this function only supports the case when there are exactly two treatment levels.
 #' 
 #'
 #' @param msmFormula A formula for the MSM to be fitted, which usually includes the outcome, the treatment and any effect modifiers.
@@ -12,7 +12,7 @@
 #' @param treatment String indicating name of treatment variable. If \code{NULL}, it will be auto-detected from \code{propensityScoreModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{treatment} should be provided so that \code{summary.transportIP} and \code{plot.transportIP} works.
 #' @param participation String indicating name of participation variable. If \code{NULL}, it will be auto-detected from \code{participationModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{participation} should be provided so that \code{summary.transportIP} and \code{plot.transportIP} works.
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.
-#' @param family Either a \code{family} function as used for \code{glm}, or one of \code{c("coxph", "survreg")}.
+#' @param family Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", coxph", "survreg")}.
 #' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.
 #' @param data Either a single data frame containing merged study and target datasets, or a list containing the study dataset and the target dataset. Note that if participationModel is a glm object, the datasets would have been merged, so provide the merged dataset containing response, treatment, covariates controlled for in the original study, study participation and effect modifiers if this is the case. Make sure to code treatment and participation as 0-1 or TRUE-FALSE, with 1 and TRUE representing treatment group and study data, respectively.
 #' @param transport A boolean indicating whether a generalizability analysis (false) or a transportability analysis (true) is done.
@@ -476,7 +476,7 @@ print.summary.transportIP <- function(x, out = stdout(), ...) {
 #' @export
 #'
 #' @importFrom rlang .data
-plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates = NULL, effectModifiers = NULL, ...) {
+plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates = NULL, effectModifiers = NULL, ...) {
   transportIPResult <- x
   summaryTransportIP <- summary(transportIPResult, covariates = covariates, effectModifiers = effectModifiers)
   resultPlot <- NULL
@@ -491,7 +491,15 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates =
       studyData <- propensityModel$data
       studyData$propensityScore <- propensityModel$fitted.values
       treatmentVar <- transportIPResult$treatment
-      resultPlot <- ggplot2::ggplot(data = studyData, mapping = ggplot2::aes(.data$propensityScore)) + halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!treatmentVar]], fill = .data[[!!treatmentVar]]), bins = bins)
+      treatmentGroups <- levels(factor(studyData[[treatmentVar]]))
+      treatmentGroupIdx <- list()
+      for (i in 1:length(treatmentGroups)) {
+        treatmentGroupIdx[[i]] <- which(studyData[[treatmentVar]] == treatmentGroups[i])
+      }
+      resultPlot <- ggplot2::ggplot(data = studyData, mapping = ggplot2::aes(.data$propensityScore)) +
+        halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!treatmentVar]], fill = .data[[!!treatmentVar]]), bins = bins) +
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[1]],], ggplot2::aes(x = propensityScore, y = -after_stat(density)), color = "black", alpha = 0) + 
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[2]],], ggplot2::aes(x = propensityScore, y = after_stat(density)), color = "black", alpha = 0)
     } else {
       stop("Custom propensity weights were used. Please plot your previously estimated propensity scores using the halfmoon package, if desired.")
     }
@@ -512,7 +520,15 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates =
         allData <- participationModel$data
         allData$participationScore <- participationModel$fitted.values
         participationVar <- transportIPResult$participation
-        resultPlot <- ggplot2::ggplot(allData, ggplot2::aes(.data$participationScore)) + halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!participationVar]], fill = .data[[!!participationVar]]), bins = bins)
+        participationGroups <- levels(factor(allData[[participationVar]]))
+        participationGroupIdx <- list()
+        for (i in 1:length(participationGroups)) {
+          participationGroupIdx[[i]] <- which(allData[[participationVar]] == participationGroups[i])
+        }
+        resultPlot <- ggplot2::ggplot(allData, ggplot2::aes(.data$participationScore)) +
+          halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!participationVar]], fill = .data[[!!participationVar]]), bins = bins) +
+          ggplot2::stat_density(data = allData[participationGroupIdx[[1]],], ggplot2::aes(x = participationScore, y = -after_stat(density)), color = "black", alpha = 0) + 
+          ggplot2::stat_density(data = allData[participationGroupIdx[[2]],], ggplot2::aes(x = participationScore, y = after_stat(density)), color = "black", alpha = 0)
       } else {
         stop("Custom participation weights were used. Please plot your previously estimated participation scores using the halfmoon package, if desired.")
       }
