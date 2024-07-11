@@ -476,6 +476,7 @@ print.summary.transportIP <- function(x, out = stdout(), ...) {
 #' @export
 #'
 #' @importFrom rlang .data
+#' @importFrom stats density
 plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates = NULL, effectModifiers = NULL, ...) {
   transportIPResult <- x
   summaryTransportIP <- summary(transportIPResult, covariates = covariates, effectModifiers = effectModifiers)
