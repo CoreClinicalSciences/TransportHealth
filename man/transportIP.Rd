@@ -37,7 +37,7 @@ transportIP(
 
 \item{response}{String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.}
 
-\item{family}{Either a \code{family} function as used for \code{glm}, or one of \code{c("coxph", "survreg")}.}
+\item{family}{Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", "coxph", "survreg")}.}
 
 \item{method}{Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.}
 
@@ -65,7 +65,7 @@ A \code{transportIP} object containing the following components:
 }
 }
 \description{
-Estimates the coefficients of a marginal structural model (MSM) using IP weighting in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively.
+Estimates the coefficients of a marginal structural model (MSM) using IP weighting in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively. Currently, this function only supports the case when there are exactly two treatment levels.
 }
 \details{
 The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For each of these models, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights.
