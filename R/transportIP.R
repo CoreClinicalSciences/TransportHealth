@@ -498,8 +498,8 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates =
       }
       resultPlot <- ggplot2::ggplot(data = studyData, mapping = ggplot2::aes(.data$propensityScore)) +
         halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!treatmentVar]], fill = .data[[!!treatmentVar]]), bins = bins) +
-        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[1]],], ggplot2::aes(x = propensityScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
-        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[2]],], ggplot2::aes(x = propensityScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[1]],], ggplot2::aes(x = .data$propensityScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[2]],], ggplot2::aes(x = .data$propensityScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
         ggplot2::ylab("Count")
     } else {
       stop("Custom propensity weights were used. Please plot your previously estimated propensity scores using the halfmoon package, if desired.")
@@ -528,8 +528,8 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates =
         }
         resultPlot <- ggplot2::ggplot(allData, ggplot2::aes(.data$participationScore)) +
           halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!participationVar]], fill = .data[[!!participationVar]]), bins = bins) +
-          ggplot2::stat_density(data = allData[participationGroupIdx[[1]],], ggplot2::aes(x = participationScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
-          ggplot2::stat_density(data = allData[participationGroupIdx[[2]],], ggplot2::aes(x = participationScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
+          ggplot2::stat_density(data = allData[participationGroupIdx[[1]],], ggplot2::aes(x = .data$participationScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
+          ggplot2::stat_density(data = allData[participationGroupIdx[[2]],], ggplot2::aes(x = .data$participationScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
           ggplot2::ylab("Count")
       } else {
         stop("Custom participation weights were used. Please plot your previously estimated participation scores using the halfmoon package, if desired.")
@@ -546,7 +546,9 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates =
         ggplot2::theme(legend.key = ggplot2::element_blank())
     } else if (type == "msm") {
       # Coefficient plots
-      resultPlot <- modelsummary::modelplot(transportIPResult$msm, vcov = list(transportIPResult$msm$var))
+      resultPlot <- modelsummary::modelplot(transportIPResult$msm,
+                                            vcov = list(transportIPResult$msm$var),
+                                            coef_omit = "(Intercept)")
     }
   
   return(resultPlot)
