@@ -7,13 +7,11 @@ test_that("Outcome model provided as formula", {
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
-  expect_no_error(transportGCResult <- transportGC(sysBloodPressure ~ med1,
+  expect_no_error(transportGCResult <- transportGC("meanDiff",
                                    preparedModel,
                                    testData$targetData))
   
   expect_true(inherits(transportGCResult, "transportGC"))
-  
-  expect_true(inherits(transportGCResult$msm, "glm"))
   
   expect_no_error(preparedModel <- transportGCPreparedModel(outcomeModel = sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med2 + med1:stress + med1:med2,
                                                             treatment = "med1",
@@ -23,7 +21,7 @@ test_that("Outcome model provided as formula", {
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
-  expect_no_error(transportGCResult <- transportGC(sysBloodPressure ~ med1,
+  expect_no_error(transportGCResult <- transportGC("meanDiff",
                                                    preparedModel,
                                                    testData$targetData))
   
@@ -31,7 +29,8 @@ test_that("Outcome model provided as formula", {
   
   expect_no_error(transportGCSummary <- summary(transportGCResult))
   
-  expect_true(inherits(transportGCSummary$msmSummary, c("summary.glm", "summary.survreg", "summary.coxph", "summary.polr")))
+  expect_true(is.numeric(transportGCSummary$effect))
+  expect_true(is.numeric(transportGCSummary$var))
   expect_true(inherits(transportGCSummary$preparedModelSummary, c("summary.glm", "summary.survreg", "summary.coxph", "summary.polr")))
   expect_true(is.character(transportGCSummary$response))
   expect_true(is.character(transportGCSummary$treatment))
@@ -54,13 +53,11 @@ test_that("Outcome model provided as glm", {
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
-  expect_no_error(transportGCResult <- transportGC(sysBloodPressure ~ med1,
+  expect_no_error(transportGCResult <- transportGC("meanDiff",
                                                    preparedModel,
                                                    testData$targetData))
   
   expect_true(inherits(transportGCResult, "transportGC"))
-  
-  expect_true(inherits(transportGCResult$msm, "glm"))
   
   expect_no_error(preparedModel <- transportGCPreparedModel(outcomeModel = outcomeModel,
                                                             treatment = "med1",
@@ -68,7 +65,7 @@ test_that("Outcome model provided as glm", {
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
-  expect_no_error(transportGCResult <- transportGC(sysBloodPressure ~ med1,
+  expect_no_error(transportGCResult <- transportGC("meanDiff",
                                                    preparedModel,
                                                    testData$targetData))
   
@@ -76,7 +73,8 @@ test_that("Outcome model provided as glm", {
   
   expect_no_error(transportGCSummary <- summary(transportGCResult))
   
-  expect_true(inherits(transportGCSummary$msmSummary, c("summary.glm", "summary.survreg", "summary.coxph", "summary.polr")))
+  expect_true(is.numeric(transportGCSummary$effect))
+  expect_true(is.numeric(transportGCSummary$var))
   expect_true(inherits(transportGCSummary$preparedModelSummary, c("summary.glm", "summary.survreg", "summary.coxph", "summary.polr")))
   expect_true(is.character(transportGCSummary$response))
   expect_true(is.character(transportGCSummary$treatment))

@@ -90,7 +90,7 @@ preparedModel <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress
 To estimate the average treatment effect of using the medication on systolic blood pressure in the target population, we can use the `transportGC` function as follows.
 
 ```{r GComputation, echo = T}
-result <- transportGC(sysBloodPressure ~ med1,
+result <- transportGC("meanDiff",
                       preparedModel,
                       testData$targetData)
 ```

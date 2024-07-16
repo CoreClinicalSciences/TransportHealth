@@ -251,6 +251,7 @@ transportIPFit <- function(msmFormula,
     } else if (family == "survreg") {
     model <- survival::survreg(msmFormula, data = toAnalyze, weight = finalWeights)
     } else if (family == "polr") {
+    method <- match.arg(method, c("logistic", "probit", "loglog", "cloglog", "cauchit"))
     model <- MASS::polr(msmFormula, data = toAnalyze, weights = finalWeights, method = method)
     }
   } else {
