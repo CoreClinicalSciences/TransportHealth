@@ -157,7 +157,7 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   if (inherits(outcomeModel, "polr")) {
     numResponseLevels <- length(responseLevels)
     effects <- double(numResponseLevels-1)
-    for (i in 2:numResponseLevels) {
+    for (i in 1:numResponseLevels) {
       probs <- apply(targetDataCounterfactualProbs[, 1:i, drop = F], 1, sum)
       treatmentMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
       controlMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
