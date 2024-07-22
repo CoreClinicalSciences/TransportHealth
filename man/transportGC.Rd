@@ -4,10 +4,15 @@
 \alias{transportGC}
 \title{Transportability analysis using g-computation}
 \usage{
-transportGC(msmFormula, preparedModel, targetData, bootstrapNum = 500)
+transportGC(
+  effectType = c("meanDiff", "rr", "or", "hr"),
+  preparedModel,
+  targetData,
+  bootstrapNum = 500
+)
 }
 \arguments{
-\item{msmFormula}{A formula for the MSM to be fitted, which usually includes the outcome, the treatment and any effect modifiers.}
+\item{effectType}{Type of effect desired for the ATE: \code{"meanDiff"} for mean difference, \code{"rr"} for relative risk, \code{"or"} for odds ratio, and \code{"hr"} for hazard ratio.}
 
 \item{preparedModel}{A \code{transportGCPreparedModel} object. This is obtained by using the \code{transportGCPreparedModel} function to fit an outcome model using the study data.}
 

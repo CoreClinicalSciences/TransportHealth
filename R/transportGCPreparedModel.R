@@ -5,6 +5,7 @@
 #' 
 #' @param outcomeModel Either a formula or a \code{glm}, \code{survreg} or \code{coxph} object representing the outcome model.
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected from \code{outcomeModel}.
+#' @param responseLevels For ordinal responses, vector of strings indicating levels of response variable in the study data. If \code{NULL} and \code{polr} is used, it will be auto-detected using \code{response} and \code{studyData}.
 #' @param treatment String indicating name of treatment variable. This argument is required.
 #' @param treatmentLevels Vector of strings indicating levels of treatment variable in the study data. If \code{NULL}, it will be auto-detected using \code{treatment} and \code{studyData}.
 #' @param family Either a family function as used for \code{glm}, or one of \code{c("coxph", "survreg")}. Only required if \code{outcomeModel} is a formula.
@@ -27,6 +28,7 @@
 #' @md
 transportGCPreparedModel <- function(outcomeModel,
                              response = NULL,
+                             responseLevels = NULL,
                              treatment,
                              treatmentLevels = NULL,
                              family = stats::gaussian,
@@ -61,6 +63,12 @@ transportGCPreparedModel <- function(outcomeModel,
     }
   }
   
+  # Extract response variable information when polr is used
+  if (inherits(outcomeModel, "polr")) {
+    if (!is.null(studyData)) responseLevels <- levels(studyData[[response]])
+    else responseLevels <- levels(outcomeModel$data[[response]])
+  }
+  
   # Erase study data from outcome model object
   if (wipe) {
     if (inherits(outcomeModel, "glm")) {
@@ -82,6 +90,7 @@ transportGCPreparedModel <- function(outcomeModel,
   
   preparedModel <- list(outcomeModel = outcomeModel,
                         response = response,
+                        responseLevels = responseLevels,
                         treatment = treatment,
                         treatmentLevels = treatmentLevels,
                         family = family,
