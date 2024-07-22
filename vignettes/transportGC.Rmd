@@ -59,14 +59,9 @@ One approach to transportability analysis is g-computation, which standardizes o
 
 # Example
 
-Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex (binary, 1 for male, 0 for female), percent body fat, and stress (binary, 1 for stressed, 0 for not stressed). Suppose further that, using domain knowledge, we know that the effectiveness of the medication depends on stress levels and whether patients are taking another medication (binary, 1 for yes, 0 for no), so these variables are effect modifiers. Notice that the covariates adjusted for in the study data can also be effect modifiers. We can perform this analysis as follows.
+Suppose we are interested in estimating the causal effect of a medication (called `med1` in the code) on systolic blood pressure (called `sysBloodPressure` in the code) in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex (binary, 1 for male, 0 for female, called `sex` in the code), percent body fat (called `percentBodyFat` in the code), and stress (binary, 1 for stressed, 0 for not stressed, called `stress` in the code). Suppose further that, using domain knowledge, we know that the effectiveness of the medication depends on stress levels and whether patients are taking another medication (binary, 1 for yes, 0 for no, called `med2` in the code), so these variables are effect modifiers. Notice that the covariates adjusted for in the study data can also be effect modifiers. We can perform this analysis as follows.
 
-<!-- Quang, this next part isn't totally clear. It sounds like if they are in separate files, they need to be merged, is that right? If by list you mean make a list of dataframes in R, I would specify that because list could be interpreted in different ways.-->
-
-First, the data from the study and target population may be separate or merged. If they are separate, put them together in a list. Make sure that the study data has the response and treatment columns, while the target data does not (which is the case 99\% of the time). If they are merged, make sure that:
-
-1. The response and treatment columns for the target data are `NA`, and
-2. There is a binary variable indicating which observations are in the study data and the target data, with participation being coded as `1` or `TRUE`.
+First, for the implementation of g-computation in `TransportHealthR` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only covariate and effect modifier information.
 
 Suppose that we have the study and target data separately as follows.
 
@@ -79,24 +74,24 @@ head(testData$targetData)
 
 ```
 
-We can now perform transportability analysis using g-computation with the `transportGC` function. First, we fit a regression model of the outcome in terms of the covariates and effect modifiers, making sure to include interaction terms of the effect modifiers. We need to wrap the results using the `transportGCPreparedModel` function to be able to use the `transportGC` function, as follows.
-
-<!-- Should we include these variable names in the example description above to help readers follow along? Or add a table below the example description listing the variable names -->
+We can now perform transportability analysis using g-computation with the `transportGC` function. First, we fit a regression model of the outcome in terms of the covariates and effect modifiers, making sure to include interaction terms of the effect modifiers. We need to wrap the results using the `transportGCPreparedModel` function to be able to use the `transportGC` function, as follows. Note that we only provide the study data to this function.
 
 ```{r PreparedModel, echo = T}
-preparedModel <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
-                                          treatment = "med1",
-                                          family = gaussian,
-                                          studyData = testData$studyData,
-                                          wipe = F)
+preparedModel <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2, # Formula for outcome model
+                                          treatment = "med1", # Name of treatment variable
+                                          family = gaussian, # Type of model
+                                          studyData = testData$studyData, # Study data
+                                          wipe = F # Wipe study data from model?
+                                          )
 ```
 
-To estimate the average treatment effect of using the medication on systolic blood pressure in the target population, we can use the `transportGC` function as follows.
+To estimate the average treatment effect of using the medication on systolic blood pressure in the target population, we can use the `transportGC` function as follows. Note that we only provide the target data to this function.
 
 ```{r GComputation, echo = T}
-result <- transportGC("meanDiff",
-                      preparedModel,
-                      testData$targetData)
+result <- transportGC("meanDiff", # Type of effect estimate (mean difference, relative risk, etc)
+                      preparedModel, # transportGCPreparedModel object
+                      testData$targetData # Target data
+                      )
 ```
 
 To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the variable names of the treatment and the response, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the MSM.
@@ -105,7 +100,28 @@ To show the results of the analysis, use `summary` like you would for `lm` when 
 summary(result)
 ```
 
-The workflow is constructed like this to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. Note that this workflow does not enable the calculation of the correct variance estimators using bootstrap (which is the approach `transportGC` uses) when `wipe = T` to support privacy needs. One work around is that the owners of the source data can resample the source data and provide `transportGCPreparedModel` objects for each resample of the source data, and the owners of the target data can independently resample the target data and apply `transportGC` using each `transportGCPreparedModel` object to each resampled target dataset to obtain bootstrap samples of the MSM coefficient estimates.
+The workflow is constructed like this to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. See below for a comparison of `transportGCPreparedModel` objects with `wipe = T` and `wipe = F`.
+
+```{r GComputation-wipeCompare, echo = T}
+preparedModelNoWipe <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
+                                          treatment = "med1",
+                                          family = gaussian,
+                                          studyData = testData$studyData,
+                                          wipe = F)
+write("Components of outcomeModel with wipe = F:", stdout())
+str(preparedModelNoWipe$outcomeModel)
+preparedModelWipe <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
+                                          treatment = "med1",
+                                          family = gaussian,
+                                          studyData = testData$studyData,
+                                          wipe = T)
+write("\n", stdout())
+write("Components of outcomeModel with wipe = T:", stdout())
+str(preparedModelWipe$outcomeModel)
+```
+
+
+Note that this workflow does not enable the calculation of the correct variance estimators using bootstrap (which is the approach `transportGC` uses) when `wipe = T` to support privacy needs. One work around is that the owners of the source data can resample the source data and provide `transportGCPreparedModel` objects for each resample of the source data, and the owners of the target data can independently resample the target data and apply `transportGC` using each `transportGCPreparedModel` object to each resampled target dataset to obtain bootstrap samples of the MSM coefficient estimates.
 
 To obtain a coefficient plot of estimates, use the `plot` function.
 
@@ -119,4 +135,6 @@ One can assess the appropriateness of the outcome model by performing usual diag
 plot(preparedModel$outcomeModel, which = 1)
 ```
 
-In our example, the residual plot of the outcome model is patternless, indicating that it is appropriate.
+In our example, the residual plot of the outcome model is patternless, indicating that it is appropriate. Note that this step should be done by owners of the study data when the study and target data cannot be merged, as `residuals` are also erased in the `transportGCPreparedModel` object when `wipe = T`.
+
+Like inverse odds of participation weighting (IOPW), the validity of g-computation depends on untestable causal inference assumptions, including stable unit treatment value (SUTVA), conditional exchangeability, positivity and consistency. Unlike IOPW, g-computation does not have readily available diagnostics to evaluate if these assumptions are likely to hold or not. For conditional exchangeability, we suggest conducting sensitivity analyses with respect to unmeasured confounding, but this is beyond on the scope of the package. For positivity, a simple method would be to examine marginal distributions of covariates and effect modifiers in the study and target data and compare them: the distributions should overlap between the study and target data, but they do not need to be identical.
