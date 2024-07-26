@@ -12,7 +12,6 @@ Imports:
     ggplot2 (>= 3.5.1),
     halfmoon (>= 0.1.0),
     MASS (>= 7.3),
-    MAIC,
     modelsummary (>= 2.0.0),
     rlang,
     smd (>= 0.6.7),

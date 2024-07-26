@@ -32,12 +32,10 @@
 #' * \code{centeredStudyData}: The centered study data for obtaining participation weights with MoM by MAIC::estimate_weights function.
 #' 
 #' @export
-#'
-#' @examples
 #' 
 #' @md
 
-transportTADA() <- function(msmFormula, 
+transportTADA <- function(msmFormula, 
                             
                             propensityScoreModel = NULL, 
                             matchingCovariates = NULL, # User-specified matching covariates inputs
@@ -218,7 +216,7 @@ transportTADA() <- function(msmFormula,
                               studyData = studyData,
                               aggregateTargetData = aggregateTargetData,
                               
-                              centeredStudyData = centeredStudyData
+                              centeredStudyData = centerIPD
                               
                               )
   
