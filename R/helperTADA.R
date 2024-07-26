@@ -26,7 +26,7 @@ processedAgD <- function(aggregateTargetData) {
   selectCondition1 <- grepl("_", candidateAgD, fixed = TRUE) # variables whose name with "_" would be labelled TRUE for selection
   selectCondition2 <- sapply(candidateAgD, function(candidateAgD) {
     tmpName <- unlist(strsplit(candidateAgD, split = "_"))
-    tmp[length(tmpName)] # this deployment is robust to the cases that there are multiple _ in the column name
+    tmpName[length(tmpName)] # this deployment is robust to the cases that there are multiple _ in the column name
   })
   selectCondition2 <- (selectCondition2 %in% legalSuffix) # the last split section of variables in other_colnames by "_"
   selectedCandidates <- candidateAgD[selectCondition1 & selectCondition2] # until this row: get all the column whose column names with "_" and legal suffix: c("MEAN", "MEDIAN", "SD", "COUNT", "PROP")
@@ -69,7 +69,7 @@ dummizeIPD <- function(rawIPD, dummizeCols, refLevel = NULL) {
   for (i in seq_along(dummizeCols)) {
     
     rawCols <- rawIPD[[dummizeCols[i]]]
-    rawLevels <- na.omit(unique(rawCols))
+    rawLevels <- stats::na.omit(unique(rawCols))
     
     # dummizeCols is a vector with reference levels in order 
     if (is.null(refLevel) || length(refLevel) < i) {
@@ -130,7 +130,7 @@ optimiseWeights <- function(matrix,
     stop("Error: par must be a numeric vector with finite values of length equal to the number of columns in 'matrix'.")
   }
   
-  optResults <- optim(
+  optResults <- stats::optim(
     par = par,
     fn = function(alpha, X) sum(exp(X %*% alpha)), # function to be minimized
     gr = function(alpha, X) colSums(sweep(X, 1, exp(X %*% alpha), "*")), # gradient
