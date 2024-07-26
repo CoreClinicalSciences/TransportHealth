@@ -244,7 +244,6 @@ obtainPropensityWeights <- function(model, type = c("probability")) {
 
 # Helper function that detects glms
 is.glm <- function(x) {inherits(x, "glm")}
-
 # Summary 
 
 # Plot
