@@ -25,7 +25,10 @@
 #'
 #' @return
 #' A \code{transportGC} object with the following components:
-#' * \code{msm}: Raw model fit object of the MSM. Its class will be the same as that of \code{outcomeModel} in the provided \code{transportGCPreparedModel} object.
+#' * \code{effect}: Calculated ATE
+#' * \code{effectType}: Type of effect calculated
+#' * \code{var}: Estimated variance of ATE estimator, calculated using bootstrap
+#' * \code{preparedModel}: The \code{transportGCPreparedModel} object used to estimate the ATE
 #' * \code{bootstrapNum}: Integer indicating number of bootstrap datasets simulated to calculate robust variance estimators.
 #' 
 #' @export
