@@ -1,7 +1,7 @@
 #' @title Transportability analysis using g-computation
 #' 
 #' @description
-#' Estimates the coefficients of a marginal structural model (MSM) using g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively.
+#' Estimates the average treatment effect (ATE) using g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the ATE in the superpopulation or the target population, respectively.
 #' 
 #' @param effectType Type of effect desired for the ATE: \code{"meanDiff"} for mean difference, \code{"rr"} for relative risk, \code{"or"} for odds ratio, and \code{"hr"} for hazard ratio.
 #' @param preparedModel A \code{transportGCPreparedModel} object. This is obtained by using the \code{transportGCPreparedModel} function to fit an outcome model using the study data.
@@ -21,7 +21,7 @@
 #' 
 #' Since model-fitting objects in \code{R} often contain the data used to fit the model, the \code{transportGCPreparedModel} function wipes this data in the model-fitting object and keeps additional information about the name of the response variable, the name of the treatment variable and the levels of treatment. This is to comply with government regulations regarding access and integration of data sources from different countries.
 #' 
-#' The MSM-fitting functions do not provide correct standard errors as-is. Bootstrap is used to calculate robust variance estimates of the MSM coefficient estimators. Note that these standard errors are only valid conditional on the observed study data because it is not possible to resample the study data when access to it is restricted.
+#' Bootstrap is used to calculate robust variance estimates of the MSM coefficient estimators. Note that these standard errors are only valid conditional on the observed study data when \code{wipe = T} because it is not possible to resample the study data when access to it is restricted.
 #'
 #' @return
 #' A \code{transportGC} object with the following components:
