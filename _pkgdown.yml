@@ -1,6 +1,10 @@
-url: ~
+url: https://coreclinicalsciences.github.io/TransportHealthR
+
 template:
   bootstrap: 5
+  # bootswatch: pulse 
+  bootswatch: sandstone
+  # light-switch: true
 
 navbar: 
   structure: 
