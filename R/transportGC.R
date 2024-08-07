@@ -19,9 +19,9 @@
 #'  \item{The researcher uses this function and the provided \code{transportGCPreparedModel} object to perform the analysis using g-computation.}
 #' }
 #' 
-#' Since model-fitting objects in \code{R} often contain the data used to fit the model, the \code{transportGCPreparedModel} function wipes this data in the model-fitting object and keeps additional information about the name of the response variable, the name of the treatment variable and the levels of treatment. This is to comply with government regulations regarding access and integration of data sources from different countries.
+#' Since model-fitting objects in \code{R} often contain the data used to fit the model, the \code{transportGCPreparedModel} function wipes this data, if requested, in the model-fitting object and keeps additional information about the name of the response variable, the name of the treatment variable and the levels of treatment. This is in awareness with government regulations regarding access and integration of data sources from different countries.
 #' 
-#' Bootstrap is used to calculate robust variance estimates of the MSM coefficient estimators. Note that these standard errors are only valid conditional on the observed study data when \code{wipe = T} because it is not possible to resample the study data when access to it is restricted.
+#' Bootstrap is used to calculate robust variance estimates of the ATE estimator. Note that these standard errors are only valid conditional on the observed study data when \code{wipe = T} because it is not possible to resample the study data when access to it is restricted.
 #'
 #' @return
 #' A \code{transportGC} object with the following components:
