@@ -43,15 +43,10 @@ transportInterpolated <- function (link = c("identity", "log"),
                            corrStructure = NULL,
                            studySampleSize,
                            targetData) {
-<<<<<<< HEAD
 
   if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2 |
       length(subgroupSEs) != length(effectModifiers) * 2)
     stop("Incongruent lengths of list of effect modifiers and list of subgroup effects/SEs. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
-=======
-  if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2)
-    stop("Incongruent lengths of list of effect modifiers and list of subgroup effects. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
->>>>>>> b247d0a (Implemented base function for interpolated g-computation)
   
   link <- match.arg(link, c("identity", "log"))
   
