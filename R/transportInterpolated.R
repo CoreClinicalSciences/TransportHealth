@@ -43,10 +43,15 @@ transportInterpolated <- function (link = c("identity", "log"),
                            corrStructure = NULL,
                            studySampleSize,
                            targetData) {
+<<<<<<< HEAD
 
   if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2 |
       length(subgroupSEs) != length(effectModifiers) * 2)
     stop("Incongruent lengths of list of effect modifiers and list of subgroup effects/SEs. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
+=======
+  if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2)
+    stop("Incongruent lengths of list of effect modifiers and list of subgroup effects. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
+>>>>>>> b247d0a (Implemented base function for interpolated g-computation)
   
   link <- match.arg(link, c("identity", "log"))
   
@@ -151,7 +156,6 @@ transportInterpolated <- function (link = c("identity", "log"),
   return(result)
 }
 
-<<<<<<< HEAD
 #' @title Summarize results of transportability analysis using interpolated g-computation
 #' 
 #' @description
@@ -172,17 +176,6 @@ transportInterpolated <- function (link = c("identity", "log"),
 #' @export
 #' 
 #' @md
-=======
-#' Title
-#'
-#' @param object 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
-#' @examples
->>>>>>> 2272387 (Implemented plot for interpolated g-computation)
 summary.transportInterpolated <- function (object, ...) {
   transportInterpolatedResult <- object
   
@@ -220,7 +213,6 @@ summary.transportInterpolated <- function (object, ...) {
   return(summaryResult)
 }
 
-<<<<<<< HEAD
 #' @rdname summary.transportInterpolated
 #'
 #' @param x \code{summary.transportInterpolated} object
@@ -229,19 +221,6 @@ summary.transportInterpolated <- function (object, ...) {
 #'
 #' @export
 print.summary.transportInterpolated <- function (x, out = stdout(), ...) {
-=======
-#' Title
-#'
-#' @param x 
-#' @param out 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-print.summary.transportInterpolated <- function (x, out, ...) {
->>>>>>> 2272387 (Implemented plot for interpolated g-computation)
   summaryResult <- x
   
   write(paste0("Transported ATE: ", summaryResult$effect), out)
