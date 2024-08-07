@@ -2,13 +2,13 @@
 #' Transportability analysis using interpolated g-computation
 #'
 #' @description
-#' Performs transportability analysis using ointerp
+#' Estimates the average treatment effect (ATE) using interpolated g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the ATE in the superpopulation or the target population, respectively.
 #'
-#' @param link 
-#' @param effectModifiers 
-#' @param mainTreatmentEffect 
-#' @param mainSE 
-#' @param subgroupTreatmentEffects 
+#' @param link Defaults to \code{"identity"}, which corresponds to absolute treatment effects for continuous responses. The \code{"log"} option accommodates relative treatment effects such as relative risk, odds ratio and hazard ratio.
+#' @param effectModifiers Vector of strings indicating effect modifiers to adjust for
+#' @param mainTreatmentEffect Estimate of ATE in original study
+#' @param mainSE Standard error of estimator of ATE in original study
+#' @param subgroupTreatmentEffects Estimates of subgroup ATEs in original study. Please provide subgroup ATEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the ATE of the subgroup whose proportion is provided in \code{targetData} first in each pair
 #' @param subgroupSEs 
 #' @param corrStructure 
 #' @param studySampleSize 
