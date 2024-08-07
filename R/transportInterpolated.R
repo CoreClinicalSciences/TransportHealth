@@ -2,7 +2,6 @@
 #' Transportability analysis using interpolated g-computation
 #'
 #' @description
-<<<<<<< HEAD
 #' Estimates the average treatment effect (ATE) using interpolated g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the ATE in the superpopulation or the target population, respectively.
 #'
 #' @param link Defaults to \code{"identity"}, which corresponds to absolute treatment effects for continuous responses. The \code{"log"} option accommodates relative treatment effects such as relative risk, odds ratio and hazard ratio.
