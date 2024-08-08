@@ -27,8 +27,9 @@ transportInterpolated <- function (link = c("identity", "log"),
                            corrStructure = NULL,
                            studySampleSize,
                            targetData) {
-  if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2)
-    stop("Incongruent lengths of list of effect modifiers and list of subgroup effects. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
+  if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2 |
+      length(subgroupSEs) != length(effectModifiers) * 2)
+    stop("Incongruent lengths of list of effect modifiers and list of subgroup effects/SEs. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
   
   link <- match.arg(link, c("identity", "log"))
   
@@ -50,7 +51,7 @@ transportInterpolated <- function (link = c("identity", "log"),
     if (!all(effectModifiers %in% names(targetData)))
       stop("Please provide effect modifier names as in target data.")
     emTargetProps <- apply(targetData[[effectModifiers]], 2, mean)
-    corrStructure <- cor(targetData)
+    corrStructure <- cor(targetData[[effectModifiers]])
   } else {
     # Extract aggregate statistics of target data if already aggregate
     if (!all(effectModifiers %in% names(targetData)))
@@ -114,6 +115,7 @@ transportInterpolated <- function (link = c("identity", "log"),
   }
   
   result <- list(effect = effect,
+                 link = link,
                  var = var,
                  effectModifiers = effectModifiers,
                  mainTreatmentEffect = mainTreatmentEffect,
@@ -129,3 +131,49 @@ transportInterpolated <- function (link = c("identity", "log"),
   return(result)
 }
 
+summary.transportInterpolated <- function (object, ...) {
+  transportInterpolatedResult <- object
+  
+  effect <- transportInterpolatedResult$effect
+  effectModifiers <- transportInterpolatedResult$effectModifiers
+  # Organize subgroup analyses into table
+  subgroupStudyTable <- data.frame(effectModifier = rep(effectModifiers, each = 2),
+                                  subgroup = rep(c(1,0), times = length(effectModifiers)),
+                                  effect = transportInterpolatedResult$subgroupTreatmentEffects,
+                                  se = transportInterpolatedResult$subgroupSEs)
+  
+  m <- length(effectModifiers)
+  targetData <- transportInterpolatedResult$targetData
+  
+  if (nrow(targetData) > 1) {
+    # Calculate aggregate statistics of target data if IPD
+    emTargetProps <- apply(targetData[[effectModifiers]], 2, mean)
+  } else {
+    # Extract aggregate statistics of target data if already aggregate
+    emTargetProps <- targetData[[effectModifiers]]
+  }
+  
+  names(emTargetProps) <- effectModifiers
+  
+  summaryResult <- list(effect = effect,
+                        link = transportInterpolatedResult$link,
+                        se = sqrt(transportInterpolatedResult$var),
+                        sourceEffect = transportInterpolatedResult$mainTreatmentEffect,
+                        sourceSE = transportInterpolatedResult$mainSE,
+                        subgroupEffects = subgroupStudyTable,
+                        aggregateTargetData = emTargetProps)
+}
+
+print.summary.transportInterpolated <- function (x, out, ...) {
+  summaryResult <- x
+  
+  write(paste0("Transported ATE: ", summaryResult$effect), out)
+  write(paste0("Standard error: ", summaryResult$se), out)
+  write(paste0("Link function: ", summaryResult$log), out)
+  write(paste0("Source study treatment effect: ", summaryResult$sourceEffect), out)
+  write(paste0("Source study standard error: ", summaryResult$sourceSE), out)
+  write("Subgroup source treatment effects: ", out)
+  print(summaryResult$subgroupEffects, out)
+  write("target data summay: ", out)
+  print(summaryResult$aggregateTargetData, out)
+}
