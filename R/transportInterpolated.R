@@ -43,10 +43,7 @@ transportInterpolated <- function (link = c("identity", "log"),
                            corrStructure = NULL,
                            studySampleSize,
                            targetData) {
-<<<<<<< HEAD
 
-=======
->>>>>>> eda523d (Implemeneted summary and print for interpolated g-computation)
   if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2 |
       length(subgroupSEs) != length(effectModifiers) * 2)
     stop("Incongruent lengths of list of effect modifiers and list of subgroup effects/SEs. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
@@ -72,14 +69,9 @@ transportInterpolated <- function (link = c("identity", "log"),
     # Calculate aggregate statistics of target data if IPD
     if (!all(effectModifiers %in% names(targetData)))
       stop("Please provide effect modifier names as in target data.")
-<<<<<<< HEAD
     numericTargetData <- apply(as.matrix(targetData[, effectModifiers]), 2, as.numeric)
     emTargetProps <- apply(targetData[, effectModifiers], 2, function(x) mean(as.numeric(x)))
     if (is.null(corrStructure)) corrStructure <- stats::cor(numericTargetData)
-=======
-    emTargetProps <- apply(targetData[[effectModifiers]], 2, mean)
-    corrStructure <- cor(targetData[[effectModifiers]])
->>>>>>> eda523d (Implemeneted summary and print for interpolated g-computation)
   } else {
     # Extract aggregate statistics of target data if already aggregate
     if (!all(effectModifiers %in% names(targetData)))
@@ -159,7 +151,7 @@ transportInterpolated <- function (link = c("identity", "log"),
   return(result)
 }
 
-<<<<<<< HEAD
+
 #' @title Summarize results of transportability analysis using interpolated g-computation
 #' 
 #' @description
@@ -180,8 +172,6 @@ transportInterpolated <- function (link = c("identity", "log"),
 #' @export
 #' 
 #' @md
-=======
->>>>>>> eda523d (Implemeneted summary and print for interpolated g-computation)
 summary.transportInterpolated <- function (object, ...) {
   transportInterpolatedResult <- object
   
