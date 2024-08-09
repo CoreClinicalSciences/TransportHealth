@@ -131,6 +131,15 @@ transportInterpolated <- function (link = c("identity", "log"),
   return(result)
 }
 
+#' Title
+#'
+#' @param object 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 summary.transportInterpolated <- function (object, ...) {
   transportInterpolatedResult <- object
   
@@ -164,6 +173,16 @@ summary.transportInterpolated <- function (object, ...) {
                         aggregateTargetData = emTargetProps)
 }
 
+#' Title
+#'
+#' @param x 
+#' @param out 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 print.summary.transportInterpolated <- function (x, out, ...) {
   summaryResult <- x
   
@@ -176,4 +195,30 @@ print.summary.transportInterpolated <- function (x, out, ...) {
   print(summaryResult$subgroupEffects, out)
   write("target data summay: ", out)
   print(summaryResult$aggregateTargetData, out)
+}
+
+#' Title
+#'
+#' @param x 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot.transportInterpolated <- function(x, ...) {
+  transportInterpolatedResult <- x
+  ti <- data.frame(term = "treatment",
+                   estimate = transportInterpolatedResult$effect,
+                   conf.low = transportInterpolatedResult$effect - 1.96 * sqrt(transportInterpolatedResult$var),
+                   conf.high = transportInterpolatedResult$effect + 1.96 * sqrt(transportInterpolatedResult$var))
+  
+  gl <- data.frame(n = nrow(transportInterpolatedResult$targetData))
+  
+  ms <- list(tidy = ti, glance = gl)
+  class(ms) <- "modelsummary_list"
+  
+  resultPlot <- modelsummary::modelplot(ms)
+  
+  return(resultPlot)
 }
