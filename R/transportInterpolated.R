@@ -151,6 +151,7 @@ transportInterpolated <- function (link = c("identity", "log"),
   return(result)
 }
 
+<<<<<<< HEAD
 #' @title Summarize results of transportability analysis using interpolated g-computation
 #' 
 #' @description
@@ -171,6 +172,17 @@ transportInterpolated <- function (link = c("identity", "log"),
 #' @export
 #' 
 #' @md
+=======
+#' Title
+#'
+#' @param object 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+>>>>>>> 2272387 (Implemented plot for interpolated g-computation)
 summary.transportInterpolated <- function (object, ...) {
   transportInterpolatedResult <- object
   
@@ -208,6 +220,7 @@ summary.transportInterpolated <- function (object, ...) {
   return(summaryResult)
 }
 
+<<<<<<< HEAD
 #' @rdname summary.transportInterpolated
 #'
 #' @param x \code{summary.transportInterpolated} object
@@ -216,6 +229,19 @@ summary.transportInterpolated <- function (object, ...) {
 #'
 #' @export
 print.summary.transportInterpolated <- function (x, out = stdout(), ...) {
+=======
+#' Title
+#'
+#' @param x 
+#' @param out 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+print.summary.transportInterpolated <- function (x, out, ...) {
+>>>>>>> 2272387 (Implemented plot for interpolated g-computation)
   summaryResult <- x
   
   write(paste0("Transported ATE: ", summaryResult$effect), out)
