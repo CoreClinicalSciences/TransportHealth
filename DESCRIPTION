@@ -16,7 +16,7 @@ Imports:
     rlang,
     smd (>= 0.6.7),
     survival (>= 3.5-8)
-Depends: 
+Depends:
     R (>= 4.3.0)
 Suggests: 
     knitr,

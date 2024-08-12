@@ -2,3 +2,39 @@ url: ~
 template:
   bootstrap: 5
 
+navbar: 
+  structure: 
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswith]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/CoreClinicalSciences/TransportHealthR
+
+articles:
+  - title: Introduction
+    navbar: Introduction
+    contents: 
+      - overview
+  - title: Inverse Probability Methods
+    navbar: Inverse Probability Methods
+    contents: 
+      - transportIP
+  
+# @ Quang, similar to simIDM, i want us to put coverage report eventually in. 
+
+   # reports: 
+   #    text: Reports
+   #    menu:
+   #      - text: Coverage report
+   #        href: coverage-report/
+   #      - text: Unit test report
+   #        href: unit-test-report/
+
+reference: 
+  - title: Inverse probability methods
+    contents: 
+      - transportIP
+      - summary.transportIP
+      - plot.transportIP
+      - is.transportIP

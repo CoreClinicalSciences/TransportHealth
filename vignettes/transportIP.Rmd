@@ -3,7 +3,7 @@ title: "Transportability analysis using IOPW with TransportHealthR"
 output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{Transportability analysis using IOPW with TransportHealthR}
+  %\VignetteIndexEntry{Inverse probability or odds weighting-based transportability analysis}
   %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
