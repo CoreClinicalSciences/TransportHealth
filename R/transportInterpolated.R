@@ -108,6 +108,8 @@ transportInterpolated <- function (link = c("identity", "log"),
   emTargetVarsAllTerms <- double((m^2 + 3*m + 2) / 2)
   emTargetVarsAllTerms[1:(m + 1)] <- c(1, emTargetProps)^2
   emTargetVarsAllTerms[(m + 2):(2*m + 1)] <- 2 * emTargetProps
+  emTargetVarsAllTerms[, m + 1] <- c(1, emTargetProps)^2
+  emTargetVarsAllTerms[, (m + 2):(2*m + 1)] <- 2 * emTargetProps
   for (j in 1:(m-1)) {
     for (i in ((j+1):m)) {
       emTargetVarsAllTerms[2*m + 1 + (m * (m - 1))/2 - ((m - j) * (m - j + 1))/2 + (i - j)] <- 2 * emTargetProps[j] * emTargetProps[i]
