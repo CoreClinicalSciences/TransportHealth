@@ -190,10 +190,10 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   
 }
 
-#' @title Summarize results of a fitted MSM object using g-computation
+#' @title Summarize results of transportability analysis using g-computation
 #' 
 #' @description
-#' Returns summary object which contains summary objects for the MSM and the outcome model, as well as information about response and treatment variables. In the MSM summary object, the correct variance estimators are calculated.
+#' Returns summary object which contains the transported effect estimate and the outcome model summary object, as well as information about response and treatment variables. In the MSM summary object, the correct variance estimators are calculated.
 #' 
 #' @rdname summary.transportGC
 #'
@@ -282,13 +282,13 @@ print.summary.transportGC <- function (x, out = stdout(), ...) {
 #' @title Visually represent results of transportability analysis using g-computation
 #' 
 #' @description
-#' This function is a wrapper for \code{modelsummary::modelplot} to plot the coefficient estimates in a transportability analysis using g-computation. Note that the correct variance estimates are used in this function.
+#' This function is a wrapper for \code{modelsummary::modelplot} to plot effect estimates in a transportability analysis using g-computation. Note that the correct variance estimates are used in this function.
 #' 
 #' @param x Result from \code{transportGC} function.
 #' @param ... Further arguments from previous function or to pass to next function
 #'
 #' @return
-#' A \code{ggplot} object showing the estimates and confidence intervals of the MSM coefficients.
+#' A \code{ggplot} object showing the estimates and confidence intervals of the transported effect estimate.
 #' 
 #' @export
 plot.transportGC <- function (x, ...) {
