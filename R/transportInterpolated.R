@@ -7,17 +7,33 @@
 #' @param link Defaults to \code{"identity"}, which corresponds to absolute treatment effects for continuous responses. The \code{"log"} option accommodates relative treatment effects such as relative risk, odds ratio and hazard ratio.
 #' @param effectModifiers Vector of strings indicating effect modifiers to adjust for
 #' @param mainTreatmentEffect Estimate of ATE in original study
-#' @param mainSE Standard error of estimator of ATE in original study
+#' @param mainSE Estimate of standard error of estimator of ATE in original study
 #' @param subgroupTreatmentEffects Estimates of subgroup ATEs in original study. Please provide subgroup ATEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the ATE of the subgroup whose proportion is provided in \code{targetData} first in each pair
-#' @param subgroupSEs 
-#' @param corrStructure 
-#' @param studySampleSize 
-#' @param targetData 
+#' @param subgroupSEs Estimates of standard errors of subgroup ATEs in original study. Please provide SEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the SE of the subgroup whose proportion is provided in \code{targetData} first in each pair
+#' @param corrStructure Correlation structure of dichotomized effect modifiers. If target IPD is provided, this will be estimated from the target data, if user input is omitted. If target aggregate data is provided, this will be specified by the user and default to an independent correlation structure if left unspecified.
+#' @param studySampleSize Sample size of original study
+#' @param targetData May be IPD or aggregate. If aggregate, provide proportions of only one category of dichotomized effect modifiers in a named vector (not a data frame)
 #'
+#' @details
+#' This function transports the ATE estimate from the original study data to the target data by utilizing subgroup effect estimates in the same way as network meta-interpolation (cite Ofir's paper). As standard errors are transported manually, no bootstrapping is done, unlike other methods supported by \code{TransportHealthR}.
+#' 
 #' @return
+#' A \code{transportInterpolated} object with the following components:
+#' * \code{effect}: Transported ATE estimate
+#' * \code{link}: Denotes the link function used. Absolute treatment effects (i.e. for continuous outcomes) correspond to \code{"identity"}, while relative treatment effects correspond to \code{"log"}
+#' * \code{var}: Transported variance estimate of effect estimate
+#' * \code{effectModifiers}: Vector of strings indicating effect modifiers adjusted for
+#' * \code{mainTreatmentEffect}: Estimate of ATE in original study
+#' * \code{mainSE}: Standard error of estimator of ATE in original study
+#' * \code{subgroupTreatmentEffects}: Estimates of subgroup ATEs in original study, as provided
+#' * \code{subgroupSEs}: Estimates of standard errors of subgroup ATEs in original study, as provided
+#' * \code{corrStructure}: Correlation structure of effect modifiers used in analysis
+#' * \code{studySampleSize}: Sample size of original study
+#' * \code{targetData}: Target data, as provided
+#' 
 #' @export
-#'
-#' @examples
+#' 
+#' @md
 transportInterpolated <- function (link = c("identity", "log"),
                            effectModifiers,
                            mainTreatmentEffect,
@@ -42,21 +58,24 @@ transportInterpolated <- function (link = c("identity", "log"),
   } else {
     lpMainTreatmentEffect <- mainTreatmentEffect
     lpMainSE <- mainSE
+    lpSubgroupTreatmentEffects <- subgroupTreatmentEffects
+    lpSubgroupSEs <- subgroupSEs
   }
   
   m <- length(effectModifiers)
   
-  if (nrow(targetData) > 1) {
+  if (is.data.frame(targetData)) {
     # Calculate aggregate statistics of target data if IPD
     if (!all(effectModifiers %in% names(targetData)))
       stop("Please provide effect modifier names as in target data.")
-    emTargetProps <- apply(targetData[[effectModifiers]], 2, mean)
-    corrStructure <- cor(targetData[[effectModifiers]])
+    numericTargetData <- apply(as.matrix(targetData[, effectModifiers]), 2, as.numeric)
+    emTargetProps <- apply(targetData[, effectModifiers], 2, function(x) mean(as.numeric(x)))
+    if (is.null(corrStructure)) corrStructure <- stats::cor(numericTargetData)
   } else {
     # Extract aggregate statistics of target data if already aggregate
     if (!all(effectModifiers %in% names(targetData)))
       stop("Please provide effect modifier names as in target data.")
-    emTargetProps <- targetData[[effectModifiers]]
+    emTargetProps <- targetData[effectModifiers]
     if (is.null(corrStructure)) {
       warning("Correlation structure not provided while aggregate target data is provided. Defaulting to independent correlation structure.")
       corrStructure <- diag(m)
@@ -69,7 +88,7 @@ transportInterpolated <- function (link = c("identity", "log"),
   enrichedTEMatrix <- matrix(double((2*m + 1) * (m + 1)), ncol = m + 1)
   enrichedTEMatrix[, 1] <- 1 # Intercept column
   enrichedTEMatrix[1, (2:(m+1))] <- emTargetProps # Overall TE row
-  for (j in 1:m) enrichedTEMatrix[1 + j, 2 * j] <- 1 # Filling in 1s at corresponding rows of subgroup treatment effect
+  for (j in 1:m) enrichedTEMatrix[2 * j, 1 + j] <- 1 # Filling in 1s at corresponding rows of subgroup treatment effect
   for (i in 1:m) { # BLUP
     enrichedTEMatrix[2*i, - (i + 1)] <- corrStructure[i, -i] * sqrt(emTargetVars[i]) / sqrt(emTargetVars[-i]) * (1 - emTargetProps[-i]) + emTargetProps[-i]
     enrichedTEMatrix[2*i + 1, - (i + 1)] <- corrStructure[i, -i] * sqrt(emTargetVars[i]) / sqrt(emTargetVars[-i]) * (0 - emTargetProps[-i]) + emTargetProps[-i]
@@ -77,7 +96,7 @@ transportInterpolated <- function (link = c("identity", "log"),
   
   # Construct enriched data matrix for SE
   enrichedSEMatrix <- matrix(double((2*m + 1) * ((m^2 + 3*m + 2) / 2)), nrow = 2*m + 1)
-  enrichedSEMatrix[, m + 1] <- enrichedTEMatrix^2 # Square columns
+  enrichedSEMatrix[, 1:(m + 1)] <- enrichedTEMatrix^2 # Square columns
   enrichedSEMatrix[, (m + 2):(2*m + 1)] <- 2 * enrichedTEMatrix[, -1] # Double columns
   for (j in 1:(m-1)) {
     for (i in ((j+1):m)) { # Entrywise products of columns
@@ -87,8 +106,8 @@ transportInterpolated <- function (link = c("identity", "log"),
   
   # Construct corresponding EM configuration for target data
   emTargetVarsAllTerms <- double((m^2 + 3*m + 2) / 2)
-  emTargetVarsAllTerms[, m + 1] <- c(1, emTargetProps)^2
-  emTargetVarsAllTerms[, (m + 2):(2*m + 1)] <- 2 * emTargetProps
+  emTargetVarsAllTerms[1:(m + 1)] <- c(1, emTargetProps)^2
+  emTargetVarsAllTerms[(m + 2):(2*m + 1)] <- 2 * emTargetProps
   for (j in 1:(m-1)) {
     for (i in ((j+1):m)) {
       emTargetVarsAllTerms[2*m + 1 + (m * (m - 1))/2 - ((m - j) * (m - j + 1))/2 + (i - j)] <- 2 * emTargetProps[j] * emTargetProps[i]
@@ -102,8 +121,8 @@ transportInterpolated <- function (link = c("identity", "log"),
   sigmaHat <- t(enrichedSEMatrix) %*% MASS::ginv(enrichedSEMatrix %*% t(enrichedSEMatrix)) %*% c(lpMainSE^2, lpSubgroupSEs^2)
   
   # Transported effects on linear predictor scale
-  lpEffect <- betaHat %*% c(1, emTargetProps)
-  lpVar <- sigmaHat %*% emTargetVarsAllTerms
+  lpEffect <- t(betaHat) %*% c(1, emTargetProps)
+  lpVar <- t(sigmaHat) %*% emTargetVarsAllTerms
   
   # Obtain effects on original scale
   if (link == "log") {
@@ -131,15 +150,26 @@ transportInterpolated <- function (link = c("identity", "log"),
   return(result)
 }
 
-#' Title
+#' @title Summarize results of transportability analysis using interpolated g-computation
+#' 
+#' @description
+#' Returns summary object which contains the transported effect estimate, organizes subgroup effect estimates into a data frame and produces summary statistics of effect modifiers in the target data, if not already provided.
 #'
-#' @param object 
-#' @param ... 
+#' @rdname summary.transportInterpolated
+#'
+#' @param object Result from \code{transportInterpolated} function
+#' @param ... Further arguments from previous function or to pass to next function
 #'
 #' @return
+#' Returns a \code{summary.transportInterpolated} object containing the following components:
+#' * \code{effect}, \code{link}, \code{mainTreatmentEffect} and \code{mainSE} as in the \code{transportInterpolated} object
+#' * \code{se}: Estimated standard error of the effect estimate
+#' * \code{subgroupEffects}: Subgroup effect estimates and their estimated standard errors in the original study, organized into a data frame with specific effect modifier and subgroup information
+#' * \code{aggregateTargetData}: Summary statistics of effect modifiers in target data
+#' 
 #' @export
-#'
-#' @examples
+#' 
+#' @md
 summary.transportInterpolated <- function (object, ...) {
   transportInterpolatedResult <- object
   
@@ -154,12 +184,12 @@ summary.transportInterpolated <- function (object, ...) {
   m <- length(effectModifiers)
   targetData <- transportInterpolatedResult$targetData
   
-  if (nrow(targetData) > 1) {
+  if (is.data.frame(targetData)) {
     # Calculate aggregate statistics of target data if IPD
-    emTargetProps <- apply(targetData[[effectModifiers]], 2, mean)
+    emTargetProps <- apply(targetData[, effectModifiers], 2, function(x) mean(as.numeric(x)))
   } else {
     # Extract aggregate statistics of target data if already aggregate
-    emTargetProps <- targetData[[effectModifiers]]
+    emTargetProps <- targetData[effectModifiers]
   }
   
   names(emTargetProps) <- effectModifiers
@@ -167,46 +197,51 @@ summary.transportInterpolated <- function (object, ...) {
   summaryResult <- list(effect = effect,
                         link = transportInterpolatedResult$link,
                         se = sqrt(transportInterpolatedResult$var),
-                        sourceEffect = transportInterpolatedResult$mainTreatmentEffect,
-                        sourceSE = transportInterpolatedResult$mainSE,
+                        mainTreatmentEffect = transportInterpolatedResult$mainTreatmentEffect,
+                        mainSE = transportInterpolatedResult$mainSE,
                         subgroupEffects = subgroupStudyTable,
                         aggregateTargetData = emTargetProps)
+  
+  class(summaryResult) <- "summary.transportInterpolated"
+  
+  return(summaryResult)
 }
 
-#' Title
+#' @rdname summary.transportInterpolated
 #'
-#' @param x 
-#' @param out 
-#' @param ... 
+#' @param x \code{summary.transportInterpolated} object
+#' @param out Output stream
+#' @param ... Further arguments from previous function or to pass to next function
 #'
-#' @return
 #' @export
-#'
-#' @examples
-print.summary.transportInterpolated <- function (x, out, ...) {
+print.summary.transportInterpolated <- function (x, out = stdout(), ...) {
   summaryResult <- x
   
   write(paste0("Transported ATE: ", summaryResult$effect), out)
   write(paste0("Standard error: ", summaryResult$se), out)
-  write(paste0("Link function: ", summaryResult$log), out)
-  write(paste0("Source study treatment effect: ", summaryResult$sourceEffect), out)
-  write(paste0("Source study standard error: ", summaryResult$sourceSE), out)
+  write(paste0("Link function: ", summaryResult$link), out)
+  write(paste0("Source study treatment effect: ", summaryResult$mainTreatmentEffect), out)
+  write(paste0("Source study standard error: ", summaryResult$mainSE), out)
   write("Subgroup source treatment effects: ", out)
   print(summaryResult$subgroupEffects, out)
-  write("target data summay: ", out)
+  write("Target data summary: ", out)
   print(summaryResult$aggregateTargetData, out)
 }
 
-#' Title
+#' @title Visually represent results of transportability analysis using interpolated g-computation
 #'
-#' @param x 
-#' @param ... 
+#' @description
+#' This function is a wrapper for \code{modelsummary::modelplot} to plot effect estimates in a transportability analysis using interpolated g-computation. Note that the transported variance estimate is used in this function.
+#'
+#' @param x Result from \code{transportInterpolated} function
+#' @param ... Further arguments from previous function or to pass to next function
 #'
 #' @return
+#' A \code{ggplot} object showing the estimates and confidence intervals of the transported effect estimate.
+#' 
 #' @export
 #'
-#' @examples
-plot.transportInterpolated <- function(x, ...) {
+plot.transportInterpolated <- function (x, ...) {
   transportInterpolatedResult <- x
   ti <- data.frame(term = "treatment",
                    estimate = transportInterpolatedResult$effect,
@@ -221,4 +256,28 @@ plot.transportInterpolated <- function(x, ...) {
   resultPlot <- modelsummary::modelplot(ms)
   
   return(resultPlot)
+}
+
+#' @title Check validity of interpolated g-computation result object
+#' 
+#' @description
+#' A simple helper function that validates whether the components of the given \code{transportInterpolated} object are of the correct types.
+#'
+#' @param x Result object from \code{transportInterpolated} function
+#'
+#' @return A boolean indicating whether all components of \code{transportInterpolated} object have the correct types.
+#' 
+#' @export
+is.transportInterpolated <- function (x) {
+  return(is.numeric(x$effect) &
+          is.numeric(x$var) &
+          x$link %in% c("identity", "log") &
+          is.character(x$effectModifiers) &
+          is.numeric(x$mainTreatmentEffect) &
+          is.numeric(x$mainSE) &
+          is.numeric(x$subgroupTreatmentEffects) &
+          is.numeric(x$subgroupSEs) &
+          is.matrix(x$corrStructure) &
+          is.numeric(x$studySampleSize) &
+          (is.numeric(x$targetData) | is.data.frame(x$targetData)))
 }
