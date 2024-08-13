@@ -151,7 +151,6 @@ transportInterpolated <- function (link = c("identity", "log"),
   return(result)
 }
 
-
 #' @title Summarize results of transportability analysis using interpolated g-computation
 #' 
 #' @description
