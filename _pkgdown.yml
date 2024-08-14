@@ -24,7 +24,10 @@ articles:
     navbar: Inverse Probability Methods
     contents: 
       - transportIP
-  
+  - title: Theoretical Formulations
+    navbar: Theoretical Formulations
+    contents:
+      - transportIPMath
 # @ Quang, similar to simIDM, i want us to put coverage report eventually in. 
 
    # reports: 
