@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(TransportHealthR)
+library(TransportHealth)
 
-test_check("TransportHealthR")
+test_check("TransportHealth")

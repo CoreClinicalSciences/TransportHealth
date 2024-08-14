@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, echo = F}
-library(TransportHealthR)
+library(TransportHealth)
 set.seed(20240501)
 
 expit <- function(x) 1/(1+exp(-x))
