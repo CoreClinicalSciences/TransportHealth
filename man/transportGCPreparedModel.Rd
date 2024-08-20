@@ -7,6 +7,7 @@
 transportGCPreparedModel(
   outcomeModel,
   response = NULL,
+  responseLevels = NULL,
   treatment,
   treatmentLevels = NULL,
   family = stats::gaussian,
@@ -19,6 +20,8 @@ transportGCPreparedModel(
 \item{outcomeModel}{Either a formula or a \code{glm}, \code{survreg} or \code{coxph} object representing the outcome model.}
 
 \item{response}{String indicating name of response variable. If \code{NULL}, it will be auto-detected from \code{outcomeModel}.}
+
+\item{responseLevels}{For ordinal responses, vector of strings indicating levels of response variable in the study data. If \code{NULL} and \code{polr} is used, it will be auto-detected using \code{response} and \code{studyData}.}
 
 \item{treatment}{String indicating name of treatment variable. This argument is required.}
 

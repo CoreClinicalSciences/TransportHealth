@@ -1,19 +1,40 @@
-# TransportHealthR
+# TransportHealth
 
-`TransportHealthR` is an R package developed by Core Clinical Sciences to streamline transportability analyses for randomized clinical trials and observational studies. The package supports IP weighting for mergable individual patient data (IPD), G-computation for unmergable IPD and (aggregate data approach) for aggregate data.
+**TransportHealth** is an R package, which was developed by [Core Clinical Sciences](https://www.coreclinicalsciences.com/), that provides functions to conduct transportability and generalizability analyses. 
 
-## Perks of package
+Transportability and generalizability analyses are types of causal inference methods that allow us to quantitatively assess external validity of evidence from randomized clinical trials (RCTs) and other diverse research studies. We assess how applicable the findings from original studies are to settings that the original studies were not conducted in or to the broader population that was not included in the original studies. In transportability analyses, we aim to transport the findings from study sample to an external target population by adjusting for the different distribution of effect modifiers between the study and the target sample. Generalizability analyses are similar but concerns the case where the study sample is a subset of the target population. 
 
-Transportability analysis is often done in separate steps by a statistician. One can perform such an analysis using existing causal inference packages, but some care is needed in order to ensure a valid analysis. `TransportHealthR` makes this process more accessible to statisticians and clinicians, as the model-fitting functions in the package inherently accomodate transportability analyses.
+**The scope of the current version of our package includes the following analyses.**
 
-## Get started (WIP)
+- Inverse probability (IP) weighting for mergeable individual patient-level datasets (IPDs) of original and target studies
 
-Use the `R` command `devtools::install_github("CoreClinicalSciences/TransportHealthR")` in the console.
+**For the future scope, we are currently developing the following methods.**
 
-## Get help (WIP)
+- G-computation for unmergable IPDs of original and target studies 
 
-Contact quang\@coreclinicalsciences.com if you have any questions about the package.
+- Target Aggregate Data Adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of target study
 
-## Contribute (WIP)
+- Methods that can transport aggregate data of original study to IPD-level target study
 
-Feel free to create issues in the package's Github repo. We'll address them as soon as we can.
+- Methods that can transport aggregate data of original study to aggregate-level target study data
+
+
+## Getting Started
+
+If you are just getting started with **TransportHealth**, we recommend starting with the tutorial vignettes, the examples provided as part of our package documentation. Future papers, as they are published in preprints or after being peer reviewed, will be added here, as they become availabl.e 
+
+## Installation
+
+Install the latest development version from [GitHub](CoreClinicalSciences/TransportHealthR)
+
+``` r
+if (!require("devtools")) {
+  install.packages("devtools")
+}
+devtools::install_github("CoreClinicalSciences/TransportHealthR")
+```
+
+## Citing TransportHealth
+
+To cite `TransportHealth`, please see [here](https://coreclinicalsciences.github.io/TransportHealthR/authors.html#citation)
+

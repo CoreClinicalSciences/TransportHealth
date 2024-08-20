@@ -3,7 +3,7 @@
 #' @description
 #' Estimates the coefficients of a marginal structural model (MSM) using g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively.
 #' 
-#' @param msmFormula A formula for the MSM to be fitted, which usually includes the outcome, the treatment and any effect modifiers.
+#' @param effectType Type of effect desired for the ATE: \code{"meanDiff"} for mean difference, \code{"rr"} for relative risk, \code{"or"} for odds ratio, and \code{"hr"} for hazard ratio.
 #' @param preparedModel A \code{transportGCPreparedModel} object. This is obtained by using the \code{transportGCPreparedModel} function to fit an outcome model using the study data.
 #' @param targetData A target dataset.
 #' @param bootstrapNum Number of bootstrap datasets to simulate to obtain robust variance estimators
@@ -25,16 +25,19 @@
 #'
 #' @return
 #' A \code{transportGC} object with the following components:
-#' * \code{msm}: Raw model fit object of the MSM. Its class will be the same as that of \code{outcomeModel} in the provided \code{transportGCPreparedModel} object.
+#' * \code{effect}: Calculated ATE
+#' * \code{effectType}: Type of effect calculated
+#' * \code{var}: Estimated variance of ATE estimator, calculated using bootstrap
+#' * \code{preparedModel}: The \code{transportGCPreparedModel} object used to estimate the ATE
 #' * \code{bootstrapNum}: Integer indicating number of bootstrap datasets simulated to calculate robust variance estimators.
 #' 
 #' @export
 #' 
 #' @md
-transportGC <- function (msmFormula,
+transportGC <- function (effectType = c("meanDiff", "rr", "or", "hr"),
                          preparedModel,
                          targetData, bootstrapNum = 500) {
-  transportGCResult <- transportGCFit(msmFormula,
+  transportGCResult <- transportGCFit(effectType,
                                       preparedModel,
                                       targetData)
   
@@ -52,12 +55,12 @@ transportGC <- function (msmFormula,
   
   nTarget <- nrow(targetData)
   
-  bootstrapEstimates <- t(sapply(1:bootstrapNum,
+  bootstrapEstimates <- sapply(1:bootstrapNum,
                                  function (x) {
                                    if (preparedModel$wipe) {
                                     targetBoot <- targetData[sample.int(n = nTarget, replace = T), ]
                                    
-                                    resultBoot <- transportGCFit(msmFormula,
+                                    resultBoot <- transportGCFit(effectType,
                                                                 preparedModel,
                                                                 targetData = targetBoot)
                                    } else {
@@ -81,62 +84,103 @@ transportGC <- function (msmFormula,
                                                                                method = preparedModel$method,
                                                                                studyData = studyBoot,
                                                                                wipe = F)
-                                      resultBoot <- transportGCFit(msmFormula,
+                                      resultBoot <- transportGCFit(effectType,
                                                                   preparedBoot,
                                                                   targetData = targetBoot)
                                    }
                                    
-                                   return(c(resultBoot$msm$coefficients, resultBoot$msm$zeta))
-                                 }))
+                                   return(resultBoot$effect)
+                                 })
   
+  # varMatrix <- stats::var(bootstrapEstimates)
+  # colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportGCResult$msm$coefficients), names(transportGCResult$msm$zeta))
   varMatrix <- stats::var(bootstrapEstimates)
-  colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportGCResult$msm$coefficients), names(transportGCResult$msm$zeta))
-  transportGCResult$msm$var <- varMatrix
+  # if (inherits(preparedModel$outcomeModel, "polr")) {
+  #   names(transportGCResult$effect) <- colnames(varMatrix) <- rownames(varMatrix) <- preparedModel$responseLevels
+  # }
+  transportGCResult$var <- varMatrix
   
   transportGCResult$bootstrapNum <- bootstrapNum
   
   return(transportGCResult)
 }
 
-transportGCFit <- function (msmFormula,
+transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
                          preparedModel,
                          targetData) {
+  # Error checking of consistency from preparedModel object
   if (!is.transportGCPreparedModel(preparedModel)) stop("Please provide a transportGCPreparedModel object.")
-  if (preparedModel$response != all.vars(msmFormula)[1]) stop("Response variable does not match transportGCPreparedModel object.")
   
+  # Extract names of response and treatment variables as well as outcome model object
   response <- preparedModel$response
   treatment <- preparedModel$treatment
   outcomeModel <- preparedModel$outcomeModel
+  treatmentLevels <- preparedModel$treatmentLevels
+  responseLevels <- preparedModel$responseLevels
   
+  # Create data frames which are the target dataset, but with the treatment column all equal to 0 or 1
   targetDataReferenceList <- list()
-  for (level in preparedModel$treatmentLevels) {
+  for (level in treatmentLevels) {
     targetDataReferenceList[[level]] <- targetData
     targetDataReferenceList[[level]][[treatment]] <- level
   }
   
+  # Combine the above data frames together. Counterfactuals are predicted with this data frame
   targetDataCounterfactualFrame <- Reduce(function(d1, d2) rbind(d1, d2), targetDataReferenceList)
   targetDataCounterfactualFrame[[treatment]] <- as.factor(targetDataCounterfactualFrame[[treatment]])
   
+  # Predict counterfactual outcomes
   # TODO: adapt to coxph since it doesn't give survival time predictions - see Lee (2024) (transporting survival of hiv...) and Chen & Tsiatis (2001)
-  if (!inherits(outcomeModel, "coxph")) {
+  if (!inherits(outcomeModel, "coxph") & !inherits(outcomeModel, "polr")) {
     targetDataCounterfactualFrame[[response]] <- stats::predict(outcomeModel,
                                                        newdata = targetDataCounterfactualFrame,
                                                        type = "response")
+  } else if (inherits(outcomeModel, "polr")) {
+    # predict.polr with type = "probs" returns a matrix. It's done separately to avoid dealing with column names. We're assuming the user has already set the order of levels of the response to what they want.
+    targetDataCounterfactualProbs <- stats::predict(outcomeModel,
+                                                    newdata = targetDataCounterfactualFrame,
+                                                    type = "probs")
+  } else if (inherits(outcomeModel, "coxph")) {
+    nCounterfactual <- nrow(targetDataCounterfactualFrame)
+    targetDataCounterfactualFrame[[response]] <- double(nCounterfactual)
     
-    if (inherits(outcomeModel, "glm"))
-      msm <- stats::glm(msmFormula, data = targetDataCounterfactualFrame, family = outcomeModel$family)
-    else if (inherits(outcomeModel, "survreg"))
-      msm <- survival::survreg(msmFormula, data = targetDataCounterfactualFrame)
-    else if (inherits(outcomeModel, "polr"))
-      msm <- MASS::polr(msmFormula, data = targetDataCounterfactualFrame, Hess = T, method = outcomeModel$method)
-  }
-  else {
-    # Still very WIP
-    counterfactualSurvCurves <- survival::survfit(preparedModel$outcomeModel, newdata = targetDataCounterfactualFrame)
-    treatmentSurvCurves <- stats::aggregate(counterfactualSurvCurves, targetDataCounterfactualFrame[[preparedModel$treatment]])
+    # Get max survival time for survmean
+    maxTime <- survival:::survmean(survival::survfit(preparedModel$outcomeModel, newdata = targetDataCounterfactualFrame), rmean = "common")$end.time
+    
+    # For each observation in counterfactual frame, calculate the fitted survival curve
+    for (i in 1:nCounterfactual) {
+      counterfactualSurvCurve <- survival::survfit(preparedModel$outcomeModel, newdata = targetDataCounterfactualFrame[i, , drop = F])
+      targetDataCounterfactualFrame[[response]][i] <- survival:::survmean(counterfactualSurvCurve, rmean = maxTime)
+    }
   }
   
-  transportGCResult <- list(msm = msm,
+  effectType <- match.arg(effectType, c("meanDiff", "rr", "or", "hr"))
+  
+  # Calculate ATE based on desired effect type; except for polr, in which distributional causal effects are calculated
+  if (inherits(outcomeModel, "polr")) {
+    numResponseLevels <- length(responseLevels)
+    effects <- double(numResponseLevels-1)
+    for (i in 1:numResponseLevels) {
+      probs <- apply(targetDataCounterfactualProbs[, 1:i, drop = F], 1, sum)
+      treatmentMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
+      controlMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
+      effects[i] <- (treatmentMean / (1 - treatmentMean)) / (controlMean / (1 - controlMean)) 
+    }
+    effect <- mean(effects)
+    effectType <- "or"
+  } else if (effectType != "hr") {
+    treatmentMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
+    controlMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
+    if (effectType == "meanDiff") effect <- treatmentMean - controlMean
+    else if (effectType == "rr") effect <- treatmentMean / controlMean
+    else if (effectType == "or") effect <- (treatmentMean / (1 - treatmentMean)) / (controlMean / (1 - controlMean))
+  } else {
+    effectFormula <- stats::as.formula(paste0(response, " ~ ", treatment))
+    effect <- survival::coxph(effectFormula, data = targetDataCounterfactualFrame)$coefficients[1]
+  }
+  
+  transportGCResult <- list(effect = effect,
+                            effectType = effectType,
                             preparedModel = preparedModel,
                             data = targetData)
   
@@ -172,36 +216,41 @@ summary.transportGC <- function (object, ...) {
   
   preparedModelSummary <- summary(preparedModel$outcomeModel)
   response <- preparedModel$response
+  if (inherits(preparedModel, "polr")) responseLevels <- preparedModel$responseLevels
   treatment <- preparedModel$treatment
   treatmentLevels <- preparedModel$treatmentLevels
   
   # If model is glm, calculate and replace correct SEs
   
-  msm <- transportGCResult$msm
+  # msm <- transportGCResult$msm
+  # 
+  # msmSummary <- summary(msm)
+  # 
+  # if (inherits(msmSummary, "summary.glm")) {
+  #   if (!is.null(msm$var)) msmSummary$cov.scaled <- msm$var
+  #   msmSummary$cov.unscaled <- msmSummary$cov.scaled / msmSummary$dispersion
+  #   msmSummary$coefficients[, 2] <- sqrt(diag(msmSummary$cov.scaled))
+  #   msmSummary$coefficients[, 3] <- msmSummary$coefficients[, 1] / msmSummary$coefficients[, 2]
+  #   if (msmSummary$family$family == "gaussian") msmSummary$coefficients[, 4] <- 2 * stats::pt(abs(msmSummary$coefficients[, 3]), msmSummary$df[2], lower.tail = F)
+  #   else msmSummary$coefficients[, 4] <- 2 * stats::pnorm(abs(msmSummary$coefficients[, 3]), lower.tail = F)
+  # }
+  # 
+  # # Same for polr
+  # 
+  # if (inherits(msmSummary, "summary.polr")) {
+  #   if (!is.null(msm$var)) msmSummary$coefficients[, 2] <- sqrt(diag(msm$var))
+  #   msmSummary$coefficients[, 3] <- msmSummary$coefficients[, 1] / msmSummary$coefficients[, 2]
+  # }
   
-  msmSummary <- summary(msm)
-  
-  if (inherits(msmSummary, "summary.glm")) {
-    if (!is.null(msm$var)) msmSummary$cov.scaled <- msm$var
-    msmSummary$cov.unscaled <- msmSummary$cov.scaled / msmSummary$dispersion
-    msmSummary$coefficients[, 2] <- sqrt(diag(msmSummary$cov.scaled))
-    msmSummary$coefficients[, 3] <- msmSummary$coefficients[, 1] / msmSummary$coefficients[, 2]
-    if (msmSummary$family$family == "gaussian") msmSummary$coefficients[, 4] <- 2 * stats::pt(abs(msmSummary$coefficients[, 3]), msmSummary$df[2], lower.tail = F)
-    else msmSummary$coefficients[, 4] <- 2 * stats::pnorm(abs(msmSummary$coefficients[, 3]), lower.tail = F)
-  }
-  
-  # Same for polr
-  
-  if (inherits(msmSummary, "summary.polr")) {
-    if (!is.null(msm$var)) msmSummary$coefficients[, 2] <- sqrt(diag(msm$var))
-    msmSummary$coefficients[, 3] <- msmSummary$coefficients[, 1] / msmSummary$coefficients[, 2]
-  }
-  
-  summaryTransportGC <- list(msmSummary = msmSummary,
+  summaryTransportGC <- list(effect = transportGCResult$effect,
+                    effectType = transportGCResult$effectType,
+                    var = transportGCResult$var,
                     preparedModelSummary = preparedModelSummary,
                     response = response,
                     treatment = treatment,
                     treatmentLevels = treatmentLevels)
+  
+  if (inherits(preparedModel$outcomeModel, "polr")) summaryTransportGC$responseLevels <- responseLevels
   
   class(summaryTransportGC) <- "summary.transportGC"
   
@@ -222,12 +271,12 @@ print.summary.transportGC <- function (x, out = stdout(), ...) {
   
   write(paste0("Response: ", summaryTransportGC$response), out)
   write(paste0("Treatment: ", summaryTransportGC$treatment), out)
+  write(paste0("Effect type: ", summaryTransportGC$effectType), out)
+  write(paste0("ATE estimate: ", summaryTransportGC$effect), out)
+  write(paste0("Standard error: ", sqrt(summaryTransportGC$var)), out)
   
   write("Fitted outcome model:", out)
   print(summaryTransportGC$preparedModelSummary, out)
-  
-  write("Fitted MSM:", out)
-  print(summaryTransportGC$msmSummary, out)
 }
 
 #' @title Visually represent results of transportability analysis using g-computation
@@ -244,7 +293,17 @@ print.summary.transportGC <- function (x, out = stdout(), ...) {
 #' @export
 plot.transportGC <- function (x, ...) {
   transportGCResult <- x
-  resultPlot <- modelsummary::modelplot(transportGCResult$msm, vcov = list(transportGCResult$msm$var))
+  ti <- data.frame(term = transportGCResult$preparedModel$treatment,
+                   estimate = transportGCResult$effect,
+                   conf.low = transportGCResult$effect - 1.96 * sqrt(transportGCResult$var),
+                   conf.high = transportGCResult$effect + 1.96 * sqrt(transportGCResult$var))
+  
+  gl <- data.frame(n = nrow(transportGCResult$targetData))
+  
+  ms <- list(tidy = ti, glance = gl)
+  class(ms) <- "modelsummary_list"
+  
+  resultPlot <- modelsummary::modelplot(ms)
   
   return(resultPlot)
 }
@@ -261,7 +320,7 @@ plot.transportGC <- function (x, ...) {
 #' @export
 #'
 is.transportGC <- function (transportGCResult) {
-  return((inherits(transportGCResult$msm, "glm") | inherits(transportGCResult$msm, "survreg") | inherits(transportGCResult$msm, "coxph") | inherits(transportGCResult$msm, "polr")) &
+  return(is.numeric(transportGCResult$effect) & is.numeric(transportGCResult$var) &
            is.transportGCPreparedModel(transportGCResult$preparedModel) &
            is.data.frame(transportGCResult$data))
 }

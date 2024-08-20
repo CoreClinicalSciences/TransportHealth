@@ -1,0 +1,40 @@
+---
+title: "Theory of inverse probability or odds weighting"
+author: "Core Clinical Sciences"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+
+vignette: >
+  %\VignetteIndexEntry{Theory of inverse probability or odds weighting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+\newcommand{\given}{\,|\,}
+\newcommand{\E}{\mathrm{E}}
+
+Let $Y$ be the outcome of interest, $A$ be the (binary, coded as 0 for control and 1 for treatment) treatment, $S$ be the indicator for study participation (so that $S=1$ means that the subject is in the population of the original study, while $S = 0$ means that the subject is in the target population), $X$ be covariates to control for confounding in the original study and $E$ be effect modifiers. Let $Y^0$ and $Y^1$ be counterfactual outcomes associated with control and treatment, respectively. The primary objective of transportability analysis is to estimate the ATE in the target population:
+$$ATE = \E[Y^1 - Y^0 \given S = 0].$$
+
+Simply taking the difference in sample means using the original study data will only unbiasedly estimate the quantity
+$$\E[Y \given A = 1, S = 1] - \E[Y \given A = 0, S = 1],$$
+which is different from the target ATE due to confounding and the different distributions of effect modifiers.
+
+Let
+$$w_1 = \begin{cases}\frac{1}{P(A = 1 \given X, S = 1)} & \textrm{if } A = 1 \\ \frac{1}{P(A = 0 \given X, S = 1)} & \textrm{if } A = 0\end{cases}$$
+and
+$$w_2 = \frac{P(S = 0 \given E)}{P(S = 1 \given E)}.$$
+To control for confounding, the estimator
+$$\frac{1}{\sum_{i=1}^n w_{1,i}I(A_i = a)}\sum_{i=1}^n w_{1,i}YI(A_i = a)$$
+will unbiasedly estimate the quantity
+$$\E[Y^a \given S = 1],$$
+which uses the first set of weights $w_1$ and is the IP weighting approach in causal inference. However, to estimate the target ATE, the estimator
+$$\frac{1}{\sum_{i=1}^n w_{1,i}w_{2,i}I(A_i = a)}\sum_{i=1}^n w_{1,i}w_{2,i}YI(A_i = a)$$
+should be used instead, which incorporates the second set of weights $w_2$ to unbiasedly estimate the target ATE. This is extended to estimate the coefficients of any marginal structural model in the target population in the same manner as IP weighting: more specifically, the marginal structural model coefficients are estimated by fitting regression models on the original study data with the weights $w_1w_2$.
+
+For more information, check out the "What If" book on causal inference [@what-if] and Ling, et al.'s application of IOPW to transportability analysis [@ling].
+
+## References
+
+::: {#refs}
+:::

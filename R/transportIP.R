@@ -1,7 +1,7 @@
 #' @title Transportability analysis using IOPW
 #' 
 #' @description
-#' Estimates the coefficients of a marginal structural model (MSM) using IP weighting in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively.
+#' Estimates the coefficients of a marginal structural model (MSM) using IP weighting in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively. Currently, this function only supports the case when there are exactly two treatment levels.
 #' 
 #'
 #' @param msmFormula A formula for the MSM to be fitted, which usually includes the outcome, the treatment and any effect modifiers.
@@ -12,7 +12,7 @@
 #' @param treatment String indicating name of treatment variable. If \code{NULL}, it will be auto-detected from \code{propensityScoreModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{treatment} should be provided so that \code{summary.transportIP} and \code{plot.transportIP} works.
 #' @param participation String indicating name of participation variable. If \code{NULL}, it will be auto-detected from \code{participationModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{participation} should be provided so that \code{summary.transportIP} and \code{plot.transportIP} works.
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.
-#' @param family Either a \code{family} function as used for \code{glm}, or one of \code{c("coxph", "survreg")}.
+#' @param family Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", "coxph", "survreg")}.
 #' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.
 #' @param data Either a single data frame containing merged study and target datasets, or a list containing the study dataset and the target dataset. Note that if participationModel is a glm object, the datasets would have been merged, so provide the merged dataset containing response, treatment, covariates controlled for in the original study, study participation and effect modifiers if this is the case. Make sure to code treatment and participation as 0-1 or TRUE-FALSE, with 1 and TRUE representing treatment group and study data, respectively.
 #' @param transport A boolean indicating whether a generalizability analysis (false) or a transportability analysis (true) is done.
@@ -251,6 +251,7 @@ transportIPFit <- function(msmFormula,
     } else if (family == "survreg") {
     model <- survival::survreg(msmFormula, data = toAnalyze, weight = finalWeights)
     } else if (family == "polr") {
+    method <- match.arg(method, c("logistic", "probit", "loglog", "cloglog", "cauchit"))
     model <- MASS::polr(msmFormula, data = toAnalyze, weights = finalWeights, method = method)
     }
   } else {
@@ -349,6 +350,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
   treatmentIndex <- which(names(studyData) == treatment)
   
   # Calculate SMDs for covariates (should optimize)
+  if (length(covariates != 0)) {
   prePropensitySMD <- sapply(covariates, function (covariate) as.double(smd::smd(x = studyData[, which(names(studyData) == covariate)],
                                                                        g = studyData[, treatmentIndex])$estimate))
   prePropensityBalance <- data.frame(variable = covariates, smd = abs(prePropensitySMD), method = rep("Observed", length(covariates)))
@@ -358,6 +360,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
   postPropensityBalance <- data.frame(variable = covariates, smd = abs(postPropensitySMD), method = rep("Weighted", length(covariates)))
   
   propensityBalance <- rbind(prePropensityBalance, postPropensityBalance)
+  } else propensityBalance <- NULL
   
   # Calculate SMDs for effect modifiers
   
@@ -396,6 +399,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
   }
   
   # Should also optimize
+  if (length(effectModifiers) != 0) {
   preParticipationSMD <- sapply(effectModifiers, function (effectModifier) as.double(smd::smd(x = participationData[, which(names(participationData) == effectModifier)],
                                                                                  g = participationData[, participationIndex])$estimate))
   preParticipationBalance <- data.frame(variable = effectModifiers, smd = abs(preParticipationSMD), method = rep("Observed", length(effectModifiers)))
@@ -404,6 +408,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
                                                                                               w = participationWeights)$estimate))
   postParticipationBalance <- data.frame(variable = effectModifiers, smd = abs(postParticipationSMD), method = rep("Weighted", length(effectModifiers)))
   participationBalance <- rbind(preParticipationBalance, postParticipationBalance)
+  } else participationBalance <- NULL
   
   # If model is glm, calculate and replace correct SEs
   
@@ -476,7 +481,8 @@ print.summary.transportIP <- function(x, out = stdout(), ...) {
 #' @export
 #'
 #' @importFrom rlang .data
-plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates = NULL, effectModifiers = NULL, ...) {
+#' @importFrom stats density
+plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates = NULL, effectModifiers = NULL, ...) {
   transportIPResult <- x
   summaryTransportIP <- summary(transportIPResult, covariates = covariates, effectModifiers = effectModifiers)
   resultPlot <- NULL
@@ -491,13 +497,23 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates =
       studyData <- propensityModel$data
       studyData$propensityScore <- propensityModel$fitted.values
       treatmentVar <- transportIPResult$treatment
-      resultPlot <- ggplot2::ggplot(data = studyData, mapping = ggplot2::aes(.data$propensityScore)) + halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!treatmentVar]], fill = .data[[!!treatmentVar]]), bins = bins)
+      treatmentGroups <- levels(factor(studyData[[treatmentVar]]))
+      treatmentGroupIdx <- list()
+      for (i in 1:length(treatmentGroups)) {
+        treatmentGroupIdx[[i]] <- which(studyData[[treatmentVar]] == treatmentGroups[i])
+      }
+      resultPlot <- ggplot2::ggplot(data = studyData, mapping = ggplot2::aes(.data$propensityScore)) +
+        halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!treatmentVar]], fill = .data[[!!treatmentVar]]), bins = bins) +
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[1]],], ggplot2::aes(x = .data$propensityScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
+        ggplot2::stat_density(data = studyData[treatmentGroupIdx[[2]],], ggplot2::aes(x = .data$propensityScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
+        ggplot2::ylab("Count")
     } else {
       stop("Custom propensity weights were used. Please plot your previously estimated propensity scores using the halfmoon package, if desired.")
     }
   } else if (type == "propensitySMD") {
     # SMD plot of covariates
       propensitySMD <- summaryTransportIP$propensitySMD
+      if (is.null(propensitySMD)) stop("No covariates to plot, please provide some.")
       resultPlot <- ggplot2::ggplot(propensitySMD, ggplot2::aes(x = .data$variable, y = .data$smd, group = .data$method, color = .data$method)) + 
         ggplot2::geom_line() +
         ggplot2::geom_point() +
@@ -512,13 +528,23 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates =
         allData <- participationModel$data
         allData$participationScore <- participationModel$fitted.values
         participationVar <- transportIPResult$participation
-        resultPlot <- ggplot2::ggplot(allData, ggplot2::aes(.data$participationScore)) + halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!participationVar]], fill = .data[[!!participationVar]]), bins = bins)
+        participationGroups <- levels(factor(allData[[participationVar]]))
+        participationGroupIdx <- list()
+        for (i in 1:length(participationGroups)) {
+          participationGroupIdx[[i]] <- which(allData[[participationVar]] == participationGroups[i])
+        }
+        resultPlot <- ggplot2::ggplot(allData, ggplot2::aes(.data$participationScore)) +
+          halfmoon::geom_mirror_histogram(ggplot2::aes(group = .data[[!!participationVar]], fill = .data[[!!participationVar]]), bins = bins) +
+          ggplot2::stat_density(data = allData[participationGroupIdx[[1]],], ggplot2::aes(x = .data$participationScore, y = -ggplot2::after_stat(density)), color = "black", alpha = 0) + 
+          ggplot2::stat_density(data = allData[participationGroupIdx[[2]],], ggplot2::aes(x = .data$participationScore, y = ggplot2::after_stat(density)), color = "black", alpha = 0) +
+          ggplot2::ylab("Count")
       } else {
         stop("Custom participation weights were used. Please plot your previously estimated participation scores using the halfmoon package, if desired.")
       }
     } else if (type == "participationSMD") {
     # SMD plots of effect modifiers
       participationSMD <- summaryTransportIP$participationSMD
+      if (is.null(participationSMD)) stop("No effect modifiers to plot, please provide some.")
       resultPlot <- ggplot2::ggplot(participationSMD, ggplot2::aes(x = .data$variable, y = .data$smd, group = .data$method, color = .data$method)) + 
         ggplot2::geom_line() +
         ggplot2::geom_point() +
@@ -528,7 +554,9 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 30, covariates =
         ggplot2::theme(legend.key = ggplot2::element_blank())
     } else if (type == "msm") {
       # Coefficient plots
-      resultPlot <- modelsummary::modelplot(transportIPResult$msm, vcov = list(transportIPResult$msm$var))
+      resultPlot <- modelsummary::modelplot(transportIPResult$msm,
+                                            vcov = list(transportIPResult$msm$var),
+                                            coef_omit = "(Intercept)")
     }
   
   return(resultPlot)
