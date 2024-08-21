@@ -2,7 +2,7 @@
 % Please edit documentation in R/transportTADA.R
 \name{transportTADA}
 \alias{transportTADA}
-\title{TransportTADA}
+\title{Transportability analysis using TADA}
 \usage{
 transportTADA(
   msmFormula,
@@ -34,9 +34,9 @@ transportTADA(
 
 \item{family}{Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg")}.}
 
-\item{studyData}{The individual patient-level data (IPD) of study population. Ensure that: 1. All binary variables to be used in the matching should be coded 1 and 0;}
+\item{studyData}{The individual participant data (IPD) of study population.}
 
-\item{aggregateTargetData}{The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_sd" in the aggregateTargetData.}
+\item{aggregateTargetData}{The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.}
 }
 \value{
 A \code{transportTADA} object containing the following components:
@@ -44,17 +44,29 @@ A \code{transportTADA} object containing the following components:
 \item \code{msm}: Raw model fit object for MSM of class \code{glm}, \code{survreg} and \code{coxph}, with the correct variance estimators appropriately replaced. If of class \code{glm}, it will have an extra \code{var} component containing the correct variance estimates.
 \item \code{propensityScoreModel}: Model of treatment assignment, \code{NULL} if not provided and custom propensity weights are used.
 \item \code{propensityWeights}: Propensity weights used. When not \code{NULL}, it will be used as custom inputs from user. When \code{NULL}, it will be obtained by logistic regression.
-\item \code{participationWeights}: Participation Weights used. When not \code{NULL}, it will be used as custom inputs from user. When \code{NULL}, it will be obtained by Method of Moments -based method.
+\item \code{participationWeights}: Participation Weights used. When not \code{NULL}, it will be used as custom inputs from user. When \code{NULL}, it will be obtained by Method of Moments-based method.
+\item \code{participationWeightCalculation}: The object contains participation weights calculation results.
+\item \code{participationWeightSummary}: The summary results related to participation weights such as effect sample sizes and so on as the information for the visualization legend.
 \item \code{finalWeights}: Weights used to fit MSM.
 \item \code{customPropensity}: Boolean indicating whether custom propensity weights are used.
 \item \code{customParticipation}: Boolean indicating whether custom participation weights are used.
-\item \code{treatment}: String indicating variable name of treatment.
-\item \code{response}: String indicating variable name of response.
-\item \code{studyData}: The original individual patient-level data (IPD) of study population.
+\item \code{treatment}: String indicating the variable name of treatment.
+\item \code{response}: String indicating the variable name of response.
+\item \code{studyData}: The original individual participant data (IPD) of study population.
 \item \code{aggregateTargetData}: The aggregate-level data (AgD) of target population.
-\item \code{centeredStudyData}: The centered study data for obtaining participation weights with MoM by MAIC::estimate_weights function.
+\item \code{processedIPD}: The individual participant data (IPD) after analytically pre-processing in format and calibration. All the ordinal variables have been dummized. \code{NULL} when \code{customParticipation} is \code{TRUE}.
+\item \code{processedAgD}: The aggregate-level data (AgD) after analytically pre-processing in format and calibration. \code{NULL} when \code{customParticipation} is \code{TRUE}.
+\item \code{matchingCovariates}: A vector of user-specified covariates which are used for the data matching to obtain participation weights when no custom weights provided.
+\item \code{centeredStudyData}: The data frame with both the processed study data and centered study data.
 }
 }
 \description{
 Estimates the coefficients of a marginal structural model (MSM) using Target Aggregate Data Adjustment (TADA) Transportability Analysis in a transportability analysis.
+}
+\details{
+The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For each of these models, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights.
+
+The MSM-fitting functions do not provide correct standard errors as-is. Bootstrap is used to calculate robust bootstrap variance estimators of the parameter estimators. The function replaces the variance component in \code{summary.glm}, \code{coxph} and \code{survreg} with the robust variance estimators directly. This does not seem to behave well with \code{predict.glm} yet, but prediction is not of primary interest in a transportability analysis.
+
+Ensure the binary variables are labelled as 0-1 format
 }
