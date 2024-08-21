@@ -1,0 +1,191 @@
+---
+title: "TransportMAIC"
+author: "Core Clinical Sciences"
+format: html
+editor: visual
+---
+
+# Mathematical proof of MAIC in transport health
+
+## Aim
+
+The reason why we need to do the transportability analysis is to tackle with the problem that there are potential differences between study population and target population. We consider two aspects: confounding in study population and distributions of effect modifiers (EM) in both population.
+
+## Weights
+
+We apply propensity weight, $w_1$, and participation weight, $w_2$, to account for aforementioned aspects respectively. The actual weight of matching, $w_{\text{actual}}$, is thus defined as the product of these two weights as
+
+$$
+w_{\text{actual}} = w_1 \times w_2
+$$
+
+Let $A$ be the treatment and $L$ be the covariates, where $A=1$ represents getting the treatment and $A=0$ represents not getting the treatment. Then
+
+$$
+w_1 = \frac{1}{Pr(A=a\mid L=l)}
+$$
+
+Let $S$ be the study participation indicator and $E$ be the effect modifiers, where $S=1$ represents participating the study and $S=0$ represents not participating the study. Then
+
+$$
+w_2 = \frac{Pr(S=0\mid E=e)}{Pr(S=1\mid E=e)}
+$$
+
+For $w_1$, since we have the IPD availability, we do logistic regression to get the MLE estimates. For $w_2$, since we just have AgD of EM's, we do Method of Moments to get the MoM estimates.
+
+For tansportability analysis, the ultimate goal is to prove that
+
+$$
+E\left[w_{\text{actual}}\cdot Y\mid A=a, S=1 \right] = E\left[Y^a\mid S=0 \right]
+$$
+
+Specifically, our missions are
+
+$$
+\text{When } A = a:Y\text{ to } Y^a
+$$
+
+$$
+S=1\text{ to } S=0
+$$
+
+which will be accomplished by $w_1$ and $w_2$ respectively.
+
+## Matching Adjustment
+
+Consider one intervention of interest as $A$ and the comparator intervention as $B$. Assume that we have the availability of IPD for $A$ but just AgD for $B$. For each individual patient $i$, let $X_{Ai}$ be the available IPD of covariates for intervention $A$. Let $\bar{X}_B$ be the available AgD of covariates for comparator $B$.
+
+### Method of Moments
+
+With the limited IPD availability, we match the study population to the target population via Method of Moments. Assume that the weight for individual patient $i$ follows the logistic regression:
+
+$$
+w_i = \exp(\alpha + X_{Ai}\cdot k)
+$$
+
+The Method of Moments goes as
+
+$$
+\frac{\sum_{i=1}^{N}X_{Ai}\cdot w_i}{\sum_{i=1}^{N}w_i} = \bar{X_{B}}
+$$
+
+Without loss of generality, it can be assumed that $\bar{X}_B=0$ in theoretical formula (e.g., we could transform/center baseline characteristics in both trials by subtracting $\bar{X}_B$ in format and derive the procedure as following
+
+$$
+    \begin{align}
+        \frac{\sum_{i=1}^{N}X_{Ai}\cdot w_i}{\sum_{i=1}^{N}w_i} &= \bar{X}_B \\
+        \sum_{i=1}^{N}X_{Ai}\cdot w_i &= \bar{X}_B\cdot \sum_{i=1}^{N}w_i\\
+        \sum_{i=1}^{N}X_{Ai}\cdot w_i &= 0 = Q'(k)
+        \nonumber
+    \end{align}
+$$
+
+where $Q(k) = \sum_{i=1}^{N}w_i = \sum_{i=1}^{N}\exp(X_{Ai}\cdot k)$ ($\alpha$ gets cancelled during the procedure).
+
+Since $Q(k)$ can be proved as convex, any infinite solution of (\*) is unique and corresponds to the global minimum of $Q(k)$. We can follow the process to eventually get the estimates of $w_i$.
+
+## MAIC
+
+Let $A$ be the treatment and $L$ be the covariates, where $A=1$ represents getting the treatment and $A=0$ represents not getting the treatment. Odds of being treated is as $$
+    \text{OR} = \frac{Pr(A = 1|L)}{Pr(A = 0|L)}
+$$
+
+The inverse-odds weight used in MAIC is defined as $$
+    w_i = \frac{Pr(A = 0|L)}{Pr(A = 1|L)}
+$$
+
+For the study population and target population, following the MAIC approach:
+
+-   Applying Methods of Moments to match these two population and calculating the weights $w_i$ for each individual
+-   The weights refers to a pseudo population (indicated as ""PS(MAIC)"")
+-   Let $Y$ be the outcome of interest, $A$ be the treatment indicator with specific type of treatment labelled by $a$, and $S$ be the study participation indicator where $S=1$ represents the participation of study and $S=0$ represents the non-participation of study. We can calculate the following expectation among the weighted MAIC pseudo population
+
+$$
+   E_{\text{PS(MAIC)}}[Y|A = a,S = 1]
+$$
+
+-   The ultimate goal is to estimate
+
+$$
+  E[Y^a|S=0]
+$$
+
+To obtain the average treatment effect in target population (PATE), we have the following two potential outcomes, $Y^1$ under intervention of interest, and $Y^0$ under comparator. In the study population, where $S=1$, the trial average treatment effect (TATE) is
+
+$$
+    E[Y^1-Y^0|S=1]
+$$
+
+and the PATE is
+
+$$
+    E[Y^1-Y^0]
+$$
+
+# Summary of MAIC in Transportability
+
+The MAIC transportability method provides the unbiased estimator of $E(Y^a)$ by weighing the observations under $(A,L)=(a,l)$ via inverse-odds
+
+$$
+    w_i = \frac{1}{\text{OR}_{i}} = \frac{Pr(A = 0|L)}{Pr(A = 1|L)}
+$$
+
+Among the pseudo population after the weighting process (note: since $w_i>1$ we treat the pseudo population with duplicates of original population), the weighted mean of observations in $A=a$ group is
+
+$$
+    \begin{align}
+    E_{\text{PS(MAIC)}}[Y|A=a] &= \frac{E_{\text{PS(MAIC)}}[Y\cdot I(A=a)]}{E_{\text{PS(MAIC)}}[I(A=a)]} && \text{(by law of probability)}
+    \end{align}
+$$
+
+By definition of the expectation in pseudo population, we have the relationship between $E_{\text{PS}}$ and $E$
+
+$$
+    E_{\text{PS}}[Y\cdot I(A=a)] = E[w^A\cdot YI(A=a)]
+$$
+
+Thus, when $w^A = w_i$ as the inverse-odds
+
+$$
+    E_{\text{PS(MAIC)}}[Y|A=a] = \frac{E\left[\frac{Pr(A=0|L)}{Pr(A=1|L)}\cdot YI(A=a)\right]}{E\left[\frac{Pr(A=0|L)}{Pr(A=1|L)}\right]}
+$$
+
+When $a = 1$:
+
+$$
+    E_{\text{PS(MAIC)}}[Y \mid A=1] = \frac{E\left[\frac{\Pr(A=0 \mid L)}{\Pr(A=1 \mid L)} \cdot Y I(A=1)\right]}{E\left[\frac{\Pr(A=0 \mid L)}{\Pr(A=1 \mid L)} \cdot I(A=1)\right]}
+$$
+
+In the denominator above, since
+
+$$
+\begin{align}
+      E\left[\frac{I(A=1)}{\Pr(A=1 \mid L)}\right] &= E\left[E\left[\frac{I(A=1)}{\Pr(A=1 \mid L)} \mid L\right]\right] \quad \text{(since $EX = E[E(X\mid A)]$)}\\
+    &= E\left[\frac{1}{\Pr(A=1 \mid L)} \times \Pr(A=1 \mid L)\right] \\
+    &= 1  
+    \nonumber
+\end{align}
+$$
+
+Thus
+
+$$
+    E_{\text{PS(MAIC)}}\left[Y|A=1\right] = \frac{1}{Pr(A=0)}\cdot E\left[\frac{Pr(A=0|L)}{Pr(A=1|L)}\cdot YI(A=1)\right]
+$$
+
+We want to estimate $E[Y^1|S=0]$. According to consistency: $Y=Y^a$ under $A=a$. The counterfactual mean of interests $E(Y^1)$ can be unbiased estimated by the weight mean $E[w^A\cdot Y|A=1]$.
+
+$$
+    \begin{align}
+    E[w^A\cdot Y|A=1] &= E_{\text{PS(MAIC)}}[Y|A=1] \\
+    &= \frac{1}{\Pr(A=0)}\cdot E\left[\frac{\Pr(A=0|L)}{\Pr(A=1|L)}\cdot YI(A=1)\right] \\
+    &= \frac{1}{\Pr(A=0)}\cdot E\left[E\left[\frac{\Pr(A=0|L)}{\Pr(A=1|L)}\cdot YI(A=1)\right]|L\right] \\
+    &= \frac{1}{\Pr(A=0)}\cdot E\left[E\left[\frac{\Pr(A=0|L)}{\Pr(A=1|L)}\cdot Y^{1}I(A=1)\right]|L\right] && \text{(by consistency)}\\
+    &= \frac{1}{\Pr(A=0)}\cdot E\left[E\left[ \frac{\Pr(A=0|L)\cdot Y^1}{\Pr(A=1|L)} |L\right] \times E[I(A=1)|L]\right] && \text{(by $(Y^0, Y^1\perp A)\mid L$)} \\
+    &= \frac{1}{\Pr(A=0)}\cdot E\left[\frac{\Pr(A=0|L)}{\Pr(A=1|L)}\cdot E[Y^1|L] \times \Pr(A=1|L)\right] && \text{(pending to modify here)}\\
+    &=  E\left[E\left[Y^1|L\right]\right] \\
+    &= E[Y^1]
+    \end{align}
+$$
+
+Similar idea straightforwardly works for the condition when $A=0$.
