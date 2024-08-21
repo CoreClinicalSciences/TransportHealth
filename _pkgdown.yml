@@ -1,4 +1,4 @@
-url: https://coreclinicalsciences.github.io/TransportHealthR
+url: https://coreclinicalsciences.github.io/TransportHealth
 
 template:
   bootstrap: 5
@@ -13,7 +13,7 @@ navbar:
   components:
     github:
       icon: fa-github
-      href: https://github.com/CoreClinicalSciences/TransportHealthR
+      href: https://github.com/CoreClinicalSciences/TransportHealth
 
 articles:
   - title: Introduction
