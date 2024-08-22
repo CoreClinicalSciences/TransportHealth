@@ -170,6 +170,8 @@ transportTADA <- function(msmFormula,
     dummizeCols = ordinalCovariates
     dummizeIPD <- dummizeIPD(studyData, 
                              dummizeCols = dummizeCols)
+  } else {
+    dummizeIPD <- studyData
   }
   
   processedAgD <- processedAgD(aggregateTargetData)
