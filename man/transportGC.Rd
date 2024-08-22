@@ -31,7 +31,7 @@ A \code{transportGC} object with the following components:
 }
 }
 \description{
-Estimates the coefficients of a marginal structural model (MSM) using g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively.
+Estimates the average treatment effect (ATE) using g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the ATE in the superpopulation or the target population, respectively.
 }
 \details{
 The expected workflow is as follows:
@@ -44,7 +44,7 @@ The expected workflow is as follows:
 \item{The researcher uses this function and the provided \code{transportGCPreparedModel} object to perform the analysis using g-computation.}
 }
 
-Since model-fitting objects in \code{R} often contain the data used to fit the model, the \code{transportGCPreparedModel} function wipes this data in the model-fitting object and keeps additional information about the name of the response variable, the name of the treatment variable and the levels of treatment. This is to comply with government regulations regarding access and integration of data sources from different countries.
+Since model-fitting objects in \code{R} often contain the data used to fit the model, the \code{transportGCPreparedModel} function wipes this data, if requested, in the model-fitting object and keeps additional information about the name of the response variable, the name of the treatment variable and the levels of treatment. This is in awareness with government regulations regarding access and integration of data sources from different countries.
 
-The MSM-fitting functions do not provide correct standard errors as-is. Bootstrap is used to calculate robust variance estimates of the MSM coefficient estimators. Note that these standard errors are only valid conditional on the observed study data because it is not possible to resample the study data when access to it is restricted.
+Bootstrap is used to calculate robust variance estimates of the ATE estimator. Note that these standard errors are only valid conditional on the observed study data when \code{wipe = T} because it is not possible to resample the study data when access to it is restricted.
 }
