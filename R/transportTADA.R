@@ -332,6 +332,7 @@ transportTADA <- function(msmFormula,
                           family = family, 
                           data = toAnalyze, 
                           weight = finalWeights)
+      model$var <- sandwich::vcovBS(model)
     }
   
   transportTADAResult <- list(msm = model, # glm / survreg / coxph / 
