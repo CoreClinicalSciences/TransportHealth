@@ -25,7 +25,7 @@ If you are just getting started with **TransportHealth**, we recommend starting 
 
 ## Installation
 
-Install the latest development version from [GitHub](CoreClinicalSciences/TransportHealthR)
+Install the latest development version from [GitHub](CoreClinicalSciences/TransportHealth)
 
 ``` r
 if (!require("devtools")) {
@@ -36,5 +36,5 @@ devtools::install_github("CoreClinicalSciences/TransportHealthR")
 
 ## Citing TransportHealth
 
-To cite `TransportHealth`, please see [here](https://coreclinicalsciences.github.io/TransportHealthR/authors.html#citation)
+To cite `TransportHealth`, please see [here](https://coreclinicalsciences.github.io/TransportHealth/authors.html#citation)
 
