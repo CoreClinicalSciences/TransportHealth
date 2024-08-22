@@ -188,7 +188,7 @@ transportTADA <- function(msmFormula,
     # ------- participationWeightCalculation based on custom participation weights
 
     wt <- participationWeights
-    wt_rs <- (wt / sum(wt)) * sum(complete.cases(matchingCovariatesSubset)) # avoid NAs in matchingCovariatesSubset
+    wt_rs <- (wt / sum(wt)) * sum(stats::complete.cases(matchingCovariatesSubset)) # avoid NAs in matchingCovariatesSubset
     data <- data.frame(weights = wt, 
                        scaledWeights = wt_rs)
 
@@ -202,8 +202,8 @@ transportTADA <- function(msmFormula,
     # participationWeightSummary <- calculateWeightsLegend(weightedData = participationWeightCalculation)
     summaryESS <- round(participationWeightCalculation$ESS, 2)
     ESS_reduction <- round((1 - summaryESS/length(wt)) * 100, 2)
-    wt_median <- round(median(wt), 4)
-    wt_scaled_median <- round(median(wt_rs), 4)
+    wt_median <- round(stats::median(wt), 4)
+    wt_scaled_median <- round(stats::median(wt_rs), 4)
     
     participationWeightSummary <- list(
       ESS = summaryESS,
@@ -271,11 +271,11 @@ transportTADA <- function(msmFormula,
   # obtain participation weights when no custom weights (pending in individual testing scripts)
     # ----- Participation Weight Estimation ----- #
     
-    dummizeIPD <- dummizeIPD(studyData)
-    processedAgD <- processedAgD(aggregateTargetData)
-    centerIPD <- centerIPD(IPD = dummizeIPD, AgD = processedAgD)
-    
-    centeredColnames <- grep("_CENTERED", colnames(centerIPD), value = TRUE) # add suffix for centered variables
+    # dummizeIPD <- dummizeIPD(studyData, ordinalCovariates)
+    # processedAgD <- processedAgD(aggregateTargetData)
+    # centerIPD <- centerIPD(IPD = dummizeIPD, AgD = processedAgD)
+    # 
+    # centeredColnames <- grep("_CENTERED", colnames(centerIPD), value = TRUE) # add suffix for centered variables
     
     participationWeightCalculation <- estimateWeights(data = centeredIPD,
                                                       centeredColnames = centeredColnames)
@@ -457,7 +457,7 @@ dummizeIPD <- function(rawIPD, dummizeCols, refLevel = NULL) { # refLevel: a vec
     
     # deal with the ordinal variables needed to be dummized one by one
     rawCols <- rawIPD[[dummizeCols[i]]]
-    rawLevels <- na.omit(unique(rawCols))
+    rawLevels <- stats::na.omit(unique(rawCols))
     
     # dummizeCols is a vector with reference levels in order 
     if (is.null(refLevel) || length(refLevel) < i) { # length(refLevel) < i indicates that user doesn't provide the reference level of the i-th ordinal variables 
@@ -534,7 +534,7 @@ optimiseWeights <- function(matrix,
     stop("Error: par must be a numeric vector with finite values of length equal to the number of columns in 'matrix'.")
   }
   
-  optResults <- optim(
+  optResults <- stats::optim(
     par = par,
     fn = function(alpha, X) sum(exp(X %*% alpha)), # function to be minimized
     gr = function(alpha, X) colSums(sweep(X, 1, exp(X %*% alpha), "*")), # gradient
@@ -682,13 +682,13 @@ calculateWeightsLegend <- function(weightedData) {
   # calculate sample size and exclude NA from wt
   nr_na <- sum(is.na(wt))
   n <- length(wt) - nr_na
-  wt <- na.omit(wt)
-  wt_scaled <- na.omit(wt_scaled)
+  wt <- stats::na.omit(wt)
+  wt_scaled <- stats::na.omit(wt_scaled)
   
   # calculate ESS reduction and median weights
   ESS_reduction <- (1 - (ESS / n)) * 100
-  wt_median <- median(wt)
-  wt_scaled_median <- median(wt_scaled)
+  wt_median <- stats::median(wt)
+  wt_scaled_median <- stats::median(wt_scaled)
   
   list(
     ESS = round(ESS, 2),
@@ -699,7 +699,8 @@ calculateWeightsLegend <- function(weightedData) {
   )
 }
 
-
+# function to calculate weighted SD based on weighted.mean() base function
+weighted.sd <- function(x, w) {sqrt(sum(w * (x - stats::weighted.mean(x, w)) ^2, na.rm = TRUE) / sum(w)) }
 
 #' @title Summarize results of a fitted MSM using the TADA approach
 #' 
@@ -818,8 +819,8 @@ summary.transportTADA <- function(object,
       userIPDSummaryList[[paste(name, "PROP", sep = "_")]] <- mean(userIPDModified[[name]])
     } else if (is.numeric(userIPDModified[[name]])) {
       userIPDSummaryList[[paste(name, "MEAN", sep = "_")]] <- mean(userIPDModified[[name]])
-      userIPDSummaryList[[paste(name, "SD", sep = "_")]] <- sd(userIPDModified[[name]])
-      userIPDSummaryList[[paste(name, "MEDIUM", sep = "_")]] <- median(userIPDModified[[name]])
+      userIPDSummaryList[[paste(name, "SD", sep = "_")]] <- stats::sd(userIPDModified[[name]])
+      userIPDSummaryList[[paste(name, "MEDIUM", sep = "_")]] <- stats::median(userIPDModified[[name]])
     }
   }
   
@@ -848,20 +849,17 @@ summary.transportTADA <- function(object,
   # ---- post weighting IPD summary
   weights <- finalWeights
   
-  # function to calculate weighted SD based on weighted.mean() base function
-  weighted.sd <- function(x, w) {sqrt(sum(w * (x - weighted.mean(x, w)) ^2, na.rm = TRUE) / sum(w)) }
-  
   # calculate weighted median based on Hmisc package
-  library(Hmisc)
+  # library(Hmisc)
   
   postWeightingIPDSummaryList <- list()
   
   for (name in names(userIPDModified)) {
     originalEMs <- userIPDModified[[name]]
     if (all(originalEMs %in% c(0, 1))) {
-      postWeightingIPDSummaryList[[paste(name, "PROP", sep = "_")]] <- weighted.mean(originalEMs, weights)
+      postWeightingIPDSummaryList[[paste(name, "PROP", sep = "_")]] <- stats::weighted.mean(originalEMs, weights)
     } else if (is.numeric(originalEMs)) {
-      postWeightingIPDSummaryList[[paste(name, "MEAN", sep = "_")]] <- weighted.mean(originalEMs, weights)
+      postWeightingIPDSummaryList[[paste(name, "MEAN", sep = "_")]] <- stats::weighted.mean(originalEMs, weights)
       postWeightingIPDSummaryList[[paste(name, "SD", sep = "_")]] <- weighted.sd(originalEMs, weights)
       postWeightingIPDSummaryList[[paste(name, "MEDIUM", sep = "_")]] <- Hmisc::wtd.quantile(originalEMs, weights, probs = 0.5)
     }
@@ -1041,7 +1039,7 @@ plot.transportTADA <- function(x, type = "propensityHist", bins = 50, maxWeight 
 
     wt_data0 <- weightedData$data[, c("weights", "scaledWeights")]
     colnames(wt_data0) <- main_title
-    wt_data <- stack(wt_data0)
+    wt_data <- utils::stack(wt_data0)
     wt_data$median <- ifelse(wt_data$ind == main_title[1],
                              weightsStat$wt_median, 
                              weightsStat$wt_scaled_median
