@@ -13,6 +13,7 @@ transportInterpolated(
   subgroupSEs,
   corrStructure = NULL,
   studySampleSize,
+  aggregateStudyData,
   targetData
 )
 }
@@ -25,13 +26,15 @@ transportInterpolated(
 
 \item{mainSE}{Estimate of standard error of estimator of ATE in original study}
 
-\item{subgroupTreatmentEffects}{Estimates of subgroup ATEs in original study. Please provide subgroup ATEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the ATE of the subgroup whose proportion is provided in \code{targetData} first in each pair}
+\item{subgroupTreatmentEffects}{Estimates of subgroup ATEs in original study. Please provide subgroup ATEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the ATE of the subgroup whose proportion is provided in \code{summaryAggregateData} first in each pair}
 
-\item{subgroupSEs}{Estimates of standard errors of subgroup ATEs in original study. Please provide SEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the SE of the subgroup whose proportion is provided in \code{targetData} first in each pair}
+\item{subgroupSEs}{Estimates of standard errors of subgroup ATEs in original study. Please provide SEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the SE of the subgroup whose proportion is provided in \code{summaryAggregateData} first in each pair}
 
 \item{corrStructure}{Correlation structure of dichotomized effect modifiers. If target IPD is provided, this will be estimated from the target data, if user input is omitted. If target aggregate data is provided, this will be specified by the user and default to an independent correlation structure if left unspecified.}
 
 \item{studySampleSize}{Sample size of original study}
+
+\item{aggregateStudyData}{Vector of proportions of dichotomized effect modifiers in study data. Please provide proportions of only one category for each effect modifier. This category should correspond to the the first ATE and SE provided for each effect modifier.}
 
 \item{targetData}{May be IPD or aggregate. If aggregate, provide proportions of only one category of dichotomized effect modifiers in a named vector (not a data frame)}
 }
@@ -48,6 +51,7 @@ A \code{transportInterpolated} object with the following components:
 \item \code{subgroupSEs}: Estimates of standard errors of subgroup ATEs in original study, as provided
 \item \code{corrStructure}: Correlation structure of effect modifiers used in analysis
 \item \code{studySampleSize}: Sample size of original study
+\item \code{aggregateStudyData}: Aggregate-level study data, as provided
 \item \code{targetData}: Target data, as provided
 }
 }

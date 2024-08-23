@@ -10,6 +10,7 @@ test_that("Scenario 1: aggregate study data, IPD target data", {
                                                         subgroupTreatmentEffects = subgroupTreatmentEffects,
                                                         subgroupSEs = subgroupSEs,
                                                         studySampleSize = nStudy,
+                                                        aggregateStudyData = aggregateStudyData,
                                                         targetData = targetData)))
   
   expect_true(is.transportInterpolated(testResult))
@@ -17,6 +18,7 @@ test_that("Scenario 1: aggregate study data, IPD target data", {
   expect_no_warning(testSummary <- summary(testResult))
   
   expect_true(is.data.frame(testSummary$subgroupEffects))
+  expect_false(is.data.frame(testSummary$aggregateStudyData))
   expect_false(is.data.frame(testSummary$aggregateTargetData))
   
   expect_no_warning(testPlot <- plot(testResult))
@@ -36,6 +38,7 @@ test_that("Scenario 2: aggregate study data, aggregate target data", {
                                                              subgroupSEs = subgroupSEs,
                                                              corrStructure = diag(length(effectModifiers)),
                                                              studySampleSize = nStudy,
+                                                             aggregateStudyData = aggregateStudyData,
                                                              targetData = aggregateTargetData)))
   
   expect_warning(testResult2 <- with(testDataInterpolated,
@@ -46,6 +49,7 @@ test_that("Scenario 2: aggregate study data, aggregate target data", {
                                                              subgroupTreatmentEffects = subgroupTreatmentEffects,
                                                              subgroupSEs = subgroupSEs,
                                                              studySampleSize = nStudy,
+                                                             aggregateStudyData = aggregateStudyData,
                                                              targetData = aggregateTargetData)))
   
   expect_true(is.transportInterpolated(testResult))
@@ -53,6 +57,7 @@ test_that("Scenario 2: aggregate study data, aggregate target data", {
   expect_no_warning(testSummary <- summary(testResult))
   
   expect_true(is.data.frame(testSummary$subgroupEffects))
+  expect_false(is.data.frame(testSummary$aggregateStudyData))
   expect_false(is.data.frame(testSummary$aggregateTargetData))
   
   expect_no_warning(testPlot <- plot(testResult))

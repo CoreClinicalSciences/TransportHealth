@@ -24,6 +24,7 @@ Returns a \code{summary.transportInterpolated} object containing the following c
 \item \code{effect}, \code{link}, \code{mainTreatmentEffect} and \code{mainSE} as in the \code{transportInterpolated} object
 \item \code{se}: Estimated standard error of the effect estimate
 \item \code{subgroupEffects}: Subgroup effect estimates and their estimated standard errors in the original study, organized into a data frame with specific effect modifier and subgroup information
+\item \code{aggregateStudyData}: Summary statistics of effect modifiers in study data
 \item \code{aggregateTargetData}: Summary statistics of effect modifiers in target data
 }
 }

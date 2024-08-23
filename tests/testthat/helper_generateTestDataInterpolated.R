@@ -15,6 +15,8 @@ generateTestDataInterpolated <- function() {
   
   effectModifiers <- c("med2", "percentBodyFatDicho")
   
+  aggregateStudyData <- apply(studyData[, effectModifiers], 2, function(x) {x |> as.numeric() |> mean()})
+  
   subgroupLevels <- rep(c(1,0), times = length(effectModifiers))
   
   subgroupTreatmentEffects <- sapply(1:length(subgroupLevels), function(i) {
@@ -41,6 +43,7 @@ generateTestDataInterpolated <- function() {
               subgroupTreatmentEffects = subgroupTreatmentEffects,
               subgroupSEs = subgroupSEs,
               nStudy = nStudy,
+              aggregateStudyData = aggregateStudyData,
               targetData = targetData,
               aggregateTargetData = aggregateTargetData))
 }

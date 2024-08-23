@@ -8,10 +8,11 @@
 #' @param effectModifiers Vector of strings indicating effect modifiers to adjust for
 #' @param mainTreatmentEffect Estimate of ATE in original study
 #' @param mainSE Estimate of standard error of estimator of ATE in original study
-#' @param subgroupTreatmentEffects Estimates of subgroup ATEs in original study. Please provide subgroup ATEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the ATE of the subgroup whose proportion is provided in \code{targetData} first in each pair
-#' @param subgroupSEs Estimates of standard errors of subgroup ATEs in original study. Please provide SEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the SE of the subgroup whose proportion is provided in \code{targetData} first in each pair
+#' @param subgroupTreatmentEffects Estimates of subgroup ATEs in original study. Please provide subgroup ATEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the ATE of the subgroup whose proportion is provided in \code{summaryAggregateData} first in each pair
+#' @param subgroupSEs Estimates of standard errors of subgroup ATEs in original study. Please provide SEs in the order of effect modifiers listed in \code{effectModifiers}, and provide the SE of the subgroup whose proportion is provided in \code{summaryAggregateData} first in each pair
 #' @param corrStructure Correlation structure of dichotomized effect modifiers. If target IPD is provided, this will be estimated from the target data, if user input is omitted. If target aggregate data is provided, this will be specified by the user and default to an independent correlation structure if left unspecified.
 #' @param studySampleSize Sample size of original study
+#' @param aggregateStudyData Vector of proportions of dichotomized effect modifiers in study data. Please provide proportions of only one category for each effect modifier. This category should correspond to the the first ATE and SE provided for each effect modifier.
 #' @param targetData May be IPD or aggregate. If aggregate, provide proportions of only one category of dichotomized effect modifiers in a named vector (not a data frame)
 #'
 #' @details
@@ -29,6 +30,7 @@
 #' * \code{subgroupSEs}: Estimates of standard errors of subgroup ATEs in original study, as provided
 #' * \code{corrStructure}: Correlation structure of effect modifiers used in analysis
 #' * \code{studySampleSize}: Sample size of original study
+#' * \code{aggregateStudyData}: Aggregate-level study data, as provided
 #' * \code{targetData}: Target data, as provided
 #' 
 #' @export
@@ -42,9 +44,11 @@ transportInterpolated <- function (link = c("identity", "log"),
                            subgroupSEs,
                            corrStructure = NULL,
                            studySampleSize,
+                           aggregateStudyData,
                            targetData) {
   if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2 |
-      length(subgroupSEs) != length(effectModifiers) * 2)
+      length(subgroupSEs) != length(effectModifiers) * 2 |
+      length(effectModifiers) != length(aggregateStudyData))
     stop("Incongruent lengths of list of effect modifiers and list of subgroup effects/SEs. Make sure that all effect modifiers are dichotomized. Provide treatment effects for each marginal subgroup.")
   
   link <- match.arg(link, c("identity", "log"))
@@ -82,16 +86,16 @@ transportInterpolated <- function (link = c("identity", "log"),
     }
   }
   
-  emTargetVars <- (emTargetProps * (1 - emTargetProps)) / studySampleSize
+  emStudyVars <- (aggregateStudyData * (1 - aggregateStudyData)) / studySampleSize
   
   # Construct enriched data matrix for treatment effect
   enrichedTEMatrix <- matrix(double((2*m + 1) * (m + 1)), ncol = m + 1)
   enrichedTEMatrix[, 1] <- 1 # Intercept column
-  enrichedTEMatrix[1, (2:(m+1))] <- emTargetProps # Overall TE row
+  enrichedTEMatrix[1, (2:(m+1))] <- aggregateStudyData # Overall TE row
   for (j in 1:m) enrichedTEMatrix[2 * j, 1 + j] <- 1 # Filling in 1s at corresponding rows of subgroup treatment effect
   for (i in 1:m) { # BLUP
-    enrichedTEMatrix[2*i, - (i + 1)] <- corrStructure[i, -i] * sqrt(emTargetVars[i]) / sqrt(emTargetVars[-i]) * (1 - emTargetProps[-i]) + emTargetProps[-i]
-    enrichedTEMatrix[2*i + 1, - (i + 1)] <- corrStructure[i, -i] * sqrt(emTargetVars[i]) / sqrt(emTargetVars[-i]) * (0 - emTargetProps[-i]) + emTargetProps[-i]
+    enrichedTEMatrix[2*i, - (i + 1)] <- corrStructure[i, -i] * sqrt(emStudyVars[i]) / sqrt(emStudyVars[-i]) * (1 - aggregateStudyData[-i]) + aggregateStudyData[-i]
+    enrichedTEMatrix[2*i + 1, - (i + 1)] <- corrStructure[i, -i] * sqrt(emStudyVars[i]) / sqrt(emStudyVars[-i]) * (0 - aggregateStudyData[-i]) + aggregateStudyData[-i]
   }
   
   # Construct enriched data matrix for SE
@@ -143,6 +147,7 @@ transportInterpolated <- function (link = c("identity", "log"),
                  subgroupSEs = subgroupSEs,
                  corrStructure = corrStructure,
                  studySampleSize = studySampleSize,
+                 aggregateStudyData = aggregateStudyData,
                  targetData = targetData)
   
   class(result) <- "transportInterpolated"
@@ -165,6 +170,7 @@ transportInterpolated <- function (link = c("identity", "log"),
 #' * \code{effect}, \code{link}, \code{mainTreatmentEffect} and \code{mainSE} as in the \code{transportInterpolated} object
 #' * \code{se}: Estimated standard error of the effect estimate
 #' * \code{subgroupEffects}: Subgroup effect estimates and their estimated standard errors in the original study, organized into a data frame with specific effect modifier and subgroup information
+#' * \code{aggregateStudyData}: Summary statistics of effect modifiers in study data
 #' * \code{aggregateTargetData}: Summary statistics of effect modifiers in target data
 #' 
 #' @export
@@ -180,6 +186,9 @@ summary.transportInterpolated <- function (object, ...) {
                                   subgroup = rep(c(1,0), times = length(effectModifiers)),
                                   effect = transportInterpolatedResult$subgroupTreatmentEffects,
                                   se = transportInterpolatedResult$subgroupSEs)
+  
+  aggregateStudyData <- transportInterpolatedResult$aggregateStudyData
+  names(aggregateStudyData) <- effectModifiers
   
   m <- length(effectModifiers)
   targetData <- transportInterpolatedResult$targetData
@@ -200,6 +209,7 @@ summary.transportInterpolated <- function (object, ...) {
                         mainTreatmentEffect = transportInterpolatedResult$mainTreatmentEffect,
                         mainSE = transportInterpolatedResult$mainSE,
                         subgroupEffects = subgroupStudyTable,
+                        aggregateStudyData = aggregateStudyData,
                         aggregateTargetData = emTargetProps)
   
   class(summaryResult) <- "summary.transportInterpolated"
@@ -224,6 +234,8 @@ print.summary.transportInterpolated <- function (x, out = stdout(), ...) {
   write(paste0("Source study standard error: ", summaryResult$mainSE), out)
   write("Subgroup source treatment effects: ", out)
   print(summaryResult$subgroupEffects, out)
+  write("Source data summary: ", out)
+  print(summaryResult$aggregateStudyData, out)
   write("Target data summary: ", out)
   print(summaryResult$aggregateTargetData, out)
 }
@@ -279,5 +291,6 @@ is.transportInterpolated <- function (x) {
           is.numeric(x$subgroupSEs) &
           is.matrix(x$corrStructure) &
           is.numeric(x$studySampleSize) &
+          is.numeric(x$aggregateStudyData) &
           (is.numeric(x$targetData) | is.data.frame(x$targetData)))
 }
