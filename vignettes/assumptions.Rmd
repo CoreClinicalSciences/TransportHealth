@@ -1,6 +1,7 @@
 ---
 title: "Assumptions of Transportability and Generalizability Analysis"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Assumptions of Transportability and Generalizability Analysis}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,7 +18,7 @@ library(TransportHealth)
 
 # Introduction
 
-Like other causal inference methods, the validity of transportability and generalizability analysis methods depends on a number of identifiability assumptions. This vignette will briefly go over them. More details about general causal inference assumptions can be found in [@what-if], while those specific to transportability and generalizability analysis can be found in [@ling-review, @degtiar-review].
+Like other causal inference methods, the validity of transportability and generalizability analysis methods depends on a number of identifiability assumptions. This vignette will briefly go over them. More details about general causal inference assumptions can be found in the "What If" book on causal inference [@what-if], while those specific to transportability and generalizability analysis can be found in [@ling-review] and [@degtiar-review].
 
 # Assumptions
 
