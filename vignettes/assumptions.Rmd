@@ -1,0 +1,67 @@
+---
+title: "Assumptions of Transportability and Generalizability Analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Assumptions of Transportability and Generalizability Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup}
+library(TransportHealth)
+```
+
+\newcommand{\given}{\,|\,}
+\newcommand{\E}{\mathrm{E}}
+
+# Introduction
+
+Like other causal inference methods, the validity of transportability and generalizability analysis methods depends on a number of identifiability assumptions. This vignette will briefly go over them. More details about general causal inference assumptions can be found in [@what-if], while those specific to transportability and generalizability analysis can be found in [@ling-review, @degtiar-review].
+
+# Assumptions
+
+## Notation
+
+Let $Y$ be an outcome of interest and $A$ be the (binary, 0-1) treatment. Let $S$ be the indicator for participation in the source dataset, so $S = 1$ for observations in the source dataset and $S = 0$ for those in the target dataset. Let $Y^a$ be the counterfactual outcome when a subject receives treatment $A = a$. Using only the source dataset will let us estimate
+$$\E[Y^1 - Y^0 \given S = 1].$$
+In transportability analysis, we wish to estimate
+$$\E[Y^1 - Y^0 \given S = 0],$$
+while in generalizability analysis, we wish to estimate
+$$\E[Y^1 - Y^0].$$
+
+Additionally, let $\mathbf{L}$ denote covariates to control for confounding in the source dataset, and let $\mathbf{E}$ denote effect modifiers that may differ in distribution between the source and target datasets.
+
+## Stable unit treatment value assumption (SUTVA)
+
+The stable unit treatment value assumption (SUTVA) says that
+$$Y = AY^1 + (1-A)Y^0.$$
+More concretely, this assumption contains two components:
+
+ - No interference: the treatment of one subject does not affect the counterfactual outcomes of another subject
+ - No hidden versions of treatment: the treatment affects the counterfactual outcome in only one way
+ 
+Importantly, this is assumed to hold in both the source dataset and the target dataset.
+ 
+## Conditional exchangeability
+
+The conditional exchangeability assumption with respect to treatment assignment says that within the source population, the counterfactual outcomes are independent of treatment assignment conditional on covariates being controlled for confounding. In mathematical notation, this is
+$$Y^0, Y^1 \perp A \given \mathbf{L}, S = 1.$$
+More concretely, this assumption says that no other covariates aside from the ones included in $\mathbf{L}$ cause confounding between treatment and outcome. In other words, $\mathbf{L}$ includes all confounding variables in the source dataset.
+
+The conditional exchangeability assumption with respect to study participation says that the counterfactual outcomes are independent of study participation conditional on effect modifiers. In mathematical notation, this is
+$$Y^0, Y^1 \perp S \given \mathbf{E}.$$
+More concretely, this assumptions says that all effect modifiers whose distribution may differ between the source and target populations are included exhaustively in $\mathbf{E}$.
+
+## Positivity
+
+Positivity of treatment assignment assumes that $0 < P(A = 1 \given \mathbf{L} = \mathbf{l}) < 1$ for all values of $\mathbf{l}$ in the support of $\mathbf{L}$. This means that at all possible levels of $\mathbf{L}$, subjects may be assigned to the treatment group or the control group: they are not locked in to either group. Similarly, positivity of study participation assumes that $0 < P(S = 1 \given \mathbf{E} = \mathbf{e}) < 1$ for all values of $\mathbf{e}$ in the support of $\mathbf{E}$, which means that at all possible values of $\mathbf{E}$, subjects can possible, but not certainly, be in the source dataset.
+
+# Verifying assumptions
+
+These assumptions are inherently untestable. However, transportability analysis methods have ways to assess whether the assumptions are likely to hold. More details on the available diagnostic tools are presented in the vignettes specific to each method.
+
+# References
+
+::: {#refs}
+:::
