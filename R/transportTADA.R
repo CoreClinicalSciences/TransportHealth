@@ -10,9 +10,11 @@
 #' @param participationWeights Vector of custom weights balancing effect modifiers between study and target populations. This vector should have as any entries as the sample size of the study data.
 #' @param treatment String indicating name of treatment variable. If \code{NULL}, it will be auto-detected from \code{propensityScoreModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{treatment} should be provided so that \code{summary.transportTADA} and \code{plot.transportTADA} works.
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.
-#' @param family Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg")}.
+#' @param family Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg", "polr")}.
+#' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.
 #' @param studyData The individual participant data (IPD) of study population.
 #' @param aggregateTargetData The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.
+#' @param bootstrapNum Number of bootstrap datasets to simulate to obtain robust variance estimate.
 #'
 #' @details
 #' The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For each of these models, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights.
@@ -44,7 +46,86 @@
 #' @export
 #'
 #' @md
-transportTADA <- function(msmFormula, 
+transportTADA <- function (msmFormula, 
+                           
+                           propensityScoreModel = NULL, 
+                           matchingCovariates = NULL, # User-specified matching covariates inputs
+                           
+                           propensityWeights = NULL, # vector of (custom) propensity weights
+                           participationWeights = NULL, # vector of (custom) participation weights
+                           
+                           treatment = NULL, # string, name of treatment
+                           response = NULL, # string, name of response
+                           
+                           family = stats::gaussian, # any available family for glm such as "gaussian", OR, "coxph" / "survreg"
+                           method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
+                           studyData, # data of study population (studyData): N rows, data.frame with responses and variables
+                           aggregateTargetData,  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
+                           
+                           bootstrapNum = 100) {
+  transportTADAResult <- transportTADAFit(msmFormula,
+                                      propensityScoreModel,
+                                      matchingCovariates,
+                                      propensityWeights,
+                                      participationWeights,
+                                      treatment,
+                                      response,
+                                      family, method, studyData, aggregateTargetData)
+  
+  # Correct variance estimates by performing bootstrap, resampling study data only
+  
+  if (!transportTADAResult$customPropensity & !transportTADAResult$customParticipation) {
+    # Extract treatment study data, control study data
+    propensityScoreModel <- transportTADAResult$propensityScoreModel
+    studyData <- propensityScoreModel$data
+    treatmentLevels <- levels(as.factor(propensityScoreModel$y))
+    treatmentGroupData <- list()
+    for (level in treatmentLevels) {
+      treatmentGroupData[[level]] <- studyData[as.character(propensityScoreModel$y) == level, ]
+    }
+    nLevels <- sapply(treatmentGroupData, nrow)
+    names(nLevels) <- treatmentLevels
+    
+    bootstrapEstimates <- t(sapply(1:bootstrapNum,
+                                   function (x) {
+                                     treatmentGroupBoot <- list()
+                                     for (level in treatmentLevels) {
+                                       nSample <- nLevels[level]
+                                       treatmentGroupBoot[[level]] <- treatmentGroupData[[level]][sample.int(nSample, replace = T), ]
+                                     }
+                                     for (level in treatmentLevels) {
+                                       if (!exists("studyBoot")) studyBoot <- treatmentGroupBoot[[level]]
+                                       else studyBoot <- rbind(studyBoot, treatmentGroupBoot[[level]])
+                                     }
+                                     
+                                     suppressWarnings(resultBoot <- transportTADAFit(msmFormula,
+                                                                    propensityScoreModel,
+                                                                    matchingCovariates,
+                                                                    propensityWeights,
+                                                                    participationWeights,
+                                                                    treatment,
+                                                                    response,
+                                                                    family, method, studyBoot, aggregateTargetData))
+                                     
+                                     
+                                     # Add on intercept estimates from polr case. This is okay because concatenating with a NULL does nothing
+                                     return(c(resultBoot$msm$coefficients, resultBoot$msm$zeta))
+                                   }))
+    
+    # Still okay outside of polr cases because concatenating with a NULL does nothing.
+    varMatrix <- stats::var(bootstrapEstimates)
+    colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportTADAResult$msm$coefficients), names(transportTADAResult$msm$zeta))
+    transportTADAResult$msm$var <- varMatrix
+  } else {
+    warning("Custom weights are being used. Variance estimates may be biased.")
+  }
+  
+  transportTADAResult$bootstrapNum = bootstrapNum
+  
+  return(transportTADAResult)
+}
+
+transportTADAFit <- function(msmFormula, 
                             
                           propensityScoreModel = NULL, 
                           matchingCovariates = NULL, # User-specified matching covariates inputs
@@ -56,7 +137,7 @@ transportTADA <- function(msmFormula,
                           response = NULL, # string, name of response
                           
                           family = stats::gaussian, # any available family for glm such as "gaussian", OR, "coxph" / "survreg"
-                            
+                          method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
                           studyData, # data of study population (studyData): N rows, data.frame with responses and variables
                           aggregateTargetData  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
                           
@@ -93,15 +174,11 @@ transportTADA <- function(msmFormula,
     # If there are any covariates in the user input that don't match, give a warning and remove them
     if (length(validCov) != length(matchingCovariates)) {
       removedCov <- setdiff(matchingCovariates, validCov)
-      cat("The following user-specfied matching covariates were not found in neither studyData or aggregateTargetData and have been removed:",
-          toString(removedCov), "\n")
+      warning(cat("The following user-specfied matching covariates were not found in neither studyData or aggregateTargetData and have been removed:",
+          toString(removedCov), "\n"))
     }
 
     matchingCovariates <- validCov
-    
-    # Notice for user to double check the validity of matching covariates ready-to-use
-    warning(cat("The following covariates are being used for matching:", toString(matchingCovariates),
-                ". Please ensure that these covariates are meaningful", "\n"))
   } 
   
   #  If formula is provided for treatment and participation models, fit models ourselves
@@ -308,23 +385,24 @@ transportTADA <- function(msmFormula,
   
   if (is.character(family)) {
     
-    if (!(family %in% c("coxph", "survreg"))) {
+    if (!(family %in% c("coxph", "survreg", "polr"))) {
       stop("Please check the family input and set it as one of the following in character: coxph, survreg.")
       }
 
-    family <- match.arg(family, c("coxph", "survreg"))
+    family <- match.arg(family, c("coxph", "survreg", "polr"))
     
     if (family == "coxph") {
       model <- survival::coxph(msmFormula, 
                                data = toAnalyze, 
                                weight = finalWeights)
-      model$var <- sandwich::vcovBS(model)
     } 
     else if (family == "survreg") {
       model <- survival::survreg(msmFormula, 
                                  data = toAnalyze, 
                                  weight = finalWeights)
-      model$var <- sandwich::vcovBS(model)
+    } else {
+      method <- match.arg(method, c("logistic", "probit", "loglog", "cloglog", "cauchit"))
+      model <- MASS::polr(msmFormula, data = toAnalyze, weight = finalWeights, method = method)
     }
   } else {
 

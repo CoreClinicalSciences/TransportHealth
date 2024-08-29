@@ -13,8 +13,10 @@ transportTADA(
   treatment = NULL,
   response = NULL,
   family = stats::gaussian,
+  method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
   studyData,
-  aggregateTargetData
+  aggregateTargetData,
+  bootstrapNum = 100
 )
 }
 \arguments{
@@ -32,11 +34,15 @@ transportTADA(
 
 \item{response}{String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.}
 
-\item{family}{Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg")}.}
+\item{family}{Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg", "polr")}.}
+
+\item{method}{Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.}
 
 \item{studyData}{The individual participant data (IPD) of study population.}
 
 \item{aggregateTargetData}{The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.}
+
+\item{bootstrapNum}{Number of bootstrap datasets to simulate to obtain robust variance estimate.}
 }
 \value{
 A \code{transportTADA} object containing the following components:
