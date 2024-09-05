@@ -72,7 +72,7 @@ transportTADA <- function (msmFormula,
                                       response,
                                       family, method, studyData, aggregateTargetData)
   
-  # Correct variance estimates by performing bootstrap, resampling study data only
+  # Correct variance estimates by performing bootstrap, resampling study data non-parametrically and resampling target data parametrically
   
   if (!transportTADAResult$customPropensity & !transportTADAResult$customParticipation) {
     # Extract treatment study data, control study data
@@ -88,6 +88,7 @@ transportTADA <- function (msmFormula,
     
     bootstrapEstimates <- t(sapply(1:bootstrapNum,
                                    function (x) {
+                                     # Resample study data by study group
                                      treatmentGroupBoot <- list()
                                      for (level in treatmentLevels) {
                                        nSample <- nLevels[level]
@@ -98,6 +99,42 @@ transportTADA <- function (msmFormula,
                                        else studyBoot <- rbind(studyBoot, treatmentGroupBoot[[level]])
                                      }
                                      
+                                     # Resample target data parametrically, assuming a normal distribution for continuous covariates
+                                     aggregateTargetBoot <- aggregateTargetRef <- transportTADAResult$aggregateTargetData
+                                     varNames <- names(aggregateTargetRef) |> strsplit("_") |> sapply(function(x) x[1]) |> unique()
+                                     
+                                     for (varName in varNames) {
+                                       if (varName == "N") {
+                                         aggregateTargetBoot$N <- aggregateTargetRef$N
+                                       } else {
+                                       aggregateVarNames <- grep(paste0("^",varName,"_"), names(aggregateTargetRef), value = T)
+                                       
+                                       if (any(grepl("_PROP$", aggregateVarNames))) {
+                                         propName <- paste0(varName, "_PROP")
+                                         aggregateTargetBoot[[propName]][1] <- stats::rbinom(1, aggregateTargetRef$N, aggregateTargetRef[[propName]][1]) / aggregateTargetRef$N
+                                       } else if (any(grepl("_(MEAN|MEDIAN|SD)$", aggregateVarNames))) {
+                                         meanName <- paste0(varName, "_MEAN")
+                                         medianName <- paste0(varName, "_MEDIAN")
+                                         sdName <- paste0(varName, "_SD")
+                                         
+                                         meanIdx <- which(names(aggregateTargetRef) == meanName)
+                                         medianIdx <- which(names(aggregateTargetRef) == medianName)
+                                         sdIdx <- which(names(aggregateTargetRef) == sdName)
+                                         
+                                         if (length(meanIdx) == 0 & length(medianIdx) == 0) stop("Please provide mean or median of continuous covariate in target data.")
+                                         
+                                         meanBoot <- ifelse(length(meanIdx) == 1, aggregateTargetRef[1, meanIdx], aggregateTargetRef[1, medianIdx])
+                                         sdBoot <- ifelse(length(sdIdx) == 1, aggregateTargetRef[1, sdIdx], 1)
+                                         
+                                         bootData <- stats::rnorm(aggregateTargetRef$N, meanBoot, sdBoot)
+                                         
+                                         if (length(meanIdx) == 1) aggregateTargetBoot[1,meanIdx] <- mean(bootData)
+                                         if (length(medianIdx) == 1) aggregateTargetBoot[1,medianIdx] <- stats::median(bootData)
+                                         if (length(sdIdx) == 1) aggregateTargetBoot[1, sdIdx] <- stats::sd(bootData)
+                                          }
+                                       }
+                                    }
+                                     
                                      suppressWarnings(resultBoot <- transportTADAFit(msmFormula,
                                                                     propensityScoreModel,
                                                                     matchingCovariates,
@@ -105,7 +142,7 @@ transportTADA <- function (msmFormula,
                                                                     participationWeights,
                                                                     treatment,
                                                                     response,
-                                                                    family, method, studyBoot, aggregateTargetData))
+                                                                    family, method, studyBoot, aggregateTargetBoot))
                                      
                                      
                                      # Add on intercept estimates from polr case. This is okay because concatenating with a NULL does nothing
