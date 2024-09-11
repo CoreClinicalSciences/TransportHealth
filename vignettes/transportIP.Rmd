@@ -164,7 +164,7 @@ If a formula is provided, logistic regression is used by default. Custom partici
 
 -   `family`: The type of MSM to be fit. 
 
-This can be any of the families that are used in `glm` or one of `"coxph"` or `"survreg"`. The latter options are for survival analysis and will use default options of these methods from the `survival` package.
+This can be any of the families that are used in `glm`, one of `"coxph"`,`"survreg"` or `"polr"`. The `"coxph"` and `"survreg"` options are for survival analysis and will use default options of these methods from the `survival` package. The `"polr"` option is for ordinal outcomes, and the link function can be specified by the `method` argument, which uses the logistic link by default.
 
 -   `data`: The study and target data, separate or merged
 

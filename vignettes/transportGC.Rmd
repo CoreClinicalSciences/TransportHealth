@@ -53,13 +53,47 @@ testData <- generateTestData()
 
 # Introduction
 
-Transportability analysis is the statistical problem of estimating causal effects of a treatment on a response for a target population using data gathered from a different population (i.e. the study population). It is used to apply findings from a randomized clinical trial to a population with substantially different characteristics, particularly when it is too difficult to collect data from the population of interest. Marginal causal effects of the study and target populations are often not equal due to the different distributions of effect modifiers between the two populations, so causal effect estimates calculated using samples from the study population are biased for the causal effect of the treatment in the target population. Therefore, effect modification must be accounted for to obtain unbiased causal effect estimates in the target population using data from the study population.
+In this vignette, we demonstrate how to use `TransportHealth` for weighting-based transportability analysis for instances where mergeable individual participant-level data (IPD) is available in both the original study and target sample.
 
-One approach to transportability analysis is g-computation, which standardizes outcomes in the study population to the distribution of effect modifiers in the target population, thereby allowing unbiased estimation of causal effects in the target population. The `TransportHealthR` package provides functions that streamline this approach.
+## Brief introduction to g-computation
+
+In transportability and generalizability analysis, g-computation proceeds largely the same as in causal inference. Firstly, a model of the outcome in terms of the treatment, covariates and effect modifiers is fitted using the source data. Then, this model is used to calculate fitted values of the outcome when treatment is set to control or treatment for all observations in the target data; in particular, observed covariate and effect modifier values in the target data are used to calculate the fitted values. Finally, treatment effects are calculated using these fitted values to obtain an unbiased estimate of the treatment effect in the target population.
 
 # Example
 
-Suppose we are interested in estimating the causal effect of a medication (called `med1` in the code) on systolic blood pressure (called `sysBloodPressure` in the code) in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex (binary, 1 for male, 0 for female, called `sex` in the code), percent body fat (called `percentBodyFat` in the code), and stress (binary, 1 for stressed, 0 for not stressed, called `stress` in the code). Suppose further that, using domain knowledge, we know that the effectiveness of the medication depends on stress levels and whether patients are taking another medication (binary, 1 for yes, 0 for no, called `med2` in the code), so these variables are effect modifiers. Notice that the covariates adjusted for in the study data can also be effect modifiers. We can perform this analysis as follows.
+Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
+
+We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+
+*Note that the covariates adjusted for in the study data can also be effect modifiers.*
+
+## Coded variables:
+
+-   Medication - `med1`
+
+    -   `1` for treated
+    -   `0` for non-treated
+
+-   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
+
+-   Sex - `sex`
+
+    -   `1` for male
+    -   `0` for female
+
+-   Body fat percentage - `percentBodyFat` (continuous)
+
+-   Stress level - `stress`
+
+    -   `1` for stressed
+    -   `0` for normal
+
+-   Medication 2 - `med2`
+
+    -   `1` for treated
+    -   `0` for non-treated
+    
+## Analyses
 
 First, for the implementation of g-computation in `TransportHealthR` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only covariate and effect modifier information.
 
@@ -74,7 +108,56 @@ head(testData$targetData)
 
 ```
 
-We can now perform transportability analysis using g-computation with the `transportGC` function. First, we fit a regression model of the outcome in terms of the covariates and effect modifiers, making sure to include interaction terms of the effect modifiers. We need to wrap the results using the `transportGCPreparedModel` function to be able to use the `transportGC` function, as follows. Note that we only provide the study data to this function.
+We can now perform transportability analysis using g-computation with the `transportGCPreparedModel` and `transportGC` functions.
+
+```{r blankFunction, echo = T, eval = F}
+transportGCPreparedModel(outcomeModel,
+                         treatment,
+                         family,
+                         studyData,
+                         wipe)
+
+transportGC(effectType,
+            preparedModel,
+            targetData)
+```
+
+### Arguments for the `transportGCPreparedModel` and `transportGC` functions
+
+The `transportGCPreparedModel` function requires the following arguments:
+
+- `outcomeModel`: A formula expressing the outcome model to be fit
+
+- `treatment`: The name of the variable indicating treatment
+
+- `family`: The type of outcome model to be fit.
+
+This can be any of the families that are used in `glm`, one of `"coxph"`,`"survreg"` or `"polr"`. The `"coxph"` and `"survreg"` options are for survival analysis and will use default options of these methods from the `survival` package. The `"polr"` option is for ordinal outcomes, and the link function can be specified by the `method` argument, which uses the logistic link by default.
+
+- `studyData`: The source data
+
+- `wipe`: A boolean indicating whether to erase the source data in the resulting `transportGCPreparedModel` object
+
+The `transportGC` function requires the following arguments:
+
+- `effectType`: A string indicating the type of effect to calculate, such as `"meanDiff"` for mean difference, `"rr"`` for relative risk, and so on.
+
+- `preparedModel`: A `transportGCPreparedModel` object returned by the `transportGCPreparedModel` function
+
+- `targetData`: The target data
+
+### Specification of transportability analysis
+
+Recall that: 
+- `sysBloodPressure` is the response
+
+- `med1` is the treatment
+
+-  `sex`, `percentBodyFat`, and `stress` are covariates to be controlled in the original study
+
+- `med2` (other medication) and `stress` are effect modifiers of interest.
+
+First, we fit a regression model of the outcome in terms of the covariates and effect modifiers, making sure to include interaction terms of the effect modifiers. We need to wrap the results using the `transportGCPreparedModel` function to be able to use the `transportGC` function, as follows. Note that we only provide the study data to this function.
 
 ```{r PreparedModel, echo = T}
 preparedModel <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2, # Formula for outcome model
@@ -93,6 +176,8 @@ result <- transportGC("meanDiff", # Type of effect estimate (mean difference, re
                       testData$targetData # Target data
                       )
 ```
+
+### Producing statistical results
 
 To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the variable names of the treatment and the response, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the MSM.
 
@@ -137,4 +222,9 @@ plot(preparedModel$outcomeModel, which = 1)
 
 In our example, the residual plot of the outcome model is patternless, indicating that it is appropriate. Note that this step should be done by owners of the study data when the study and target data cannot be merged, as `residuals` are also erased in the `transportGCPreparedModel` object when `wipe = T`.
 
-Like inverse odds of participation weighting (IOPW), the validity of g-computation depends on untestable causal inference assumptions, including stable unit treatment value (SUTVA), conditional exchangeability, positivity and consistency. Unlike IOPW, g-computation does not have readily available diagnostics to evaluate if these assumptions are likely to hold or not. For conditional exchangeability, we suggest conducting sensitivity analyses with respect to unmeasured confounding, but this is beyond on the scope of the package. For positivity, a simple method would be to examine marginal distributions of covariates and effect modifiers in the study and target data and compare them: the distributions should overlap between the study and target data, but they do not need to be identical.
+Like inverse odds of participation weighting (IOPW), the validity of g-computation depends on untestable causal inference assumptions, including stable unit treatment value (SUTVA), conditional exchangeability, positivity and consistency [@ling-review; @degtiar-review]. Unlike IOPW, g-computation does not have readily available diagnostics to evaluate if these assumptions are likely to hold or not. For conditional exchangeability, we suggest conducting sensitivity analyses with respect to unmeasured confounding, but this is beyond on the scope of the package. For positivity, a simple method would be to examine marginal distributions of covariates and effect modifiers in the study and target data and compare them: the distributions should overlap between the study and target data, but they do not need to be identical.
+
+## References
+
+::: {#refs}
+:::
