@@ -95,7 +95,7 @@ transportIP <- function (msmFormula,
                               
                               targetBoot <- targetData[sample.int(n = nTarget, replace = T), ]
                               
-                              resultBoot <- transportIPFit(msmFormula,
+                              resultBoot <- suppressWarnings(transportIPFit(msmFormula,
                                                         propensityScoreModel,
                                                         participationModel,
                                                         propensityWeights,
@@ -103,16 +103,18 @@ transportIP <- function (msmFormula,
                                                         treatment,
                                                         participation,
                                                         response,
-                                                        family, data = list(studyBoot, targetBoot), transport)
+                                                        family, method, data = list(studyBoot, targetBoot), transport))
                               
                               
                               # Add on intercept estimates from polr case. This is okay because concatenating with a NULL does nothing
                               return(c(resultBoot$msm$coefficients, resultBoot$msm$zeta))
                             }))
     
+    if (nrow(bootstrapEstimates) == 1) bootstrapEstimates <- t(bootstrapEstimates)
+    
     # Still okay outside of polr cases because concatenating with a NULL does nothing.
     varMatrix <- stats::var(bootstrapEstimates)
-    colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportIPResult$msm$coefficients), names(transportIPResult$msm$zeta))
+    if (!is.null(nrow(varMatrix))) colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportIPResult$msm$coefficients), names(transportIPResult$msm$zeta))
     transportIPResult$msm$var <- varMatrix
   } else {
     warning("Custom weights are being used. Variance estimates may be biased.")
@@ -574,7 +576,7 @@ plot.transportIP <- function(x, type = "propensityHist", bins = 50, covariates =
 #' @export
 #'
 is.transportIP <- function (transportIPResult) {
-  return((inherits(transportIPResult$msm, "glm") | inherits(transportIPResult$msm, "coxph") | inherits(transportIPResult$msm, "survreg")) &
+  return((inherits(transportIPResult$msm, "glm") | inherits(transportIPResult$msm, "coxph") | inherits(transportIPResult$msm, "survreg") | inherits(transportIPResult$msm, "polr")) &
            (inherits(transportIPResult$propensityScoreModel, "glm") | is.null(transportIPResult$propensityScoreModel)) & 
            (inherits(transportIPResult$participationModel, "glm") | is.null(transportIPResult$participationModel)) &
            inherits(transportIPResult$propensityWeights, "numeric") & 

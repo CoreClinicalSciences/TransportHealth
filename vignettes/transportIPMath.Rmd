@@ -6,7 +6,7 @@ bibliography: references.bib
 
 vignette: >
   %\VignetteIndexEntry{Theory of inverse probability or odds weighting}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
 
