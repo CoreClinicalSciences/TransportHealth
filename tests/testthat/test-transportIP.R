@@ -68,7 +68,7 @@ test_that("Scenario 2: merged study and target data, formula provided for propen
   
   studyData$participation <- 1
   
-  targetData$sysBloodPressure <- targetData$med1 <- NA
+  targetData$sysBloodPressure <- targetData$ht <- targetData$htStage <- targetData$os <- targetData$med1 <- NA
   
   targetData$participation <- 0
   
@@ -131,7 +131,7 @@ test_that("Scenario 3: glm provided for propensityScoreModel and participationMo
   
   studyData$participation <- 1
   
-  targetData$sysBloodPressure <- targetData$med1 <- NA
+  targetData$sysBloodPressure <- targetData$ht <- targetData$htStage <- targetData$os <- targetData$med1 <- NA
   
   targetData$participation <- 0
   
@@ -198,7 +198,7 @@ test_that("Scenario 4: separate study and target data, glm provided for propensi
   
   studyData$participation <- 1
   
-  targetData$sysBloodPressure <- targetData$med1 <- NA
+  targetData$sysBloodPressure <- targetData$ht <- targetData$htStage <- targetData$os <- targetData$med1 <- NA
   
   targetData$participation <- 0
   
@@ -291,4 +291,63 @@ test_that("Scenario 5: custom weights", {
   
   expect_no_warning(testPlot <- plot(testResult, type = "msm", covariates = c("sex", "percentBodyFat", "stress"), effectModifiers = c("stress", "med2")))
   expect_true(ggplot2::is.ggplot(testPlot))
+})
+
+test_that("Other outcomes", {
+  set.seed(20240429)
+  data <- generateTestData()
+  expect_no_warning(testResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                              propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                              participationModel = participation ~ stress + med2,
+                                              family = gaussian,
+                                              data = data,
+                                              transport = T))
+  
+  expect_true(is.transportIP(testResult))
+  expect_true(!testResult$customPropensity & !testResult$customParticipation)
+  expect_false(is.data.frame(testResult$data))
+  
+  testResult <- transportIP(msmFormula = ht ~ med1,
+                                              propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                              participationModel = participation ~ stress + med2,
+                                              family = binomial,
+                                              data = data,
+                                              transport = T)
+  
+  expect_true(is.transportIP(testResult))
+  expect_true(!testResult$customPropensity & !testResult$customParticipation)
+  expect_false(is.data.frame(testResult$data))
+  
+  testResult <- transportIP(msmFormula = htStage ~ med1,
+                                              propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                              participationModel = participation ~ stress + med2,
+                                              family = "polr",
+                                              data = data,
+                                              transport = T)
+  
+  expect_true(is.transportIP(testResult))
+  expect_true(!testResult$customPropensity & !testResult$customParticipation)
+  expect_false(is.data.frame(testResult$data))
+  
+  expect_no_warning(testResult <- transportIP(msmFormula = survival::Surv(os, rep(1, nrow(data$studyData))) ~ med1,
+                                              propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                              participationModel = participation ~ stress + med2,
+                                              family = "coxph",
+                                              data = data,
+                                              transport = T))
+  
+  expect_true(is.transportIP(testResult))
+  expect_true(!testResult$customPropensity & !testResult$customParticipation)
+  expect_false(is.data.frame(testResult$data))
+  
+  expect_no_warning(testResult <- transportIP(msmFormula = survival::Surv(os, rep(1, nrow(data$studyData))) ~ med1,
+                                              propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                              participationModel = participation ~ stress + med2,
+                                              family = "survreg",
+                                              data = data,
+                                              transport = T))
+  
+  expect_true(is.transportIP(testResult))
+  expect_true(!testResult$customPropensity & !testResult$customParticipation)
+  expect_false(is.data.frame(testResult$data))
 })

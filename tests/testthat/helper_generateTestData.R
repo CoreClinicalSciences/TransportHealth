@@ -11,9 +11,20 @@ generateTestData <- function() {
   med1Study <- rbinom(nStudy, 1, expit(0.2 * sexStudy - 0.02 * percentBodyFatStudy + 0.1 * stressStudy))
   sysBloodPressureStudy <- rnorm(nStudy, 100 + 5 * sexStudy + 0.5 * percentBodyFatStudy + 5 * stressStudy -
                                    5 * med1Study + med1Study * (-5 * med2Study + 7 * stressStudy))
+  htStudy <- sysBloodPressureStudy >= 114
+  htStageStudy <- integer(nStudy)
+  for (i in 1:nStudy) {
+    if (sysBloodPressureStudy[i] <= 107) htStageStudy[i] <- 1
+    else if (sysBloodPressureStudy[i] <= 114) htStageStudy[i] <- 2
+    else htStageStudy[i] <- 3
+  }
+  htStageStudy <- as.factor(htStageStudy)
+  osStudy <- rexp(nStudy, 0.01 * exp(5 * sexStudy + 0.5 * percentBodyFatStudy + 5 * stressStudy -
+                                5 * med1Study + med1Study * (-5 * med2Study + 7 * stressStudy)))
   
   # Put all variables together
-  studyData <- data.frame(sysBloodPressure = sysBloodPressureStudy, med1 = as.factor(med1Study), sex = as.factor(sexStudy), stress = as.factor(stressStudy), med2 = as.factor(med2Study), percentBodyFat = percentBodyFatStudy)
+  studyData <- data.frame(sysBloodPressure = sysBloodPressureStudy, med1 = as.factor(med1Study), sex = as.factor(sexStudy), stress = as.factor(stressStudy), med2 = as.factor(med2Study), percentBodyFat = percentBodyFatStudy,
+                          ht = htStudy, htStage = htStageStudy, os = osStudy)
   
   # Generate target data
   nTarget <- 1500

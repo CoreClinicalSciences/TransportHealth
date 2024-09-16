@@ -4,7 +4,7 @@ output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{Assumptions of Transportability and Generalizability Analysis}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
 
