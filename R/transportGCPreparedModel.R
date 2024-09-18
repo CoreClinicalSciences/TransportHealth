@@ -34,12 +34,23 @@ transportGCPreparedModel <- function(outcomeModel,
                              family = stats::gaussian,
                              method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
                              studyData = NULL,
-                             wipe = T) {
+                             wipe = T,
+                             formula = NULL) {
   
   # Extract response variable
+  
+  if (inherits(outcomeModel, "formula")) {
+    formula <- outcomeModel
+  }
+  
+  if (inherits(outcomeModel, "glm")) {
+    if (is.null(formula)) formula <- outcomeModel$formula
+    if (is.null(studyData)) studyData <- outcomeModel$data
+  }
+  
   if (is.null(response)) {
     if (inherits(outcomeModel, "formula")) response <- all.vars(outcomeModel)[1]
-    else response <- all.vars(outcomeModel$formula)[1]
+    else response <- all.vars(formula)[1]
   }
   
   # Extract treatment variable information. There is no way of detecting treatment from the outcome model formula because it often has covariates in it as well.
@@ -52,14 +63,14 @@ transportGCPreparedModel <- function(outcomeModel,
   if (inherits(outcomeModel, "formula")) {
     if (is.character(family)) {
       if (family == "coxph") {
-        outcomeModel <- survival::coxph(outcomeModel, data = studyData)
+        outcomeModel <- survival::coxph(outcomeModel, data = studyData, model = !wipe)
       } else if (family == "survreg") {
-        outcomeModel <- survival::survreg(outcomeModel, data = studyData)
+        outcomeModel <- survival::survreg(outcomeModel, data = studyData, model = !wipe)
       } else if (family == "polr") {
-        outcomeModel <- MASS::polr(outcomeModel, data = studyData, method = method)
+        outcomeModel <- MASS::polr(outcomeModel, data = studyData, method = method, model = !wipe)
       }
     } else {
-        outcomeModel <- stats::glm(outcomeModel, family = family, data = studyData)
+        outcomeModel <- stats::glm(outcomeModel, family = family, data = studyData, model = !wipe)
     }
   }
   
@@ -78,10 +89,10 @@ transportGCPreparedModel <- function(outcomeModel,
     } else if (inherits(outcomeModel, "survreg")) {
       outcomeModel$linear.predictors <- outcomeModel$means <- outcomeModel$y <- outcomeModel$x <-
         outcomeModel$model <- NULL
-    } else if (inherits(outcomeModel, "coxph")) {
-      outcomeModel$linear.predictors <- outcomeModel$residuals <- outcomeModel$n <- outcomeModel$nevent <-
-        outcomeModel$concordance <- outcomeModel$means <- outcomeModel$y <- outcomeModel$x <-
-        outcomeModel$model <- NULL
+    # } else if (inherits(outcomeModel, "coxph")) {
+    #   outcomeModel$linear.predictors <- outcomeModel$residuals <- outcomeModel$n <- outcomeModel$nevent <-
+    #     outcomeModel$concordance <- outcomeModel$means <-
+    #     outcomeModel$model <- NULL
     } else if (inherits(outcomeModel, "polr")) {
       outcomeModel$fitted.values <- outcomeModel$n <- outcomeModel$nobs <- outcomeModel$lp <-
         outcomeModel$model <- NULL
@@ -94,7 +105,10 @@ transportGCPreparedModel <- function(outcomeModel,
                         treatment = treatment,
                         treatmentLevels = treatmentLevels,
                         family = family,
-                        wipe = wipe)
+                        wipe = wipe,
+                        formula = formula)
+  
+  if (!wipe) preparedModel$studyData <- studyData
   
   class(preparedModel) <- "transportGCPreparedModel"
   
@@ -113,6 +127,6 @@ transportGCPreparedModel <- function(outcomeModel,
 #' 
 #' @export
 is.transportGCPreparedModel <- function (preparedModel) {
-  return((inherits(preparedModel$outcomeModel, "glm") | inherits(preparedModel$outcomeModel, "survreg") | inherits(preparedModel$outcomeModel, "coxph")) &
+  return((inherits(preparedModel$outcomeModel, "glm") | inherits(preparedModel$outcomeModel, "survreg") | inherits(preparedModel$outcomeModel, "coxph") | inherits(preparedModel$outcomeModel, "polr")) &
            is.character(preparedModel$response) & is.character(preparedModel$treatment) & is.character(preparedModel$treatmentLevels) & is.logical(preparedModel$wipe))
 }
