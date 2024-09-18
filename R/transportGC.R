@@ -42,7 +42,7 @@ transportGC <- function (effectType = c("meanDiff", "rr", "or", "hr"),
                                       targetData)
   
   if (!preparedModel$wipe) {
-    studyData <- preparedModel$outcomeModel$data
+    studyData <- preparedModel$studyData
     treatmentLevels <- preparedModel$treatmentLevels
     treatmentGroupData <- list()
     treatmentVector <- as.character(studyData[[preparedModel$treatment]])
@@ -76,14 +76,14 @@ transportGC <- function (effectType = c("meanDiff", "rr", "or", "hr"),
                                      
                                       targetBoot <- targetData[sample.int(n = nTarget, replace = T), ]
                                      
-                                      preparedBoot <- transportGCPreparedModel(preparedModel$outcomeModel$formula,
+                                      preparedBoot <- suppressWarnings(transportGCPreparedModel(preparedModel$formula,
                                                                                response = preparedModel$response,
                                                                                treatment = preparedModel$treatment,
                                                                                treatmentLevels = preparedModel$treatmentLevels,
                                                                                family = preparedModel$family,
                                                                                method = preparedModel$method,
                                                                                studyData = studyBoot,
-                                                                               wipe = F)
+                                                                               wipe = F))
                                       resultBoot <- transportGCFit(effectType,
                                                                   preparedBoot,
                                                                   targetData = targetBoot)
@@ -150,7 +150,7 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
     # For each observation in counterfactual frame, calculate the fitted survival curve
     for (i in 1:nCounterfactual) {
       counterfactualSurvCurve <- survival::survfit(preparedModel$outcomeModel, newdata = targetDataCounterfactualFrame[i, , drop = F])
-      targetDataCounterfactualFrame[[response]][i] <- survival:::survmean(counterfactualSurvCurve, rmean = maxTime)
+      targetDataCounterfactualFrame[[response]][i] <- survival:::survmean(counterfactualSurvCurve, rmean = maxTime)$matrix["rmean"]
     }
   }
   
@@ -160,7 +160,7 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   if (inherits(outcomeModel, "polr")) {
     numResponseLevels <- length(responseLevels)
     effects <- double(numResponseLevels-1)
-    for (i in 1:numResponseLevels) {
+    for (i in 1:(numResponseLevels-1)) {
       probs <- apply(targetDataCounterfactualProbs[, 1:i, drop = F], 1, sum)
       treatmentMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
       controlMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
@@ -175,8 +175,8 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
     else if (effectType == "rr") effect <- treatmentMean / controlMean
     else if (effectType == "or") effect <- (treatmentMean / (1 - treatmentMean)) / (controlMean / (1 - controlMean))
   } else {
-    effectFormula <- stats::as.formula(paste0(response, " ~ ", treatment))
-    effect <- survival::coxph(effectFormula, data = targetDataCounterfactualFrame)$coefficients[1]
+    effectFormula <- stats::as.formula(paste0("survival::Surv(", response, ", rep(1, nrow(targetDataCounterfactualFrame))) ~ ", treatment))
+    effect <- exp(survival::coxph(effectFormula, data = targetDataCounterfactualFrame)$coefficients[1])
   }
   
   transportGCResult <- list(effect = effect,
