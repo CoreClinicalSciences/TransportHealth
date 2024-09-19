@@ -13,11 +13,12 @@ transportGCPreparedModel(
   family = stats::gaussian,
   method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
   studyData = NULL,
-  wipe = T
+  wipe = T,
+  formula = NULL
 )
 }
 \arguments{
-\item{outcomeModel}{Either a formula or a \code{glm}, \code{survreg} or \code{coxph} object representing the outcome model.}
+\item{outcomeModel}{Either a formula or a \code{glm}, \code{survreg}, \code{coxph}, or \code{polr} object representing the outcome model. Please set \code{model = T} if providing a fitted model object.}
 
 \item{response}{String indicating name of response variable. If \code{NULL}, it will be auto-detected from \code{outcomeModel}.}
 
@@ -34,6 +35,8 @@ transportGCPreparedModel(
 \item{studyData}{Data frame of the study data.}
 
 \item{wipe}{Logical indicating whether original study data should be wiped from outcome model-fitting object.}
+
+\item{formula}{The formula used to fit outcomeModel, if outcomeModel is provided as a fitted model object. This is necessary to provide only when using \code{coxph}, \code{survreg} and \code{polr} because these objects do not have the formula components.}
 }
 \value{
 A \code{transportGCPreparedModel} object containing the following components:
@@ -47,5 +50,7 @@ A \code{transportGCPreparedModel} object containing the following components:
 }
 }
 \description{
-An outcome model needs to be fitted using the study data to perform transportability analysis using g-computation. However, \code{glm} and functions in \code{survival} typically contain the data used to fit the model in their respective result objects. This function removes most components containing the data from these result objects to comply with data sharing regulations. The party with sole access to the study data may use only this function and provide the results object (possibly in a .rds file) to others who request it.
+An outcome model needs to be fitted using the study data to perform transportability analysis using g-computation. However, \code{glm} and functions in \code{survival} typically contain the data used to fit the model in their respective result objects. This function provides the option to remove most components containing the data from these result objects to comply with data sharing regulations. The party with sole access to the study data may use only this function and provide the results object (possibly in a .rds file) to others who request it.
+
+Note that for time-to-event outcomes, \code{survreg} should used for the outcome model over \code{coxph} because the latter is not meant to produce predicted survival times. The \code{coxph} option is provided, but we warn that the computation time might be prohibitive.
 }
