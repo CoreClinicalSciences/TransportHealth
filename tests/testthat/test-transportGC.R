@@ -99,15 +99,15 @@ test_that("Other outcomes", {
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
-  transportGCResult <- transportGC("or",
+  expect_no_error(transportGCResult <- transportGC("or",
                                                    preparedModel,
-                                                   targetData)
+                                                   targetData))
   
   expect_true(inherits(transportGCResult, "transportGC"))
   
-  transportGCResult <- transportGC("rr",
+  expect_no_error(transportGCResult <- transportGC("rr",
                                                    preparedModel,
-                                                   targetData)
+                                                   targetData))
   
   expect_true(inherits(transportGCResult, "transportGC"))
   
@@ -119,9 +119,9 @@ test_that("Other outcomes", {
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
-  transportGCResult <- transportGC("or",
+  expect_no_error(transportGCResult <- transportGC("or",
                                                    preparedModel,
-                                                   targetData)
+                                                   targetData))
   
   expect_true(inherits(transportGCResult, "transportGC"))
   
@@ -134,7 +134,7 @@ test_that("Other outcomes", {
   # 
   # transportGCResult <- transportGC("hr",
   #                                                  preparedModel,
-  #                                                  targetData)
+  #                                                  targetData, bootstrapNum = 1)
   # 
   # expect_true(inherits(transportGCResult, "transportGC"))
   
@@ -146,9 +146,9 @@ test_that("Other outcomes", {
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
-  transportGCResult <- transportGC("hr",
+  expect_no_error(transportGCResult <- transportGC("hr",
                                                    preparedModel,
-                                                   targetData)
+                                                   targetData))
   
   expect_true(inherits(transportGCResult, "transportGC"))
 })

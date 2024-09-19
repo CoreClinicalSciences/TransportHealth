@@ -1,9 +1,11 @@
 #' @title Prepare an outcome model object for \code{transportGC}
 #'
 #' @description
-#' An outcome model needs to be fitted using the study data to perform transportability analysis using g-computation. However, \code{glm} and functions in \code{survival} typically contain the data used to fit the model in their respective result objects. This function removes most components containing the data from these result objects to comply with data sharing regulations. The party with sole access to the study data may use only this function and provide the results object (possibly in a .rds file) to others who request it.
+#' An outcome model needs to be fitted using the study data to perform transportability analysis using g-computation. However, \code{glm} and functions in \code{survival} typically contain the data used to fit the model in their respective result objects. This function provides the option to remove most components containing the data from these result objects to comply with data sharing regulations. The party with sole access to the study data may use only this function and provide the results object (possibly in a .rds file) to others who request it.
 #' 
-#' @param outcomeModel Either a formula or a \code{glm}, \code{survreg} or \code{coxph} object representing the outcome model.
+#' Note that for time-to-event outcomes, \code{survreg} should used for the outcome model over \code{coxph} because the latter is not meant to produce predicted survival times. The \code{coxph} option is provided, but we warn that the computation time might be prohibitive.
+#' 
+#' @param outcomeModel Either a formula or a \code{glm}, \code{survreg}, \code{coxph}, or \code{polr} object representing the outcome model. Please set \code{model = T} if providing a fitted model object.
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected from \code{outcomeModel}.
 #' @param responseLevels For ordinal responses, vector of strings indicating levels of response variable in the study data. If \code{NULL} and \code{polr} is used, it will be auto-detected using \code{response} and \code{studyData}.
 #' @param treatment String indicating name of treatment variable. This argument is required.
@@ -12,6 +14,7 @@
 #' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}. Only required if \code{outcomeModel} is a formula and \code{polr} is used.
 #' @param studyData Data frame of the study data.
 #' @param wipe Logical indicating whether original study data should be wiped from outcome model-fitting object.
+#' @param formula The formula used to fit outcomeModel, if outcomeModel is provided as a fitted model object. This is necessary to provide only when using \code{coxph}, \code{survreg} and \code{polr} because these objects do not have the formula components.
 #'
 #' @return
 #' 
