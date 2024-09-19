@@ -31,7 +31,7 @@ Install the latest development version from [GitHub](CoreClinicalSciences/Transp
 if (!require("devtools")) {
   install.packages("devtools")
 }
-devtools::install_github("CoreClinicalSciences/TransportHealthR")
+devtools::install_github("CoreClinicalSciences/TransportHealth")
 ```
 
 ## Citing TransportHealth
