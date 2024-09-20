@@ -94,8 +94,9 @@ transportInterpolated <- function (link = c("identity", "log"),
   enrichedTEMatrix[1, (2:(m+1))] <- aggregateStudyData # Overall TE row
   for (j in 1:m) enrichedTEMatrix[2 * j, 1 + j] <- 1 # Filling in 1s at corresponding rows of subgroup treatment effect
   for (i in 1:m) { # BLUP
-    enrichedTEMatrix[2*i, - (i + 1)] <- corrStructure[i, -i] * sqrt(emStudyVars[i]) / sqrt(emStudyVars[-i]) * (1 - aggregateStudyData[-i]) + aggregateStudyData[-i]
-    enrichedTEMatrix[2*i + 1, - (i + 1)] <- corrStructure[i, -i] * sqrt(emStudyVars[i]) / sqrt(emStudyVars[-i]) * (0 - aggregateStudyData[-i]) + aggregateStudyData[-i]
+    idx <- setdiff(2:(m+1), i + 1)
+    enrichedTEMatrix[2*i, idx] <- corrStructure[i, -i] * sqrt(emStudyVars[-i]) / sqrt(emStudyVars[i]) * (1 - aggregateStudyData[i]) + aggregateStudyData[-i]
+    enrichedTEMatrix[2*i + 1, idx] <- corrStructure[i, -i] * sqrt(emStudyVars[-i]) / sqrt(emStudyVars[i]) * (0 - aggregateStudyData[i]) + aggregateStudyData[-i]
   }
   
   # Construct enriched data matrix for SE
@@ -104,7 +105,7 @@ transportInterpolated <- function (link = c("identity", "log"),
   enrichedSEMatrix[, (m + 2):(2*m + 1)] <- 2 * enrichedTEMatrix[, -1] # Double columns
   for (j in 1:(m-1)) {
     for (i in ((j+1):m)) { # Entrywise products of columns
-      enrichedSEMatrix[, 2*m + 1 + (m * (m - 1))/2 - ((m - j) * (m - j + 1))/2 + (i - j)] <- 2 * enrichedTEMatrix[, j] * enrichedTEMatrix[, i]
+      enrichedSEMatrix[, 2*m + 1 + (m * (m - 1))/2 - ((m - j) * (m - j + 1))/2 + (i - j)] <- 2 * enrichedTEMatrix[, 1 + j] * enrichedTEMatrix[, 1 + i]
     }
   }
   
@@ -131,7 +132,7 @@ transportInterpolated <- function (link = c("identity", "log"),
   # Obtain effects on original scale
   if (link == "log") {
     effect <- exp(lpEffect)
-    var <- lpVar * lpEffect
+    var <- lpVar * effect #bug
   } else {
     effect <- lpEffect
     var <- lpVar
