@@ -25,6 +25,7 @@
 #' * \code{treatmentLevels}: Vector of strings indicating levels of treatment variable
 #' * \code{family}: The \code{family} argument provided
 #' * \code{wipe}: The \code{wipe} argument provided
+#' * \code{formula}: The formula used to fit the outcome model
 #' 
 #' @export
 #' 

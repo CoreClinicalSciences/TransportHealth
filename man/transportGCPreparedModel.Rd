@@ -47,6 +47,7 @@ A \code{transportGCPreparedModel} object containing the following components:
 \item \code{treatmentLevels}: Vector of strings indicating levels of treatment variable
 \item \code{family}: The \code{family} argument provided
 \item \code{wipe}: The \code{wipe} argument provided
+\item \code{formula}: The formula used to fit the outcome model
 }
 }
 \description{
