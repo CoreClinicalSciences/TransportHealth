@@ -137,16 +137,18 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
                                                        type = "response")
   } else if (inherits(outcomeModel, "polr")) {
     # predict.polr with type = "probs" returns a matrix. It's done separately to avoid dealing with column names. We're assuming the user has already set the order of levels of the response to what they want.
-    predictorOnlyFormula <- paste0("~ ", as.character(preparedModel$formula) |>
-                                     strsplit(split = "~") |>
-                                     unlist() |>
-                                     utils::tail(n = 1)) |> stats::as.formula()
+    # predictorOnlyFormula <- paste0("~ ", as.character(preparedModel$formula) |>
+    #                                  strsplit(split = "~") |>
+    #                                  unlist() |>
+    #                                  utils::tail(n = 1)) |> stats::as.formula()
+    # 
+    # counterfactualModelFrame <- stats::model.matrix(predictorOnlyFormula, targetDataCounterfactualFrame)[,-1]
+    # 
+    # counterfactualModelFrame <- counterfactualModelFrame[, names(outcomeModel$coefficients)]
     
-    counterfactualModelFrame <- stats::model.matrix(predictorOnlyFormula, targetDataCounterfactualFrame)[,-1]
-    
-    counterfactualModelFrame <- counterfactualModelFrame[, names(outcomeModel$coefficients)]
-    
-    targetDataCounterfactualFrame[[response]] <- counterfactualModelFrame %*% outcomeModel$coefficients
+    targetDataCounterfactualFrame[[response]] <- stats::predict(outcomeModel,
+                                                                newdata = targetDataCounterfactualFrame,
+                                                                type = "class")
   } else if (inherits(outcomeModel, "coxph")) {
     nCounterfactual <- nrow(targetDataCounterfactualFrame)
     targetDataCounterfactualFrame[[response]] <- double(nCounterfactual)
@@ -165,10 +167,9 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   
   # Calculate ATE based on desired effect type; except for polr, in which distributional causal effects are calculated
   if (inherits(outcomeModel, "polr")) {
-    treatmentMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
-    controlMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
-    if (effectType == "meanDiff") effect <- treatmentMean - controlMean
-    else if (effectType == "or") effect <- exp(treatmentMean) / exp(controlMean)
+    targetModel <- MASS::polr(as.formula(paste0(response, " ~ ", treatment)), data = targetDataCounterfactualFrame, method = preparedModel$outcomeModel$method)
+    if (effectType == "meanDiff") effect <- targetModel$coefficients[1]
+    else if (effectType == "or") effect <- exp(targetModel$coefficients[1])
   } else if (effectType != "hr") {
     treatmentMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
     controlMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
