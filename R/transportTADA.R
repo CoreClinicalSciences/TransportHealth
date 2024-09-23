@@ -61,7 +61,7 @@ transportTADA <- function(msmFormula,
                           aggregateTargetData  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
                           
                           ) {
-
+  # TODO: bugfix for 1 EM
   
   if (is.null(response)) response <- all.vars(msmFormula)[1] 
   

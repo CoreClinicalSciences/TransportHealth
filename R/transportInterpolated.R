@@ -46,6 +46,8 @@ transportInterpolated <- function (link = c("identity", "log"),
                            studySampleSize,
                            aggregateStudyData,
                            targetData) {
+  # TODO: bugfix for 1 EM
+  
   if (length(subgroupTreatmentEffects) != length(effectModifiers) * 2 |
       length(subgroupSEs) != length(effectModifiers) * 2 |
       length(effectModifiers) != length(aggregateStudyData))
