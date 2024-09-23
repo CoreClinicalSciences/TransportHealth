@@ -137,9 +137,16 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
                                                        type = "response")
   } else if (inherits(outcomeModel, "polr")) {
     # predict.polr with type = "probs" returns a matrix. It's done separately to avoid dealing with column names. We're assuming the user has already set the order of levels of the response to what they want.
-    targetDataCounterfactualProbs <- stats::predict(outcomeModel,
-                                                    newdata = targetDataCounterfactualFrame,
-                                                    type = "probs")
+    predictorOnlyFormula <- paste0("~ ", as.character(preparedModel$formula) |>
+                                     strsplit(split = "~") |>
+                                     unlist() |>
+                                     utils::tail(n = 1)) |> stats::as.formula()
+    
+    counterfactualModelFrame <- stats::model.matrix(predictorOnlyFormula, targetDataCounterfactualFrame)[,-1]
+    
+    counterfactualModelFrame <- counterfactualModelFrame[, names(outcomeModel$coefficients)]
+    
+    targetDataCounterfactualFrame[[response]] <- counterfactualModelFrame %*% outcomeModel$coefficients
   } else if (inherits(outcomeModel, "coxph")) {
     nCounterfactual <- nrow(targetDataCounterfactualFrame)
     targetDataCounterfactualFrame[[response]] <- double(nCounterfactual)
@@ -158,16 +165,10 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   
   # Calculate ATE based on desired effect type; except for polr, in which distributional causal effects are calculated
   if (inherits(outcomeModel, "polr")) {
-    numResponseLevels <- length(responseLevels)
-    effects <- double(numResponseLevels-1)
-    for (i in 1:(numResponseLevels-1)) {
-      probs <- apply(targetDataCounterfactualProbs[, 1:i, drop = F], 1, sum)
-      treatmentMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
-      controlMean <- mean(probs[targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
-      effects[i] <- (treatmentMean / (1 - treatmentMean)) / (controlMean / (1 - controlMean)) 
-    }
-    effect <- mean(effects)
-    effectType <- "or"
+    treatmentMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
+    controlMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
+    if (effectType == "meanDiff") effect <- treatmentMean - controlMean
+    else if (effectType == "or") effect <- exp(treatmentMean) / exp(controlMean)
   } else if (effectType != "hr") {
     treatmentMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[2]])
     controlMean <- mean(targetDataCounterfactualFrame[[response]][targetDataCounterfactualFrame[[treatment]] == treatmentLevels[1]])
