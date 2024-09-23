@@ -77,7 +77,7 @@ transportIP <- function (msmFormula,
     names(nLevels) <- treatmentLevels
     
     participationModel <- transportIPResult$participationModel
-    targetData <- participationModel$data[participationModel$y == 0 | participationModel$y == F, ]
+    targetData <- participationModel$data[participationModel$y == 0 | participationModel$y == F, , drop = F]
     if (transportIPResult$response %in% names(targetData)) targetData[[transportIPResult$response]] <- NULL
     nTarget <- nrow(targetData)
     
