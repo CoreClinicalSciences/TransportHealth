@@ -74,8 +74,8 @@ transportInterpolated <- function (link = c("identity", "log"),
     # Calculate aggregate statistics of target data if IPD
     if (!all(effectModifiers %in% names(targetData)))
       stop("Please provide effect modifier names as in target data.")
-    numericTargetData <- apply(as.matrix(targetData[, effectModifiers]), 2, as.numeric)
-    emTargetProps <- apply(targetData[, effectModifiers], 2, function(x) mean(as.numeric(x)))
+    numericTargetData <- apply(as.matrix(targetData[, effectModifiers, drop = F]), 2, as.numeric)
+    emTargetProps <- apply(targetData[, effectModifiers, drop = F], 2, function(x) mean(as.numeric(x)))
     if (is.null(corrStructure)) corrStructure <- stats::cor(numericTargetData)
   } else {
     # Extract aggregate statistics of target data if already aggregate
@@ -105,20 +105,24 @@ transportInterpolated <- function (link = c("identity", "log"),
   enrichedSEMatrix <- matrix(double((2*m + 1) * ((m^2 + 3*m + 2) / 2)), nrow = 2*m + 1)
   enrichedSEMatrix[, 1:(m + 1)] <- enrichedTEMatrix^2 # Square columns
   enrichedSEMatrix[, (m + 2):(2*m + 1)] <- 2 * enrichedTEMatrix[, -1] # Double columns
+  if (m > 1) {
   for (j in 1:(m-1)) {
     for (i in ((j+1):m)) { # Entrywise products of columns
       enrichedSEMatrix[, 2*m + 1 + (m * (m - 1))/2 - ((m - j) * (m - j + 1))/2 + (i - j)] <- 2 * enrichedTEMatrix[, 1 + j] * enrichedTEMatrix[, 1 + i]
     }
+  }
   }
   
   # Construct corresponding EM configuration for target data
   emTargetVarsAllTerms <- double((m^2 + 3*m + 2) / 2)
   emTargetVarsAllTerms[1:(m + 1)] <- c(1, emTargetProps)^2
   emTargetVarsAllTerms[(m + 2):(2*m + 1)] <- 2 * emTargetProps
+  if (m > 1) {
   for (j in 1:(m-1)) {
     for (i in ((j+1):m)) {
       emTargetVarsAllTerms[2*m + 1 + (m * (m - 1))/2 - ((m - j) * (m - j + 1))/2 + (i - j)] <- 2 * emTargetProps[j] * emTargetProps[i]
     }
+  }
   }
   
   # Obtain coefficient estimates for treatment effect
