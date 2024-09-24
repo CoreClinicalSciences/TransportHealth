@@ -5,7 +5,7 @@ test_that("Scenario 1: without custom weights, formula provided for propensitySc
   expect_no_error(testResult <- suppressWarnings(transportTADA(msmFormula = sysBloodPressure ~ med1,
                                                                propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
                                                 
-                                                               matchingCovariates = c("sex"),
+                                                               matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
                                                 
                                                                propensityWeights = NULL, 
                                                                participationWeights = NULL, 
@@ -19,8 +19,8 @@ test_that("Scenario 1: without custom weights, formula provided for propensitySc
                                                                aggregateTargetData = data$aggregateTargetData)))
   
   expect_true(is.transportTADA(testResult))
-  browser()
-  testSummary <- summary(testResult)
+
+  expect_no_error(testSummary <- summary(testResult))
   
   expect_true(inherits(testSummary, "summary.transportTADA")) 
   expect_true(inherits(testSummary$propensitySMD, "data.frame"))
