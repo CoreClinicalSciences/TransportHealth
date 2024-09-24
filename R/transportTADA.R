@@ -806,8 +806,8 @@ summary.transportTADA <- function(object,
     NAgD <- processedAgD$N
     NIPD <- nrow(processedIPD)
     
-    userAgD <- processedAgD[, sapply(names(processedAgD), function(name) grepl(prefixesPattern, name))]
-    userIPD <- processedIPD[, sapply(names(processedIPD), function(name) grepl(prefixesPattern, name))]
+    userAgD <- processedAgD[, sapply(names(processedAgD), function(name) grepl(prefixesPattern, name)), drop = F]
+    userIPD <- processedIPD[, sapply(names(processedIPD), function(name) grepl(prefixesPattern, name)), drop = F]
     
   }
   
