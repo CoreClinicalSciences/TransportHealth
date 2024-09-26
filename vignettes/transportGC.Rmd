@@ -53,7 +53,7 @@ testData <- generateTestData()
 
 # Introduction
 
-In this vignette, we demonstrate how to use `TransportHealth` for weighting-based transportability analysis for instances where mergeable individual participant-level data (IPD) is available in both the original study and target sample.
+In this vignette, we demonstrate how to use `TransportHealth` for g-computation-based transportability analysis for instances where individual participant-level data (IPD) is available in both the original study and target sample, but they are not mergable.
 
 ## Brief introduction to g-computation
 
@@ -179,7 +179,7 @@ result <- TransportHealth::transportGC("meanDiff", # Type of effect estimate (me
 
 ### Producing statistical results
 
-To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the variable names of the treatment and the response, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the MSM.
+To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the variable names of the treatment and the response, the transported treatment effect, its estimated standard error, and a summary of the fitted outcome model. Note that scientific conclusions should only be drawn from the transported effect estimate.
 
 ```{r GComputation-summary, echo = T}
 summary(result)

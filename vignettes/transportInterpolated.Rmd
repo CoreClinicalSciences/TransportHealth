@@ -1,0 +1,258 @@
+---
+title: "Transportability analysis using interpolated g-computation with TransportHealth"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Transportability analysis using interpolated g-computation with TransportHealth}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = F}
+library(TransportHealth)
+set.seed(20240501)
+
+expit <- function(x) 1/(1+exp(-x))
+
+# Generate test data for TransportHealth. This data is not meant to be officially put in the package. It is simply to test whether the implemented functions in the package accept the correct inputs and outputs.
+generateTestData <- function() {
+  # Generate study data
+  nStudy <- 1000
+  sexStudy <- rbinom(nStudy, 1, 0.5) # Male is 1, meaning that female is baseline (0)
+  stressStudy <- rbinom(nStudy, 1, 0.4) # Stressed is 1, not stressed is 0
+  med2Study <- rbinom(nStudy, 1, 0.1) # 1 means taking a medication other than the one under investigation, 0 means not taking another medication
+  percentBodyFatStudy <- rnorm(nStudy, 28 - 13 * sexStudy, 2) #this variable is the percent of body fat each participant has
+  med1Study <- rbinom(nStudy, 1, expit(0.2 * sexStudy - 0.02 * percentBodyFatStudy + 0.1 * stressStudy)) #this variable is the main intervention or treatment being studied. 1 means the participant is receiving the medication under investigation, 0 means they are not.
+  sysBloodPressureStudy <- rnorm(nStudy, 100 + 5 * sexStudy + 0.5 * percentBodyFatStudy + 5 * stressStudy -
+                                   5 * med1Study + med1Study * (-5 * med2Study + 7 * stressStudy)) #this variable is the main outcome. It is a continuous measure of systolic blood pressure
+  
+  # Put all variables together
+  studyData <- data.frame(sysBloodPressure = sysBloodPressureStudy, med1 = as.factor(med1Study), sex = as.factor(sexStudy), stress = as.factor(stressStudy), med2 = as.factor(med2Study), percentBodyFat = percentBodyFatStudy)
+  
+  # Generate target data
+  nTarget <- 1500
+  sexTarget <- rbinom(nTarget, 1, 0.3) # Male is 1, so female is baseline (0)
+  stressTarget <- rbinom(nTarget, 1, 0.7) # Stressed is 1, so 0 is not stressed
+  med2Target <- rbinom(nTarget, 1, 0.3) # 1 means taking a medication other than the one under investigation, 0 means not taking another medication
+  percentBodyFatTarget <- rnorm(nTarget, 26 - 12 * sexTarget, 2) #this variable is the percent of body fat each participant has
+  
+  # Put all variables together
+  targetData <- data.frame(sex = as.factor(sexTarget), stress = as.factor(stressTarget), med2 = as.factor(med2Target), percentBodyFat = percentBodyFatTarget)
+  
+  return(list(studyData = studyData, targetData = targetData))
+}
+
+generateTestDataInterpolated <- function() {
+  testData <- generateTestData()
+  studyData <- testData$studyData
+  targetData <- testData$targetData
+  studyData$percentBodyFatDicho <- as.numeric(studyData$percentBodyFat >= 17)
+  targetData$percentBodyFatDicho <- as.numeric(targetData$percentBodyFat >= 17)
+  
+  nStudy <- nrow(studyData)
+  
+  mainTreatmentEffect <- with(studyData, mean(sysBloodPressure[med1 == 1]) - mean(sysBloodPressure[med1 == 0]))
+  mainSE <- with(studyData, sqrt((var(sysBloodPressure[med1 == 1]) * (length(which(med1 == 1)) - 1) +
+                            var(sysBloodPressure[med1 == 0]) * (length(which(med1 == 0)) - 1)) / (nStudy - 2)) * 
+                            sqrt((1/length(which(med1 == 1))) + (1/length(which(med1 == 0)))))
+  
+  
+  effectModifiers <- c("med2", "percentBodyFatDicho")
+  
+  aggregateStudyData <- apply(studyData[, effectModifiers], 2, function(x) {x |> as.numeric() |> mean()})
+  
+  subgroupLevels <- rep(c(1,0), times = length(effectModifiers))
+  
+  subgroupTreatmentEffects <- sapply(1:length(subgroupLevels), function(i) {
+                              with(studyData[studyData[[effectModifiers[ceiling(i/2)]]] == subgroupLevels[i],],
+                                   mean(sysBloodPressure[med1 == 1]) - mean(sysBloodPressure[med1 == 0])) 
+                              })
+  
+  subgroupSEs <- sapply(1:length(subgroupLevels), function(i) {
+    with(studyData[studyData[[effectModifiers[ceiling(i/2)]]] == subgroupLevels[i],],
+         sqrt((var(sysBloodPressure[med1 == 1]) * (length(which(med1 == 1)) - 1) +
+              var(sysBloodPressure[med1 == 0]) * (length(which(med1 == 0)) - 1)) / (nStudy - 2)) * 
+           sqrt((1/length(which(med1 == 1))) + (1/length(which(med1 == 0))))
+    )
+  })
+  
+  targetData$n <- nrow(targetData)
+  
+  aggregateTargetData <- apply(targetData, 2, function(x) mean(as.numeric(x)))
+  names(aggregateTargetData) <- names(targetData)
+  
+  return(list(mainTreatmentEffect = mainTreatmentEffect,
+              mainSE = mainSE,
+              effectModifiers = effectModifiers,
+              subgroupTreatmentEffects = subgroupTreatmentEffects,
+              subgroupSEs = subgroupSEs,
+              nStudy = nStudy,
+              aggregateStudyData = aggregateStudyData,
+              targetData = targetData,
+              aggregateTargetData = aggregateTargetData))
+}
+
+testData <- generateTestDataInterpolated()
+```
+
+# Introduction
+
+In this vignette, we demonstrate how to use `TransportHealth` for interpolated g-computation, a transportability analysis based on network meta-interpolation, for instances where only aggregate data is available for the original study sample.
+
+## Brief introduction to interpolated g-computation
+
+In transportability and generalizability analysis, interpolated g-computation proceeds largely the same as network meta-interpolation. Firstly, a model of the treatment effect is fitted in terms of dichotomized effect modifiers. Missing effect modifier information is imputed using the best unbiased linear predictor (BLUP) in terms of observed effect modifier information. Then, an estimate of the treatment effect in the target population is calculated with the fitted model using the summary information of effect modifiers in the target sample.
+
+# Example
+
+Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct a randomized clinical trial using samples from the study population.
+
+We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+
+## Coded variables:
+
+-   Medication - `med1`
+
+    -   `1` for treated
+    -   `0` for non-treated
+
+-   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
+
+-   Sex - `sex`
+
+    -   `1` for male
+    -   `0` for female
+
+-   Body fat percentage - `percentBodyFat` (continuous)
+
+-   Stress level - `stress`
+
+    -   `1` for stressed
+    -   `0` for normal
+
+-   Medication 2 - `med2`
+
+    -   `1` for treated
+    -   `0` for non-treated
+    
+## Analyses
+
+First, for the implementation of interpolated g-computation in `TransportHealth` specifically, the study data should be aggregate-level. In particular, effect modifiers should be first be dichotomized. For this case study, body fat percentage has been dichotomized with 17% as the threshold. For clarity, we assume that dichotomized variables are coded as 0-1 with 0 being the baseline. The aggregate-level study data should have:
+
+- The estimated treatment effect and its estimated standard error
+- The estimated subgroup treatment effect within each (marginal) level of each effect modifier and its estimated standard error
+- Proportion of 1s for each effect modifier in the study sample (summary study data)
+- The sample size of the original study
+
+The subgroup treatment effects should be in a vector. Subgroup effects corresponding to the levels of the same effect modifier should be next to each other with the subgroup effect of the 1 level placed first. Keep a vector that keeps track of the names of the effect modifiers: the subgroup effects vector and the summary study dat vector should be in the order of this vector. In our study, the aggregate-level study data is formatted as follows.
+
+```{r exampleStudyData, echo = T}
+print("Treatment effect:")
+print(testData$mainTreatmentEffect)
+print("Standard error of treatment effect:")
+print(testData$mainSE)
+print("Effect modifier names:")
+print(testData$effectModifiers)
+print("Subgroup effects:")
+print(testData$subgroupTreatmentEffects)
+print("Standard errors of subgroup effects:")
+print(testData$subgroupSEs)
+print("Summary study data:")
+print(testData$aggregateStudyData)
+print("Sample size:")
+print(testData$nStudy)
+```
+
+On the other hand, the target data may be individual patient-level data or aggregate data. For the former, effect modifiers should still be dichotomized in the target data. For the latter, provide the proportion of 1s for each dichotomized effect modifier, along with the sample size. It is important that effect modifiers are dichotomized in the same in the study and target data. If aggregate-level target data is provided, you may also choose a correlation structure of the effect modifiers in the form of a matrix; if desired, provide a correlation (not variance) matrix of the dichotomized effect modifiers. In this example, the target data is formatted as follows.
+
+```{r exampleData, echo = T}
+print("Target data:")
+head(testData$targetData)
+```
+
+We can now perform transportability analysis using interpolated g-computation with the `transportInterpolated` function.
+
+```{r blankFunction, echo = T, eval = F}
+transportInterpolated(link,
+                      effectModifiers,
+                      mainTreatmentEffect,
+                      mainSE,
+                      subgroupTreatmentEffects,
+                      subgroupSEs,
+                      corrStructure = NULL,
+                      studySampleSize,
+                      aggregateStudyData,
+                      targetData)
+```
+
+### Arguments for the `transportInterpolated` functions
+
+The `transportInterpolated` function requires the following arguments:
+
+- `link`: The link function of the outcome in terms of the treatment used in the source study. If mean differences are provided, use `"identity"`. If odds ratios or hazard ratios are provided, use `"log"`.
+
+- `effectModifiers`: Vector of names of effect modifiers to adjust for
+
+- `mainTreatmentEffect`, `mainSE`: The estimated treatment effect in the original study and its estimated standard error
+
+- `subgroupTreatmentEffects`, `subgroupSEs`: The vector of estimated subgroup treatment effects for each (marginal) level of each effect modifier and their estimated standard errors, formatted as specified above
+
+- `corrStructure`: The correlation matrix of effect modifiers. This is optional to provide if IPD target data is provided, and defaults to an independent structure if aggregate-level target data is provided.
+
+- `studySampleSize`: Sample size of original study data
+
+- `aggregateStudyData`: Summary data of original study data
+
+- `targetData`: IPD or aggregate-level target data.
+
+### Specification of transportability analysis
+
+Recall that: 
+- `sysBloodPressure` is the response
+
+- `med1` is the treatment
+
+- `med2` (other medication) and `stress` are effect modifiers of interest.
+
+We supply arguments to the `transportInterpolated` function as follows. As `sysBloodPressure` is a continuous outcome, the effect estimates are mean differences, so `link = "identity"` will be used.
+
+```{r PreparedModel, echo = T}
+result <- transportInterpolated(link = "identity",
+                                effectModifiers = testData$effectModifiers,
+                                mainTreatmentEffect = testData$mainTreatmentEffect,
+                                mainSE = testData$mainSE,
+                                subgroupTreatmentEffects = testData$subgroupTreatmentEffects,
+                                subgroupSEs = testData$subgroupSEs,
+                                studySampleSize = testData$nStudy,
+                                aggregateStudyData = testData$aggregateStudyData,
+                                targetData = testData$targetData)
+```
+
+### Producing statistical results
+
+To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the transported effect estimate and its estimated standard error, the link function, and summaries of the data provided to the function. Note that scientific conclusions should only be drawn from this output.
+
+```{r GComputation-summary, echo = T}
+summary(result)
+```
+
+To obtain a coefficient plot of estimates, use the `plot` function.
+
+```{r GComputation-plot, echo = T}
+plot(result)
+```
+
+Like other methods supported by `TransportHealth`, the validity of interpolated g-computation depends on untestable causal inference assumptions, including stable unit treatment value (SUTVA), conditional exchangeability, positivity and consistency [@ling-review; @degtiar-review]. However, interpolated g-computation does not have readily available diagnostics to evaluate if these assumptions are likely to hold or not. Due to the limited amount of information from the original study, causal inference assumptions should be evaluated using contextual knowledge about study design.
+
+Additionally, it is expected that interpolated g-computation would perform worse than IOPW and g-computation, as a lot of information is lost when only aggregate-level data is available for the original study data. We suggest that only one effect modifier is adjusted for when using interpolated g-computation.
+
+## References
+
+::: {#refs}
+:::
