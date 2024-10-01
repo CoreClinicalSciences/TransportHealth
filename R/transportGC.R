@@ -167,7 +167,7 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   
   # Calculate ATE based on desired effect type; except for polr, in which distributional causal effects are calculated
   if (inherits(outcomeModel, "polr")) {
-    targetModel <- MASS::polr(as.formula(paste0(response, " ~ ", treatment)), data = targetDataCounterfactualFrame, method = preparedModel$outcomeModel$method)
+    targetModel <- MASS::polr(stats::as.formula(paste0(response, " ~ ", treatment)), data = targetDataCounterfactualFrame, method = preparedModel$outcomeModel$method)
     if (effectType == "meanDiff") effect <- targetModel$coefficients[1]
     else if (effectType == "or") effect <- exp(targetModel$coefficients[1])
   } else if (effectType != "hr") {
