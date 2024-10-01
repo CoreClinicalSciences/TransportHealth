@@ -12,8 +12,8 @@
 \item{...}{Further arguments from previous function or to pass to next function}
 }
 \value{
-A \code{ggplot} object showing the estimates and confidence intervals of the MSM coefficients.
+A \code{ggplot} object showing the estimates and confidence intervals of the transported effect estimate.
 }
 \description{
-This function is a wrapper for \code{modelsummary::modelplot} to plot the coefficient estimates in a transportability analysis using g-computation. Note that the correct variance estimates are used in this function.
+This function is a wrapper for \code{modelsummary::modelplot} to plot effect estimates in a transportability analysis using g-computation. Note that the correct variance estimates are used in this function.
 }

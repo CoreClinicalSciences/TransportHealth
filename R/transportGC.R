@@ -1,7 +1,7 @@
 #' @title Transportability analysis using g-computation
 #' 
 #' @description
-#' Estimates the coefficients of a marginal structural model (MSM) using g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the coefficients in the superpopulation or the target population, respectively.
+#' Estimates the average treatment effect (ATE) using g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the ATE in the superpopulation or the target population, respectively.
 #' 
 #' @param effectType Type of effect desired for the ATE: \code{"meanDiff"} for mean difference, \code{"rr"} for relative risk, \code{"or"} for odds ratio, and \code{"hr"} for hazard ratio.
 #' @param preparedModel A \code{transportGCPreparedModel} object. This is obtained by using the \code{transportGCPreparedModel} function to fit an outcome model using the study data.
@@ -19,9 +19,9 @@
 #'  \item{The researcher uses this function and the provided \code{transportGCPreparedModel} object to perform the analysis using g-computation.}
 #' }
 #' 
-#' Since model-fitting objects in \code{R} often contain the data used to fit the model, the \code{transportGCPreparedModel} function wipes this data in the model-fitting object and keeps additional information about the name of the response variable, the name of the treatment variable and the levels of treatment. This is to comply with government regulations regarding access and integration of data sources from different countries.
+#' Since model-fitting objects in \code{R} often contain the data used to fit the model, the \code{transportGCPreparedModel} function wipes this data, if requested, in the model-fitting object and keeps additional information about the name of the response variable, the name of the treatment variable and the levels of treatment. This is in awareness with government regulations regarding access and integration of data sources from different countries.
 #' 
-#' The MSM-fitting functions do not provide correct standard errors as-is. Bootstrap is used to calculate robust variance estimates of the MSM coefficient estimators. Note that these standard errors are only valid conditional on the observed study data because it is not possible to resample the study data when access to it is restricted.
+#' Bootstrap is used to calculate robust variance estimates of the ATE estimator. Note that these standard errors are only valid conditional on the observed study data when \code{wipe = T} because it is not possible to resample the study data when access to it is restricted.
 #'
 #' @return
 #' A \code{transportGC} object with the following components:
@@ -167,7 +167,7 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   
   # Calculate ATE based on desired effect type; except for polr, in which distributional causal effects are calculated
   if (inherits(outcomeModel, "polr")) {
-    targetModel <- MASS::polr(as.formula(paste0(response, " ~ ", treatment)), data = targetDataCounterfactualFrame, method = preparedModel$outcomeModel$method)
+    targetModel <- MASS::polr(stats::as.formula(paste0(response, " ~ ", treatment)), data = targetDataCounterfactualFrame, method = preparedModel$outcomeModel$method)
     if (effectType == "meanDiff") effect <- targetModel$coefficients[1]
     else if (effectType == "or") effect <- exp(targetModel$coefficients[1])
   } else if (effectType != "hr") {
@@ -192,10 +192,10 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   
 }
 
-#' @title Summarize results of a fitted MSM object using g-computation
+#' @title Summarize results of transportability analysis using g-computation
 #' 
 #' @description
-#' Returns summary object which contains summary objects for the MSM and the outcome model, as well as information about response and treatment variables. In the MSM summary object, the correct variance estimators are calculated.
+#' Returns summary object which contains the transported effect estimate and the outcome model summary object, as well as information about response and treatment variables. In the MSM summary object, the correct variance estimators are calculated.
 #' 
 #' @rdname summary.transportGC
 #'
@@ -284,13 +284,13 @@ print.summary.transportGC <- function (x, out = stdout(), ...) {
 #' @title Visually represent results of transportability analysis using g-computation
 #' 
 #' @description
-#' This function is a wrapper for \code{modelsummary::modelplot} to plot the coefficient estimates in a transportability analysis using g-computation. Note that the correct variance estimates are used in this function.
+#' This function is a wrapper for \code{modelsummary::modelplot} to plot effect estimates in a transportability analysis using g-computation. Note that the correct variance estimates are used in this function.
 #' 
 #' @param x Result from \code{transportGC} function.
 #' @param ... Further arguments from previous function or to pass to next function
 #'
 #' @return
-#' A \code{ggplot} object showing the estimates and confidence intervals of the MSM coefficients.
+#' A \code{ggplot} object showing the estimates and confidence intervals of the transported effect estimate.
 #' 
 #' @export
 plot.transportGC <- function (x, ...) {
