@@ -30,3 +30,10 @@ Under the assumptions specified in the Assumptions vignette, we have
 \end{align*}
 
 Therefore, we can estimate $\E[Y^a \given S = 0]$ unbiasedly by averaging samples of $\E[Y \given A = a, \mathbf{L}, \mathbf{E}, S = 1]$ over the distribution of $\mathbf{L}$ and $\mathbf{E}$ in the target data. We can obtain such samples by first fitting a regression model of $Y$ in terms of $A$, $\mathbf{L}$ and $\mathbf{E}$, which essentially fits a model of $\E[Y \given A = a, \mathbf{L}, \mathbf{E}, S = 1]$. Then, this model is used to calculate fitted values of $Y$ at observed values of $\mathbf{L}$ and $\mathbf{E}$ in the target data with $A$ being set to $a$. The fitted values may be seen as "samples" of $\E[Y \given A = a, \mathbf{L}, \mathbf{E}, S = 1]$ where $\mathbf{L}$ and $\mathbf{E}$ are empirically drawn from the target data, so they are averaged to obtain an estimate of the counterfactual mean above. From this, the target ATE may be estimated unbiasedly, provided that the outcome model is specified correctly.
+
+For more information, check out the "What If" book on causal inference [@what-if], which includes a discussion of g-computation for confounding adjustment.
+
+## References
+
+::: {#refs}
+:::

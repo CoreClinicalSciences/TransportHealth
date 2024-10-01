@@ -20,14 +20,17 @@ articles:
     navbar: Introduction
     contents: 
       - overview
+      - assumptions
   - title: Inverse Probability Methods
     navbar: Inverse Probability Methods
     contents: 
       - transportIP
+      - transportGC
   - title: Theoretical Formulations
     navbar: Theoretical Formulations
     contents:
       - transportIPMath
+      - transportGCMath
 # @ Quang, similar to simIDM, i want us to put coverage report eventually in. 
 
    # reports: 
@@ -45,3 +48,11 @@ reference:
       - summary.transportIP
       - plot.transportIP
       - is.transportIP
+  - title: G-computation methods
+    contents:
+      - transportGCPreparedModel
+      - is.transportGCPreparedModel
+      - transportGC
+      - summary.transportGC
+      - plot.transportGC
+      - is.transportGC

@@ -1,8 +1,8 @@
 ---
-title: "Transportability analysis using g-computation with TransportHealthR"
+title: "G-computation-based transportability analysis"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Transportability analysis using g-computation with TransportHealthR}
+  %\VignetteIndexEntry{G-computation-based transportability analysis}
   %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
@@ -160,7 +160,7 @@ Recall that:
 First, we fit a regression model of the outcome in terms of the covariates and effect modifiers, making sure to include interaction terms of the effect modifiers. We need to wrap the results using the `transportGCPreparedModel` function to be able to use the `transportGC` function, as follows. Note that we only provide the study data to this function.
 
 ```{r PreparedModel, echo = T}
-preparedModel <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2, # Formula for outcome model
+preparedModel <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2, # Formula for outcome model
                                           treatment = "med1", # Name of treatment variable
                                           family = gaussian, # Type of model
                                           studyData = testData$studyData, # Study data
@@ -171,7 +171,7 @@ preparedModel <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress
 To estimate the average treatment effect of using the medication on systolic blood pressure in the target population, we can use the `transportGC` function as follows. Note that we only provide the target data to this function.
 
 ```{r GComputation, echo = T}
-result <- transportGC("meanDiff", # Type of effect estimate (mean difference, relative risk, etc)
+result <- TransportHealth::transportGC("meanDiff", # Type of effect estimate (mean difference, relative risk, etc)
                       preparedModel, # transportGCPreparedModel object
                       testData$targetData # Target data
                       )
@@ -188,14 +188,14 @@ summary(result)
 The workflow is constructed like this to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. See below for a comparison of `transportGCPreparedModel` objects with `wipe = T` and `wipe = F`.
 
 ```{r GComputation-wipeCompare, echo = T}
-preparedModelNoWipe <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
+preparedModelNoWipe <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
                                           treatment = "med1",
                                           family = gaussian,
                                           studyData = testData$studyData,
                                           wipe = F)
 write("Components of outcomeModel with wipe = F:", stdout())
 str(preparedModelNoWipe$outcomeModel)
-preparedModelWipe <- transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
+preparedModelWipe <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
                                           treatment = "med1",
                                           family = gaussian,
                                           studyData = testData$studyData,
