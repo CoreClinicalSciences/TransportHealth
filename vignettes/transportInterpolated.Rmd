@@ -103,7 +103,7 @@ testData <- generateTestDataInterpolated()
 
 # Introduction
 
-In this vignette, we demonstrate how to use `TransportHealth` for interpolated g-computation, a transportability analysis based on network meta-interpolation, for instances where only aggregate data is available for the original study sample.
+In this vignette, we demonstrate how to use `TransportHealth` for interpolated g-computation, a transportability analysis based on network meta-interpolation [@harari], for instances where only aggregate data is available for the original study sample.
 
 ## Brief introduction to interpolated g-computation
 
@@ -241,6 +241,8 @@ To show the results of the analysis, use `summary` like you would for `lm` when 
 ```{r GComputation-summary, echo = T}
 summary(result)
 ```
+
+We have found via simulation that interpolated g-computation tends to perform worse when the degree of effect modification is large relative to the main treatment effect, so conclusions from `transportInterpolated` in such situations should be made with caution. The magnitude of effect modification can be informally evaluated by looking at forest plots of the original study from which the treatment effects are retrived, or by looking at the `summary` output of `transportInterpolated`. More specifically, the output contains the subgroup effects provided by the user. Using either method, one should compare the difference in subgroup effects between levels of the same effect modifier with the magnitude of the main treatment effect to evaluate whether the interaction effect is larger than the main effect.
 
 To obtain a coefficient plot of estimates, use the `plot` function.
 
