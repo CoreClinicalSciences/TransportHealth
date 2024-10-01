@@ -1,77 +1,40 @@
-# Overview
+# TransportHealth
 
-This is a template project folder for Core Clinical Sciences. **It is expected any additional specifications will build upon this folder structure.**
+**TransportHealth** is an R package, which was developed by [Core Clinical Sciences](https://www.coreclinicalsciences.com/), that provides functions to conduct transportability and generalizability analyses. 
 
-## Folders organization
+Transportability and generalizability analyses are types of causal inference methods that allow us to quantitatively assess external validity of evidence from randomized clinical trials (RCTs) and other diverse research studies. We assess how applicable the findings from original studies are to settings that the original studies were not conducted in or to the broader population that was not included in the original studies. In transportability analyses, we aim to transport the findings from study sample to an external target population by adjusting for the different distribution of effect modifiers between the study and the target sample. Generalizability analyses are similar but concerns the case where the study sample is a subset of the target population. 
 
-While different projects will require its own specific organization, it is important to establish a common template as a minimum organization. The folder template will include:  
+**The scope of the current version of our package includes the following analyses.**
 
+- Inverse probability (IP) weighting for mergeable individual patient-level datasets (IPDs) of original and target studies
+
+**For the future scope, we are currently developing the following methods.**
+
+- G-computation for unmergable IPDs of original and target studies 
+
+- Target Aggregate Data Adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of target study
+
+- Methods that can transport aggregate data of original study to IPD-level target study
+
+- Methods that can transport aggregate data of original study to aggregate-level target study data
+
+
+## Getting Started
+
+If you are just getting started with **TransportHealth**, we recommend starting with the tutorial vignettes, the examples provided as part of our package documentation. Future papers, as they are published in preprints or after being peer reviewed, will be added here, as they become availabl.e 
+
+## Installation
+
+Install the latest development version from [GitHub](CoreClinicalSciences/TransportHealth)
+
+``` r
+if (!require("devtools")) {
+  install.packages("devtools")
+}
+devtools::install_github("CoreClinicalSciences/TransportHealth")
 ```
-Folder Template
-  |__ Background-Materials
-      |__Client-Materials
-      |__Key-References 
-  |__ Data
-      |__Raw-Data
-      |__Processed-Data
-  |__ Outputs
-      |__Figures
-      |__Listings
-      |__Tables
-  |__ R
-      |__Functions
-      |__Temp
-  |__ Reference-Manager
-      |__References.bib
-  |__ Technical-Reports
-      |__Clinical-Study-Reports
-      |__Manuscripts
-  |__ Templates
 
-```
+## Citing TransportHealth
 
-Each folders will contain the following: 
+To cite `TransportHealth`, please see [here](https://coreclinicalsciences.github.io/TransportHealth/authors.html#citation)
 
--   `Background-materials`: A folder to store scientific and other reference documents.
-
-    -   `Client-Materials`: store key materials shared by clients here
-
-    -   `Key-References`: store other key materials here
-
--   `Data`: A folder to store your data.
-
-    -   `Raw-Data`: store the raw datasets here
-
-    -   `Processed-Data`: store the processed datasets here
-
--   `Outputs`: This is where you save all the tables, listings, figures to be used in presentations/reports.
-
-    -   `Figures`
-    -   `Listings`
-    -   `Tables`
-
--   `Presentations`: A folder for slide decks
-
--   `R`: This is where you keep your R (or other language) scripts
-
-    -   `Functions`: store your functions here
-    -   `Temp`: (Not necessary) save temporary outputs or scripts generated for exploratory or testing purposes
-    
--   `Reference-Manager`: store a reference manager (e.g., Endnote here) to output bib files
-
-    -   `references.bib`: A bib file to be used in reports/presentations
-
--   `Technical-Reports`: This is where you work on deliverables (e.g., clinical study reports, manuscripts, and other technical reports)
-
-    -   `Clinical-Study-Reports`
-    -   `Manuscripts`
-
--   `Templates`: Contains template documents for docx, tex, css, csl, and scss
-
-    -   `doc` template: Use `Word-Template-Times.docx` to style MS Word documents
-    -   `tex` files: Use to style Latex/PDF documents
-    -   `CSS` files: Use to style HTML documents
-    -   `CSL` files:
-        -    Use to define formatting of citations and bibliographies
-        -   Short for Citation Style Language (CSL)
-    -   `SCSS` files: Use for HTML documents as [Quarto themes](https://quarto.org/docs/output-formats/html-themes-more.html)

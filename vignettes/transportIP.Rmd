@@ -1,0 +1,265 @@
+---
+title: "Inverse probability or odds weighting-based transportability analysis"
+author: "Core Clinical Sciences"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+
+vignette: >
+  %\VignetteIndexEntry{Inverse probability or odds weighting-based transportability analysis}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = F}
+library(TransportHealth)
+set.seed(20240501)
+
+expit <- function(x) 1/(1+exp(-x))
+
+# Generate test data for TransportHealth. This data is not meant to be officially put in the package. It is simply to test whether the implemented functions in the package accept the correct inputs and outputs.
+
+# I would add the same info to this one as to the G-Computation vignette
+  
+generateTestData <- function() {
+  # Generate study data
+  nStudy <- 1000
+  sexStudy <- rbinom(nStudy, 1, 0.5) # Male is 1, so female is baseline
+  stressStudy <- rbinom(nStudy, 1, 0.4) # Stressed is 1
+  med2Study <- rbinom(nStudy, 1, 0.1) # 1 means taking other med
+  percentBodyFatStudy <- rnorm(nStudy, 28 - 13 * sexStudy, 2)
+  med1Study <- rbinom(nStudy, 1, expit(0.2 * sexStudy - 0.02 * percentBodyFatStudy + 0.1 * stressStudy))
+  sysBloodPressureStudy <- rnorm(nStudy, 100 + 5 * sexStudy + 0.5 * percentBodyFatStudy + 5 * stressStudy -
+                                   5 * med1Study + med1Study * (-5 * med2Study + 7 * stressStudy))
+  
+  # Put all variables together
+  studyData <- data.frame(sysBloodPressure = sysBloodPressureStudy, med1 = as.factor(med1Study), sex = as.factor(sexStudy), stress = as.factor(stressStudy), med2 = as.factor(med2Study), percentBodyFat = percentBodyFatStudy)
+  
+  # Generate target data
+  nTarget <- 1500
+  sexTarget <- rbinom(nTarget, 1, 0.3) # Male is 1, so female is baseline
+  stressTarget <- rbinom(nTarget, 1, 0.7) # Stressed is 1
+  med2Target <- rbinom(nTarget, 1, 0.3) # 1 means taking other med
+  percentBodyFatTarget <- rnorm(nTarget, 26 - 12 * sexTarget, 2)
+  
+  # Put all variables together
+  targetData <- data.frame(sex = as.factor(sexTarget), stress = as.factor(stressTarget), med2 = as.factor(med2Target), percentBodyFat = percentBodyFatTarget)
+  
+  return(list(studyData = studyData, targetData = targetData))
+}
+
+testData <- generateTestData()
+```
+
+\newcommand{\given}{\,|\,}
+\newcommand{\E}{\mathrm{E}}
+
+# Introduction
+
+In this vignette, we demonstrate how to use `TransportHealth` for weighting-based transportability analysis for instances where mergeable individual participant-level data (IPD) is available in both the original study and target sample.
+
+## Brief Introduction to IOPW and IPPW
+
+For transportability scenarios, where the original study population is a separate population to the target population of interest, we can use `inverse odds of participation weighting (IOPW)`approach.
+
+When the original study population is a subset of the target population of interest, we refer to this as generalizability scenarios; here, we can use `inverse probability of participation weighting (IPPW)` approach.
+
+Both the IOPW and IPPW approaches are analogous to the propensity score weighting approach, such as `inverse probability of treatment weighting (IPTW)` that aims to adjust for confounding typically in a non-randomized study. They are analogous in the sense we can use a model such as logistic regression to estimate the probability of interest (i.e, study participation or propensity to being treated). Under the transportability analysis framework, the results from the original study are weighted based on the inverse odds or probability that is calculated based on different distribution of effect modifiers between the original study and target sample data. The weights refer to the conditional probability of participation in the target study.
+
+# Example
+
+Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
+
+We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+
+*Note that the covariates adjusted for in the study data can also be effect modifiers.*
+
+## Coded variables:
+
+-   Medication - `med1`
+
+    -   `1` for treated
+    -   `0` for non-treated
+
+-   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
+
+-   Sex - `sex`
+
+    -   `1` for male
+    -   `0` for female
+
+-   Body fat percentage - `percentBodyFat` (continuous)
+
+-   Stress level - `stress`
+
+    -   `1` for stressed
+    -   `0` for normal
+
+-   Medication 2 - `med2`
+
+    -   `1` for treated
+    -   `0` for non-treated
+
+## Analyses
+
+We can perform this analysis as follows.
+
+First, the data from the study and target population may be separate data frames or a merged data frame in the `R` environment.
+
+-   If they are separate, put them together in a `list` object; there is no need to name the components, as the package will identify the study data as the dataset with response and treatment information. Because of this, make sure that the study data has the response and treatment columns, while the target data do not (which is the case 99% of the time). If they are merged, make sure that
+
+-   The response and treatment columns for the target data are `NA`, and;
+
+-   There is a binary variable indicating which observations are in the study data and the target data, with participation being coded as `1` or `TRUE`.
+
+Suppose that we have the study and target data separately as follows.
+
+```{r exampleData, echo = T}
+names(testData)
+print("Study data:")
+head(testData$studyData)
+print("Target data:")
+head(testData$targetData)
+
+```
+
+After merging the data, we can now perform transportability analysis based on the IOPW approach using the `transportIP` function.
+
+<!-- Quang, insert blank function here -->
+```{r blankFunction, echo = T, eval = F}
+transportIP(msmFormula,
+            propensityScoreModel,
+            participationModel,
+            propensityWeights,
+            participationWeights,
+            treatment,
+            participation,
+            response,
+            family,
+            method,
+            data,
+            transport,
+            bootstrapNum)
+```
+
+### Arguments for the `transportIP` function
+
+This function requires specification of the following arguments:
+
+-   `msmFormula`: A formula expressing the marginal structural model (MSM) to be fit. 
+
+-   `propensityScoreModel`: A formula or a `glm` object expressing the propensity model, i.e. a model of treatment assignment in terms of covariates. 
+
+If a formula is provided, logistic regression is used by default. Custom propensity weights from other weighting methods can also be provided to the `customPropensity` argument instead; in this case, do not set `propensityScoreModel` because it is `NULL` by default and will be overridden.
+
+-   `participationModel`: A formula or a `glm` object expressing the participation model, i.e. a model of study participation in terms of effect modifiers.
+
+If a formula is provided, logistic regression is used by default. Custom participation weights from other weighting methods can also be provided to the `customParticipation` argument instead; in this case, do not set `participationModel` because it is `NULL` by default and will be overridden.
+
+-   `family`: The type of MSM to be fit. 
+
+This can be any of the families that are used in `glm`, one of `"coxph"`,`"survreg"` or `"polr"`. The `"coxph"` and `"survreg"` options are for survival analysis and will use default options of these methods from the `survival` package. The `"polr"` option is for ordinal outcomes, and the link function can be specified by the `method` argument, which uses the logistic link by default.
+
+-   `data`: The study and target data, separate or merged
+
+-   `transport`: This argument can be used to specify whether a transportability or generalizability analysis will be performed. 
+
+By default (`transport = true`), transportability based on IOPW is used. 
+
+Generalizability analysis weighs by IPPW instead of than IOPW.
+
+### Specification of transportability analysis 
+
+These components are put together as follows. 
+
+Recall that: 
+- `sysBloodPressure` is the response
+
+- `med1` is the treatment
+
+-  `sex`, `percentBodyFat`, and `stress` are covariates to be controlled in the original study
+
+- `med2` (other medication) and `stress` are effect modifiers of interest. 
+
+
+```{r IPWeighting, echo = T}
+result <- TransportHealth::transportIP(
+  # MSM formula
+  msmFormula = sysBloodPressure ~ med1, 
+  
+  # Propensity model
+  propensityScoreModel = med1 ~ sex + percentBodyFat + stress, 
+  
+  # Participation model
+  participationModel = participation ~ stress + med2, 
+  
+  # Type of MSM
+  family = gaussian, 
+  
+  # Data frame
+  data = testData, 
+  
+  # Transportability or generalizability specification argument
+  transport = T)
+```
+
+### Producing statistical results
+
+To show the results of the analysis, we can use the `base::summary` function, similarly as one would use the `lm` function for fitting a linear model. 
+
+This prints out covariate balance tables pre- and post-weighting for covariates between treatment groups (using propensity weights only) and effect modifiers (using participation weights only) between original study and target data, as well as a summary output of the MSM model fit with the correct standard errors calculated using bootstrap. 
+
+For the effect modifiers balance table, the weights used are inverse odds for study data and 1 for target data in a transportability analysis, and inverse probability for all observations in a generalizability analysis. 
+
+Note that if custom participation weights are provided, the balance tables default to transportability analysis since only the weights for observations in the study data are provided.
+
+```{r IPWeighting-summary, echo = T}
+base::summary(result)
+```
+
+The `transportIP` object produced by the `transportIP` function contains the model fitting objects for the propensity model, the participation model and the MSM. You can use methods like `coef` and `residuals` on these objects themselves. This is not implemented by the package because they are not as useful as implementing `summary`.
+
+```{r IPWeighting-other-S3, echo = T}
+msmResiduals <- stats::residuals(result$msm)
+
+msmCoefficients <- stats::coef(result$msm)
+```
+
+**Positivity** and **conditional exchangeability** are two keyassumptions that can affect the validity of transportability analysis. 
+
+`Positivity` is the assumption that at all observed levels of covariates and effect modifiers, the probabilities of being in the treatment group and being the study are neither 0 nor 1, respectively. 
+
+- To evaluate this assumption for the treatment assignment and study participation, use the `plot` function with `type = "propensityHist"` or `type = "participationHist"`, respectively. This outputs mirrored histograms of probabilities of being in the treatment group for different treatment groups or of participating in the study for the study and target data, respectively. Non-overlap of the ranges of the histograms suggest violations of the positivity assumption [@positivity].
+
+```{r IPWeighting-hist, echo = T}
+base::plot(result, type = "propensityHist")
+
+base::plot(result, type = "participationHist")
+```
+
+`Conditional exchangeability` is roughly the assumption that the only possible confounding is due to the controlled covariates and effect modifiers. Under this assumption, IOPW estimates will be reliable if the weighted distributions of covariates and effect modifiers are similar between treatment groups and the study and target data, respectively. This can be (partially) evaluated using standardized mean differences (SMDs), which are shown in table form by the `summary` function. The `plot` function with `type = "propensitySMD"` or `type = "participationSMD"` provides graphical versions of these tables. A general guideline is that an SMD of below 0.1 indicates balance, but this threshold is arbitrary and left to the choice of the analyst [@balance].
+
+```{r IPWeighting-smd, echo = T}
+base::plot(result, type = "propensitySMD")
+
+base::plot(result, type = "participationSMD")
+```
+
+Model coefficient plots showing confidence intervals of the effect estimates are provided by `plot` function with `type = "msm"`. The standard errors are the correct ones calculated by bootstrap.
+
+```{r IPWeighting-msm, echo = T}
+base::plot(result, type = "msm")
+```
+
+Note that all plot outputs are designed to be generated with `ggplot2`. They can be customized further. 
+
+## References
+
+::: {#refs}
+:::

@@ -1,11 +1,33 @@
-Package: TransportHealthR
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: MIT + file LICENSE
+Package: TransportHealth
+Title: Transportability Analysis
+Version: 0.2.2
+Authors@R: c(
+    person("Core Clinical Sciences", , , "ccs@coreclinicalsciences.com", role = "aut"),
+    person("Quang", "Vuong", , "quang@coreclinicalsciences.com", role = c("cre", "ctb")),
+    person("Richard", "Yan", , "richard@coreclinicalsciences.com", role = "ctb"),
+    person("Rebecca", "Metcalfe", , "rebecca@coreclinicalsciences.com", role = "ctb"),
+    person("Jay", "Park", , "jay@coreclinicalsciences.com", role = "ctb")
+  )
+Description: Perform generalizability and transportability analysis for mergable and unmergable individual patient data, as well as aggregate treatment-level data. This package supports basic IP weighting, g-computation and (insert aggregate data method here) approaches, with some room for customization.
+License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
+Imports:
+    ggplot2 (>= 3.5.1),
+    halfmoon (>= 0.1.0),
+    MASS (>= 7.3),
+    modelsummary (>= 2.0.0),
+    rlang,
+    smd (>= 0.6.7),
+    survival (>= 3.5-8)
+Depends:
+    R (>= 4.3.0)
+Suggests: 
+    knitr,
+    markdown,
+    rmarkdown,
+    simsurv,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3

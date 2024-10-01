@@ -1,0 +1,58 @@
+url: https://coreclinicalsciences.github.io/TransportHealth
+
+template:
+  bootstrap: 5
+  # bootswatch: pulse 
+  bootswatch: sandstone
+  # light-switch: true
+
+navbar: 
+  structure: 
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswith]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/CoreClinicalSciences/TransportHealth
+
+articles:
+  - title: Introduction
+    navbar: Introduction
+    contents: 
+      - overview
+      - assumptions
+  - title: Inverse Probability Methods
+    navbar: Inverse Probability Methods
+    contents: 
+      - transportIP
+      - transportGC
+  - title: Theoretical Formulations
+    navbar: Theoretical Formulations
+    contents:
+      - transportIPMath
+      - transportGCMath
+# @ Quang, similar to simIDM, i want us to put coverage report eventually in. 
+
+   # reports: 
+   #    text: Reports
+   #    menu:
+   #      - text: Coverage report
+   #        href: coverage-report/
+   #      - text: Unit test report
+   #        href: unit-test-report/
+
+reference: 
+  - title: Inverse probability methods
+    contents: 
+      - transportIP
+      - summary.transportIP
+      - plot.transportIP
+      - is.transportIP
+  - title: G-computation methods
+    contents:
+      - transportGCPreparedModel
+      - is.transportGCPreparedModel
+      - transportGC
+      - summary.transportGC
+      - plot.transportGC
+      - is.transportGC

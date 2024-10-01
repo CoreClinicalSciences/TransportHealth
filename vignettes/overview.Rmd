@@ -1,0 +1,75 @@
+---
+title: "Overview of transportability and generalizability analyses and TransportHealth"
+author: "Core Clinical Sciences"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+
+vignette: >
+  %\VignetteIndexEntry{Overview}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+Transportability analysis is a general statistical approach used to estimate the causal effects of a treatment response on a target population using the data from a original study that consisted of a different or narrower population. In another words, transportability analysis encompasses both transportability and generalizability analyses, each addressing different aspects of applying study findings to different or broader populations, respectively.
+
+Marginal causal effects of the study and target populations often differ due to the varying distributions of effect modifiers between the two populations. When the treatment effect varies across different levels of other factors, there is heterogeneity in the causal effect of treatment, and these factors are referred to as effect modifiers. If these effect modifiers also influence the selection of trial participants from the target population, the treatment effect estimated from the trial becomes a biased estimate of the causal effect in the entire target population. Thus, the causal effects of treatment estimated from the study population may not accurately represent those in the target population.
+
+Marginal causal effects of the study and target populations are often not equal due to the different distributions of effect modifiers between the two populations. The causal effects of treatment estimated based on a sample from the study population are biased estimates of the causal effects in the target population. Effect modification must be accounted for to obtain unbiased causal effect estimates in the target population using data from the study population.
+
+## Rationale for Transportability Analyses
+
+**Undoubtedly**, conducting a study directly in the target population would provide the most convincing and accurate answer for estimating the causal effects of a treatment. This is because data collected from the actual population of interest would inherently account for all relevant characteristics and effect modifiers unique to that population. However, this approach is often not feasible.
+
+For example, RCTs are predominantly conducted in high-income countries with low- and middle-income countries (LMICs) being under-represented, especially for novel pharmacological agents. External validity of the RCT results from high-income countries to LMICs may be limited. Quantifying the external validity through transportability analysis can be an important avenue to mitigate these data limitations.
+
+There are several possible applications of transportability analysis. These include but not limited to:
+
+-   Transporting findings from a randomized clinical trial (RCT) to an external population in which the trial was not conducted in
+
+-   Transporting findings from a real-world data (RWD) study to an external population
+
+-   Generalizing findings from an RCT (subset sample) to a broader population that was not included in the trial
+
+## Different Analytical Approaches for Transportability Analyses
+
+There are five possible scenarios that can be defined by the type of data availability and data privacy constraints:
+
+-   **Data availability**: individual participants-level data (IPD) versus aggregate (summary-level) data
+
+-   **Data pooling of original and target IPDs**: Permitted versus prohibited
+
+| Scenario \# | Original study data                               | Target sample data       | Data pooling  |
+|--------------|--------------------|--------------------|:------------------:|
+| Scenario 1  | Individual participant-level data (IPD) available | IPD available            |   Permitted   |
+| Scenario 2  | IPD available                                     | IPD available            |  Prohibited   |
+| Scenario 3  | IPD available                                     | Aggregate data available |      --       |
+| Scenario 4  | Aggregate data available                          | IPD available            |      --       |
+| Scenario 5  | Aggregate data available                          | Aggregate data available |      --       |
+
+: **Different data availability and privacy scenarios**
+
+## Analytical Scope of Our Package
+
+We have designed our R package to handle these five data scenarios.
+
+For Scenario #1 where mergeable IPDs of original study and target sample are available, we can use **inverse odds of participation weights (IOPW)** for transportability research questions, or inverse **probability of participation weighting (IPPW)** for generalizability research questions.
+
+For Scenario #2 where IPDs of original study and target sample cannot be merged, we can use G computation.
+
+For Scenario #3 where we only have IPD from the original study, we can use our **\`Target Aggregate Data Adjustment\` (TADA)** method.
+
+For Scenarios #4 and #5 where only aggregate data of the original study is available, we can use our **\`Interpolated G-computation\`.**
+
+## References
+
+::: {#refs}
+:::

@@ -1,0 +1,39 @@
+---
+title: "Theory of g-computation"
+author: "Core Clinical Sciences"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+
+vignette: >
+  %\VignetteIndexEntry{Theory of g-computation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+\newcommand{\given}{\,|\,}
+\newcommand{\E}{\mathrm{E}}
+
+Let $Y$ be the outcome of interest, $A$ be the (binary, coded as 0 for control and 1 for treatment) treatment, $S$ be the indicator for study participation (so that $S=1$ means that the subject is in the population of the original study, while $S = 0$ means that the subject is in the target population), $\mathbf{L}$ be covariates to control for confounding in the original study and $\mathbf{E}$ be effect modifiers. Let $Y^0$ and $Y^1$ be counterfactual outcomes associated with control and treatment, respectively. The primary objective of transportability analysis is to estimate the ATE in the target population:
+$$ATE = \E[Y^1 - Y^0 \given S = 0].$$
+
+Simply taking the difference in sample means using the original study data will only unbiasedly estimate the quantity
+$$\E[Y \given A = 1, S = 1] - \E[Y \given A = 0, S = 1],$$
+which is different from the target ATE due to confounding and the different distributions of effect modifiers.
+
+Under the assumptions specified in the Assumptions vignette, we have
+
+\begin{align*}
+\E[Y^a \given S = 0] &= \E_{S = 0}\E[Y^a \given \mathbf{L}, \mathbf{E}] & \\
+&= \E_{S=0}\E[Y^a \given A = a, \mathbf{L}, \mathbf{E}] & \textrm{conditional exchangeability wrt treatment assignment} \\
+&= \E_{S=0}\E[Y^a \given A = a, \mathbf{L}, \mathbf{E}, S = 1] & \textrm{conditional exchangeability wrt study participation} \\
+&= \E_{S=0}\E[Y \given A = a, \mathbf{L}, \mathbf{E}, S = 1] & \textrm{consistency}.\\
+\end{align*}
+
+Therefore, we can estimate $\E[Y^a \given S = 0]$ unbiasedly by averaging samples of $\E[Y \given A = a, \mathbf{L}, \mathbf{E}, S = 1]$ over the distribution of $\mathbf{L}$ and $\mathbf{E}$ in the target data. We can obtain such samples by first fitting a regression model of $Y$ in terms of $A$, $\mathbf{L}$ and $\mathbf{E}$, which essentially fits a model of $\E[Y \given A = a, \mathbf{L}, \mathbf{E}, S = 1]$. Then, this model is used to calculate fitted values of $Y$ at observed values of $\mathbf{L}$ and $\mathbf{E}$ in the target data with $A$ being set to $a$. The fitted values may be seen as "samples" of $\E[Y \given A = a, \mathbf{L}, \mathbf{E}, S = 1]$ where $\mathbf{L}$ and $\mathbf{E}$ are empirically drawn from the target data, so they are averaged to obtain an estimate of the counterfactual mean above. From this, the target ATE may be estimated unbiasedly, provided that the outcome model is specified correctly.
+
+For more information, check out the "What If" book on causal inference [@what-if], which includes a discussion of g-computation for confounding adjustment.
+
+## References
+
+::: {#refs}
+:::

@@ -1,0 +1,230 @@
+---
+title: "G-computation-based transportability analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{G-computation-based transportability analysis}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = F}
+library(TransportHealth)
+set.seed(20240501)
+
+expit <- function(x) 1/(1+exp(-x))
+
+# Generate test data for TransportHealth. This data is not meant to be officially put in the package. It is simply to test whether the implemented functions in the package accept the correct inputs and outputs.
+generateTestData <- function() {
+  # Generate study data
+  nStudy <- 1000
+  sexStudy <- rbinom(nStudy, 1, 0.5) # Male is 1, meaning that female is baseline (0)
+  stressStudy <- rbinom(nStudy, 1, 0.4) # Stressed is 1, not stressed is 0
+  med2Study <- rbinom(nStudy, 1, 0.1) # 1 means taking a medication other than the one under investigation, 0 means not taking another medication
+  percentBodyFatStudy <- rnorm(nStudy, 28 - 13 * sexStudy, 2) #this variable is the percent of body fat each participant has
+  med1Study <- rbinom(nStudy, 1, expit(0.2 * sexStudy - 0.02 * percentBodyFatStudy + 0.1 * stressStudy)) #this variable is the main intervention or treatment being studied. 1 means the participant is receiving the medication under investigation, 0 means they are not.
+  sysBloodPressureStudy <- rnorm(nStudy, 100 + 5 * sexStudy + 0.5 * percentBodyFatStudy + 5 * stressStudy -
+                                   5 * med1Study + med1Study * (-5 * med2Study + 7 * stressStudy)) #this variable is the main outcome. It is a continuous measure of systolic blood pressure
+  
+  # Put all variables together
+  studyData <- data.frame(sysBloodPressure = sysBloodPressureStudy, med1 = as.factor(med1Study), sex = as.factor(sexStudy), stress = as.factor(stressStudy), med2 = as.factor(med2Study), percentBodyFat = percentBodyFatStudy)
+  
+  # Generate target data
+  nTarget <- 1500
+  sexTarget <- rbinom(nTarget, 1, 0.3) # Male is 1, so female is baseline (0)
+  stressTarget <- rbinom(nTarget, 1, 0.7) # Stressed is 1, so 0 is not stressed
+  med2Target <- rbinom(nTarget, 1, 0.3) # 1 means taking a medication other than the one under investigation, 0 means not taking another medication
+  percentBodyFatTarget <- rnorm(nTarget, 26 - 12 * sexTarget, 2) #this variable is the percent of body fat each participant has
+  
+  # Put all variables together
+  targetData <- data.frame(sex = as.factor(sexTarget), stress = as.factor(stressTarget), med2 = as.factor(med2Target), percentBodyFat = percentBodyFatTarget)
+  
+  return(list(studyData = studyData, targetData = targetData))
+}
+
+testData <- generateTestData()
+```
+
+# Introduction
+
+In this vignette, we demonstrate how to use `TransportHealth` for weighting-based transportability analysis for instances where mergeable individual participant-level data (IPD) is available in both the original study and target sample.
+
+## Brief introduction to g-computation
+
+In transportability and generalizability analysis, g-computation proceeds largely the same as in causal inference. Firstly, a model of the outcome in terms of the treatment, covariates and effect modifiers is fitted using the source data. Then, this model is used to calculate fitted values of the outcome when treatment is set to control or treatment for all observations in the target data; in particular, observed covariate and effect modifier values in the target data are used to calculate the fitted values. Finally, treatment effects are calculated using these fitted values to obtain an unbiased estimate of the treatment effect in the target population.
+
+# Example
+
+Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
+
+We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+
+*Note that the covariates adjusted for in the study data can also be effect modifiers.*
+
+## Coded variables:
+
+-   Medication - `med1`
+
+    -   `1` for treated
+    -   `0` for non-treated
+
+-   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
+
+-   Sex - `sex`
+
+    -   `1` for male
+    -   `0` for female
+
+-   Body fat percentage - `percentBodyFat` (continuous)
+
+-   Stress level - `stress`
+
+    -   `1` for stressed
+    -   `0` for normal
+
+-   Medication 2 - `med2`
+
+    -   `1` for treated
+    -   `0` for non-treated
+    
+## Analyses
+
+First, for the implementation of g-computation in `TransportHealthR` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only covariate and effect modifier information.
+
+Suppose that we have the study and target data separately as follows.
+
+```{r exampleData, echo = T}
+names(testData)
+print("Study data:")
+head(testData$studyData)
+print("Target data:")
+head(testData$targetData)
+
+```
+
+We can now perform transportability analysis using g-computation with the `transportGCPreparedModel` and `transportGC` functions.
+
+```{r blankFunction, echo = T, eval = F}
+transportGCPreparedModel(outcomeModel,
+                         treatment,
+                         family,
+                         studyData,
+                         wipe)
+
+transportGC(effectType,
+            preparedModel,
+            targetData)
+```
+
+### Arguments for the `transportGCPreparedModel` and `transportGC` functions
+
+The `transportGCPreparedModel` function requires the following arguments:
+
+- `outcomeModel`: A formula expressing the outcome model to be fit
+
+- `treatment`: The name of the variable indicating treatment
+
+- `family`: The type of outcome model to be fit.
+
+This can be any of the families that are used in `glm`, one of `"coxph"`,`"survreg"` or `"polr"`. The `"coxph"` and `"survreg"` options are for survival analysis and will use default options of these methods from the `survival` package. The `"polr"` option is for ordinal outcomes, and the link function can be specified by the `method` argument, which uses the logistic link by default.
+
+- `studyData`: The source data
+
+- `wipe`: A boolean indicating whether to erase the source data in the resulting `transportGCPreparedModel` object
+
+The `transportGC` function requires the following arguments:
+
+- `effectType`: A string indicating the type of effect to calculate, such as `"meanDiff"` for mean difference, `"rr"`` for relative risk, and so on.
+
+- `preparedModel`: A `transportGCPreparedModel` object returned by the `transportGCPreparedModel` function
+
+- `targetData`: The target data
+
+### Specification of transportability analysis
+
+Recall that: 
+- `sysBloodPressure` is the response
+
+- `med1` is the treatment
+
+-  `sex`, `percentBodyFat`, and `stress` are covariates to be controlled in the original study
+
+- `med2` (other medication) and `stress` are effect modifiers of interest.
+
+First, we fit a regression model of the outcome in terms of the covariates and effect modifiers, making sure to include interaction terms of the effect modifiers. We need to wrap the results using the `transportGCPreparedModel` function to be able to use the `transportGC` function, as follows. Note that we only provide the study data to this function.
+
+```{r PreparedModel, echo = T}
+preparedModel <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2, # Formula for outcome model
+                                          treatment = "med1", # Name of treatment variable
+                                          family = gaussian, # Type of model
+                                          studyData = testData$studyData, # Study data
+                                          wipe = F # Wipe study data from model?
+                                          )
+```
+
+To estimate the average treatment effect of using the medication on systolic blood pressure in the target population, we can use the `transportGC` function as follows. Note that we only provide the target data to this function.
+
+```{r GComputation, echo = T}
+result <- TransportHealth::transportGC("meanDiff", # Type of effect estimate (mean difference, relative risk, etc)
+                      preparedModel, # transportGCPreparedModel object
+                      testData$targetData # Target data
+                      )
+```
+
+### Producing statistical results
+
+To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the variable names of the treatment and the response, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the MSM.
+
+```{r GComputation-summary, echo = T}
+summary(result)
+```
+
+The workflow is constructed like this to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. See below for a comparison of `transportGCPreparedModel` objects with `wipe = T` and `wipe = F`.
+
+```{r GComputation-wipeCompare, echo = T}
+preparedModelNoWipe <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
+                                          treatment = "med1",
+                                          family = gaussian,
+                                          studyData = testData$studyData,
+                                          wipe = F)
+write("Components of outcomeModel with wipe = F:", stdout())
+str(preparedModelNoWipe$outcomeModel)
+preparedModelWipe <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
+                                          treatment = "med1",
+                                          family = gaussian,
+                                          studyData = testData$studyData,
+                                          wipe = T)
+write("\n", stdout())
+write("Components of outcomeModel with wipe = T:", stdout())
+str(preparedModelWipe$outcomeModel)
+```
+
+
+Note that this workflow does not enable the calculation of the correct variance estimators using bootstrap (which is the approach `transportGC` uses) when `wipe = T` to support privacy needs. One work around is that the owners of the source data can resample the source data and provide `transportGCPreparedModel` objects for each resample of the source data, and the owners of the target data can independently resample the target data and apply `transportGC` using each `transportGCPreparedModel` object to each resampled target dataset to obtain bootstrap samples of the MSM coefficient estimates.
+
+To obtain a coefficient plot of estimates, use the `plot` function.
+
+```{r GComputation-plot, echo = T}
+plot(result)
+```
+
+One can assess the appropriateness of the outcome model by performing usual diagnostic techniques on the outcome model. For example, we can look at the residual plot of the outcome model.
+
+```{r OutcomeModelResidualPlot, echo = T}
+plot(preparedModel$outcomeModel, which = 1)
+```
+
+In our example, the residual plot of the outcome model is patternless, indicating that it is appropriate. Note that this step should be done by owners of the study data when the study and target data cannot be merged, as `residuals` are also erased in the `transportGCPreparedModel` object when `wipe = T`.
+
+Like inverse odds of participation weighting (IOPW), the validity of g-computation depends on untestable causal inference assumptions, including stable unit treatment value (SUTVA), conditional exchangeability, positivity and consistency [@ling-review; @degtiar-review]. Unlike IOPW, g-computation does not have readily available diagnostics to evaluate if these assumptions are likely to hold or not. For conditional exchangeability, we suggest conducting sensitivity analyses with respect to unmeasured confounding, but this is beyond on the scope of the package. For positivity, a simple method would be to examine marginal distributions of covariates and effect modifiers in the study and target data and compare them: the distributions should overlap between the study and target data, but they do not need to be identical.
+
+## References
+
+::: {#refs}
+:::
