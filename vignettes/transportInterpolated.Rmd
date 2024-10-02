@@ -1,8 +1,8 @@
 ---
-title: "Transportability analysis using interpolated g-computation with TransportHealth"
+title: "Transportability analysis with interpolated g-computation"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Transportability analysis using interpolated g-computation with TransportHealth}
+  %\VignetteIndexEntry{Transportability analysis with interpolated g-computation}
   %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
@@ -150,7 +150,7 @@ First, for the implementation of interpolated g-computation in `TransportHealth`
 - Proportion of 1s for each effect modifier in the study sample (summary study data)
 - The sample size of the original study
 
-The subgroup treatment effects should be in a vector. Subgroup effects corresponding to the levels of the same effect modifier should be next to each other with the subgroup effect of the 1 level placed first. Keep a vector that keeps track of the names of the effect modifiers: the subgroup effects vector and the summary study dat vector should be in the order of this vector. In our study, the aggregate-level study data is formatted as follows.
+The subgroup treatment effects should be in a vector. Subgroup effects corresponding to the levels of the same effect modifier should be next to each other with the subgroup effect of the 1 level placed first. Keep a vector that keeps track of the names of the effect modifiers: the subgroup effects vector and the summary study data vector should be in the order of this vector. In our study, the aggregate-level study data is formatted as follows.
 
 ```{r exampleStudyData, echo = T}
 print("Treatment effect:")
@@ -242,7 +242,7 @@ To show the results of the analysis, use `summary` like you would for `lm` when 
 summary(result)
 ```
 
-We have found via simulation that interpolated g-computation tends to perform worse when the degree of effect modification is large relative to the main treatment effect, so conclusions from `transportInterpolated` in such situations should be made with caution. The magnitude of effect modification can be informally evaluated by looking at forest plots of the original study from which the treatment effects are retrived, or by looking at the `summary` output of `transportInterpolated`. More specifically, the output contains the subgroup effects provided by the user. Using either method, one should compare the difference in subgroup effects between levels of the same effect modifier with the magnitude of the main treatment effect to evaluate whether the interaction effect is larger than the main effect.
+We have found via simulation that interpolated g-computation tends to perform worse when the degree of effect modification is large relative to the main treatment effect, so conclusions from `transportInterpolated` in such situations should be made with caution. The magnitude of effect modification can be informally evaluated by looking at forest plots of the original study from which the treatment effects are retrieved, or by looking at the `summary` output of `transportInterpolated`. More specifically, the output contains the subgroup effects provided by the user. Using either method, one should compare the difference in subgroup effects between levels of the same effect modifier with the magnitude of the main treatment effect to evaluate whether the interaction effect is larger than the main effect.
 
 To obtain a coefficient plot of estimates, use the `plot` function.
 

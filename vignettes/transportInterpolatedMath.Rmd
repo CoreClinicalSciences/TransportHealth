@@ -14,4 +14,6 @@ Simply taking the difference in sample means using the original study data will 
 $$\E[Y \given A = 1, S = 1] - \E[Y \given A = 0, S = 1],$$
 which is different from the target ATE due to the different distributions of effect modifiers.
 
-Interpolated g-computation is an adaptation of network meta-interpolation in the meta-analytical context. To this end, we assume that we have aggregate-level data from a randomized clinical trial (RCT), so that no confounding adjustment is necessary. More specifically, suppose
+Interpolated g-computation is an adaptation of network meta-interpolation in the meta-analytical context. To this end, we assume that we have aggregate-level data from a randomized clinical trial (RCT), so that no confounding adjustment is necessary. More specifically, suppose that the estimated treatment effect in the original study is $\hat{\Delta}$, and that its estimated standard error is $\hat{\sigma}$. Let $\hat{\Delta}_{ij}$ and $\hat{\sigma}_{ij}$ be the estimated treatment effect and its estimated standard error within level $j = 0,1$ of the $i$th dichotomized effect modifier. Let $p_i$ be the proportion of observations with level 1 of the $i$th effect modifier in the original study sample, and let $p'_i$ be that in the target sample. Finally, let $\rho_{ik}$ be the correlation between the dichotomized effect modifiers $i$ and $k$, estimated from the target data or otherwise specified.
+
+
