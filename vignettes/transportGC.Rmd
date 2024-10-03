@@ -101,7 +101,7 @@ We wish to know know that the effectiveness of the medication depends on two eff
     
 ## Analyses
 
-First, for the implementation of g-computation in `TransportHealthR` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only covariate and effect modifier information.
+First, for the implementation of g-computation in `TransportHealthR` specifically, the data from the study and target population should be in separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only covariate and effect modifier information.
 
 Suppose that we have the study and target data separately as follows.
 
@@ -185,13 +185,13 @@ result <- TransportHealth::transportGC("meanDiff", # Type of effect estimate (me
 
 ### Producing statistical results
 
-To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the variable names of the treatment and the response, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the MSM.
+To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the names of the treatment and response variables, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the MSM.
 
 ```{r GComputation-summary, echo = T}
 summary(result)
 ```
 
-The workflow is constructed like this to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. See below for a comparison of `transportGCPreparedModel` objects with `wipe = T` and `wipe = F`.
+The workflow is constructed in this way to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. See below for a comparison of `transportGCPreparedModel` objects with `wipe = T` and `wipe = F`.
 
 ```{r GComputation-wipeCompare, echo = T}
 preparedModelNoWipe <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,
