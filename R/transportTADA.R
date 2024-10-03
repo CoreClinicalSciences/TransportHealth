@@ -10,7 +10,9 @@
 #' @param participationWeights Vector of custom weights balancing effect modifiers between study and target populations. This vector should have as any entries as the sample size of the study data.
 #' @param treatment String indicating name of treatment variable. If \code{NULL}, it will be auto-detected from \code{propensityScoreModel} if provided; otherwise it will remain \code{NULL}. Note that when using custom weights, \code{treatment} should be provided so that \code{summary.transportTADA} and \code{plot.transportTADA} works.
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.
-#' @param family Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg")}.
+#' @param family Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg", "polr")}.
+#' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.
+#' @param exOpt A list with components \code{propensity}, \code{participation} and \code{final}. Each component specifies whether weights should be trimmed or truncated. Use the functions \code{trim} and \code{trunc} to specify trimming/truncation. Note that only truncation is supported for final weights.
 #' @param studyData The individual participant data (IPD) of study population.
 #' @param aggregateTargetData The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.
 #'
@@ -40,6 +42,7 @@
 #' * \code{processedAgD}: The aggregate-level data (AgD) after analytically pre-processing in format and calibration. \code{NULL} when \code{customParticipation} is \code{TRUE}.
 #' * \code{matchingCovariates}: A vector of user-specified covariates which are used for the data matching to obtain participation weights when no custom weights provided.
 #' * \code{centeredStudyData}: The data frame with both the processed study data and centered study data. 
+#' * \code{exOpt}: Provided \code{exOpt} argument.
 #' 
 #' @export
 #'
@@ -56,7 +59,12 @@ transportTADA <- function(msmFormula,
                           response = NULL, # string, name of response
                           
                           family = stats::gaussian, # any available family for glm such as "gaussian", OR, "coxph" / "survreg"
-                            
+                          
+                          method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
+                          exOpt = list(propensity = NULL,
+                                       participation = NULL,
+                                       final = NULL),
+                          
                           studyData, # data of study population (studyData): N rows, data.frame with responses and variables
                           aggregateTargetData  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
                           
@@ -125,9 +133,23 @@ transportTADA <- function(msmFormula,
   if (!is.null(propensityScoreModel) & !is.null(propensityWeights)) warning("Both propensity model and custom weights are provided, using custom weights.")
   
   # obtain propensity weights when no custom weights
-  if (is.null(propensityWeights)) 
-    propensityWeights <- obtainPropensityWeights(propensityScoreModel, type = "probability")
-  
+  if (is.null(propensityWeights)) {
+    propensityWeights <- obtainWeights(propensityScoreModel, type = "probability")
+    
+    if (!is.null(exOpt$propensity)) {
+      propensityOpt <- exOpt$propensity
+      if (is.trunc(propensityOpt)) propensityWeights <- truncWeights(propensityWeights, propensityOpt)
+      else if (is.trim(propensityOpt)) {
+        retainedObsIndPropensity <- trimInd(propensityScoreModel, propensityOpt)
+        propensityScoreModel <- stats::update(propensityScoreModel,
+                                              formula. = propensityScoreModel$formula,
+                                              data = cbind(propensityScoreModel$data,
+                                                           data.frame(retainedObsIndPropensity = retainedObsIndPropensity)),
+                                              weights = retainedObsIndPropensity)
+        propensityWeights <- obtainWeights(propensityScoreModel, type = "probability") * retainedObsIndPropensity
+      }
+    }
+  }
   
   
   # -------- Participation Weights -----------
@@ -286,10 +308,20 @@ transportTADA <- function(msmFormula,
     
     participationWeightSummary <- calculateWeightsLegend(weightedData = participationWeightCalculation)
     
-  } 
+  }
+  
+  if (!is.null(exOpt$participation)) {
+    if (is.trunc(exOpt$participation)) participationWeights <- truncWeights(participationWeights, exOpt$participation)
+    else if (is.trim(exOpt$participation)) warning("trim argument provided for participation weights. Note that only truncating participation weights is supported.")
+  }
 
   # final weights: propensityWeights accounts for the confounding and participationWeights accounts for the EM distribution difference between populations
   finalWeights <-  propensityWeights * participationWeights
+  
+  if (!is.null(exOpt$final)) {
+    if (is.trunc(exOpt$final)) finalWeights <- truncWeights(finalWeights, exOpt$final)
+    else if (is.trim(exOpt$final)) warning("trim argument provided for final weights. Note that only truncating final weights is supported.")
+  }
   
   # ------------------------------------------------------------------------------------------------------------- #
   
@@ -312,7 +344,7 @@ transportTADA <- function(msmFormula,
       stop("Please check the family input and set it as one of the following in character: coxph, survreg.")
       }
 
-    family <- match.arg(family, c("coxph", "survreg"))
+    family <- match.arg(family, c("coxph", "survreg", "polr"))
     
     if (family == "coxph") {
       model <- survival::coxph(msmFormula, 
@@ -324,6 +356,10 @@ transportTADA <- function(msmFormula,
       model <- survival::survreg(msmFormula, 
                                  data = toAnalyze, 
                                  weight = finalWeights)
+      model$var <- sandwich::vcovBS(model)
+    } else if (family == "polr") {
+      method <- match.arg(method, c("logistic", "probit", "loglog", "cloglog", "cauchit"))
+      model <- MASS::polr(msmFormula, data = toAnalyze, weights = finalWeights, method = method)
       model$var <- sandwich::vcovBS(model)
     }
   } else {
@@ -351,6 +387,8 @@ transportTADA <- function(msmFormula,
                               
                               treatment = treatment, # chr
                               response = response, # chr
+                              
+                              exOpt = exOpt,
                               
                               studyData = studyData, # data.frame
                               aggregateTargetData = aggregateTargetData, # data.frame
@@ -912,7 +950,7 @@ summary.transportTADA <- function(object,
   
   msm <- transportTADAResult$msm
   
-  msmSummary <- summary(msm)
+  msmSummary <- suppressWarnings(summary(msm))
   
   if (inherits(msmSummary, "summary.glm")) {
     if (!is.null(msm$var)) msmSummary$cov.scaled <- msm$var
