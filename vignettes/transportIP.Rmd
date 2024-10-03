@@ -87,7 +87,7 @@ We wish to know that the effectiveness of the medication depends on two effect m
 -   Medication - `med1`
 
     -   `1` for treated
-    -   `0` for non-treated
+    -   `0` for untreated
 
 -   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
 
@@ -106,7 +106,7 @@ We wish to know that the effectiveness of the medication depends on two effect m
 -   Medication 2 - `med2`
 
     -   `1` for treated
-    -   `0` for non-treated
+    -   `0` for untreated
 
 ## Analyses
 
