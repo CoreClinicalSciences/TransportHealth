@@ -1,6 +1,8 @@
 ---
 title: "Transportability analysis with interpolated g-computation"
 output: rmarkdown::html_vignette
+bibliography: references.bib
+
 vignette: >
   %\VignetteIndexEntry{Transportability analysis with interpolated g-computation}
   %\VignetteEngine{knitr::knitr}
