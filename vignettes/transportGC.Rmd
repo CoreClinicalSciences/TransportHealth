@@ -1,6 +1,7 @@
 ---
 title: "G-computation-based transportability analysis"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{G-computation-based transportability analysis}
   %\VignetteEngine{knitr::knitr}
