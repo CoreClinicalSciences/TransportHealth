@@ -1,0 +1,48 @@
+---
+title: "Theory of interpolated g-computation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{transportInterpolatedMath}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+\newcommand{\given}{\,|\,}
+\newcommand{\E}{\mathrm{E}}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+
+Let $Y$ be the outcome of interest, $A$ be the (binary, coded as 0 for control and 1 for treatment) treatment, $S$ be the indicator for study participation (so that $S=1$ means that the subject is in the population of the original study, while $S = 0$ means that the subject is in the target population) and $\mathbf{E}$ be effect modifiers. Let $Y^0$ and $Y^1$ be counterfactual outcomes associated with control and treatment, respectively. The primary objective of transportability analysis is to estimate the ATE in the target population:
+$$ATE = \E[Y^1 - Y^0 \given S = 0].$$
+
+Simply taking the difference in sample means using the original study data will only unbiasedly estimate the quantity
+$$\E[Y \given A = 1, S = 1] - \E[Y \given A = 0, S = 1],$$
+which is different from the target ATE due to the different distributions of effect modifiers.
+
+Interpolated g-computation is an adaptation of network meta-interpolation [@harari] in the transportability analysis context. To this end, we assume that we have aggregate-level data from a randomized clinical trial (RCT), so that no confounding adjustment is necessary. More specifically, suppose that the estimated treatment effect in the original study is $\hat{\Delta}$, and that its estimated standard error is $\hat{\sigma}$. Let $\hat{\Delta}_{ij}$ and $\hat{\sigma}_{ij}$ be the estimated treatment effect and its estimated standard error within level $j = 0,1$ of the $i$th dichotomized effect modifier, for $i = 1,...,M$. Collect these estimates into vectors
+$$\vec{\Delta} =\begin{pmatrix} \hat{\Delta} \\ \hat{\Delta}_{11} \\ \hat{\Delta}_{10} \\ \vdots \\ \hat{\Delta}_{M0} \end{pmatrix}$$
+and
+$$\vec{\sigma} =\begin{pmatrix} \hat{\sigma} \\ \hat{\sigma}_{11} \\ \hat{\sigma}_{10} \\ \vdots \\ \hat{\sigma}_{M0} \end{pmatrix}.$$
+Let $p_i$ be the proportion of observations with level 1 of the $i$th effect modifier in the original study sample, and let $p'_i$ be that in the target sample. Denote
+$$\vec{p}' = \begin{pmatrix}1 \\ p'_1 \\ \vdots \\ p'_M \end{pmatrix}$$
+and
+$$\vec{p}'' = \begin{pmatrix}1 \\ p'^2_1 \\ \vdots \\ p'^2_M \\ 2p'_1 \\ \vdots \\ 2p'_M \\ 2p'_1p'_2 \\ 2p'_1p'_3 \\ \vdots \\ 2p'_{M-1}p'_M\end{pmatrix}.$$
+Finally, let $n$ be the sample size of the original study, and let $\rho_{ik}$ be the correlation between the dichotomized effect modifiers $i$ and $k$, estimated from the target data or otherwise specified.
+
+Let $\vec{1}_l$ be a vector in $\mathbb{R}^l$ whose entries are all $1$. To transport the treatment effect estimate, we first calculate
+$$\vec{x}_{i} = \begin{pmatrix} x_{i0} \\ \vdots \\ x_{i,2M} \end{pmatrix}$$
+for $i = 1,...,M$. We let $x_{i0} = p_i$ for $i = 1,...M$. For the other entries, we calculate
+$$x_{ik} = \begin{cases}
+1 & \textrm{if } i = 2k \\
+0 & \textrm{if } i = 2k + 1 \\
+\rho_{ik}\frac{\sqrt{\frac{p_k(1-p_k)}{n}}}{\sqrt{\frac{p_{\lceil\frac{i}{2}\rceil}(1-p_{\lceil\frac{i}{2}\rceil})}{n}}}(x_{i,\lceil\frac{i}{2}\rceil} - p_{\lceil\frac{i}{2}\rceil}) + p_k & \textrm{otherwise}
+\end{cases}.$$
+Essentially, within each marginal subgroup of an effect modifier, proportions of 1s of other effect modifiers are imputed using the best linear unbiased predictor (BLUP) in terms of the level of the effect modifier in the subgroup. Then let
+$$M_1 = \begin{bmatrix}\vec{1}_{2M+1} & \cdots & \vec{x}_M\end{bmatrix}$$
+and
+$$M_2 = \begin{bmatrix}\vec{1}_{2M+1} & \vec{x}_1^2 & \cdots & \vec{x}_M^2 & 2\vec{x}_1 & \cdots & 2\vec{x}_M & 2\vec{x}_1\vec{x}_2 & 2\vec{x}_1\vec{x}_3 & \cdots & 2\vec{x}_{M-1}\vec{x}_M\end{bmatrix}.$$
+
+The transported effect estimate is
+$$\hat{\Delta}' = (\vec{p}')^T(M_1^TM_1)^{-1}M_1^T\vec{\Delta},$$
+and its estimated standard error is
+$$\hat{\sigma}' = \sqrt{(\vec{p}'')^TM_2^T(M_2M_2^T)^{-1}\vec{\sigma}^2}.$$
+In other words, regression models of the treatment effects and their standard errors against effect modifiers are fit using the original study data, and the fitted models are used to calculate estimated treatment effects and standard errors at the proportions of 1s of effect modifiers in the target data.
