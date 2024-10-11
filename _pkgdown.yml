@@ -2,9 +2,18 @@ url: https://coreclinicalsciences.github.io/TransportHealth
 
 template:
   bootstrap: 5
-  # bootswatch: pulse 
-  bootswatch: sandstone
-  # light-switch: true
+  bslib:
+    bg: "#ffffff"
+    fg: "#000000"
+    primary: "#462A79"
+  #navbar:
+    #bg: primary
+  #  type: dark
+
+# template:
+#   bootstrap: 5
+#   # bootswatch: sandstone
+#   # light-switch: true
 
 navbar: 
   structure: 
