@@ -13,6 +13,7 @@ vignette: >
 
 \newcommand{\given}{\,|\,}
 \newcommand{\E}{\mathrm{E}}
+\renewcommand{\vec}[1]{\mathbf{#1}}
 
 Let $Y$ be the outcome of interest, $A$ be the binary treatment (coded as 0 for control and 1 for treatment). $S$ be the indicator for study participation (so that $S=1$ means that the subject is in the population of the original study, while $S = 0$ means that the subject is in the target population). $\mathbf{L}$ be covariates to control for confounding in the original study and $\mathbf{E}$ be effect modifiers. Let $Y^0$ and $Y^1$ be counterfactual outcomes associated with control and treatment, respectively. The primary objective of transportability analysis is to estimate the average treatment effect (ATE) in the target population:
 $$ATE = \E[Y^1 - Y^0 \given S = 0].$$
@@ -21,32 +22,26 @@ Simply taking the difference in sample means using the original study data will 
 $$\E[Y \given A = 1, S = 1] - \E[Y \given A = 0, S = 1],$$
 which is different from the target ATE due to confounding and the different distributions of effect modifiers.
 
-Let:
+Let
 $$w_1 = \begin{cases}\frac{1}{P(A = 1 \given \mathbf{L}, S = 1)} & \textrm{if } A = 1 \\ \frac{1}{P(A = 0 \given \mathbf{L}, S = 1)} & \textrm{if } A = 0\end{cases}$$
-
-For $w_2$, we use the method of moments (MoM) approach, which matches the available sample moments of the effect modifiers between the study and target populations. 
-
-Consider covariate $X$ available in both study and target population. Assume that we have the availability of individual patient-level data (IPD) for $X$ in study sample but just aggregated-level data (AgD) for $X$ in target sample. For each individual patient $i$, let $X_{i}$ be the available IPD in study sample. Let $\bar{X}$ be the available AgD summary statistic (mean, standard deviation, median, proportion, etc) in target sample.
-
-Assume that the MoM weight for individual patient $i$ follows the logistic regression, where the coefficients $\alpha$ and $k$ in the weight will be estimated to satisfy the equality constraint:
-$$w_i^\textbf{MoM} = \exp(\alpha + X_{i}\cdot k).$$
-
-
-Then $w_2 = w_i^\textbf{MoM}$ can be estimated by matching $\bar{X}$ of target sample with the weighted study sample moment as following:
-$$\frac{\sum_{i=1}^{N}X_{i}\cdot w_2}{\sum_{i=1}^{N}w_2} = \bar{X}.$$
-
-To control for confounding, the estimator:
+and
+$$w_2 = \frac{P(S = 0 \given \mathbf{E})}{P(S = 1 \given \mathbf{E})}.$$
+To control for confounding, the estimator
 $$\frac{1}{\sum_{i=1}^n w_{1,i}I(A_i = a)}\sum_{i=1}^n w_{1,i}YI(A_i = a)$$
-will unbiasedly estimate the quantity:
+will unbiasedly estimate the quantity
 $$\E[Y^a \given S = 1],$$
-which uses the first set of weights $w_1$. However, to estimate the target ATE, the estimator:
+which uses the first set of weights $w_1$ and is the IP weighting approach in causal inference. However, to estimate the target ATE, the estimator
 $$\frac{1}{\sum_{i=1}^n w_{1,i}w_{2,i}I(A_i = a)}\sum_{i=1}^n w_{1,i}w_{2,i}YI(A_i = a)$$
-should be used instead. This process ensures unbiased estimation of the target ATE, even when individual-level data is only available for the study population and aggregate-level data is used for the target population.
+should be used instead, which incorporates the second set of weights $w_2$ to unbiasedly estimate the target ATE. This is extended to estimate the coefficients of any marginal structural model in the target population in the same manner as IP weighting: more specifically, the marginal structural model coefficients are estimated by fitting regression models on the original study data with the weights $w_1w_2$. 
 
-The estimator extends to marginal structural models in the target population similarly to the IP weighting framework, but with adjustments for covariate distribution differences using $w_2$ from the MoM approach. More specifically, the marginal structural model coefficients are estimated by fitting regression models on the original study data with the weights $w_1w_2$.
+Assume that there is individual patient-level data (IPD) available for the study data, but only aggregate-level data (AgD) is available for the target data. The first set of weights, $w_1$ can be obtained using logistic regression on the study data. However, this is not possible for $w_2$, so we use a method of moments (MoM) approach to obtain it instead. Let $\mathbf{X}$ denote effect modifiers that we wish to adjust for. Let $\mathbf{X}_{i}$ be the value of the effect modifiers for each individual patient $i$ in study sample. Let $\overline{\vec{X}}$ be the mean of $\vec{X}$ in the target sample.
 
+We assume that the weight for individual patient $i$ is
+$$w_i^\textbf{MoM} = \exp(\alpha + X_{i}\cdot \vec{k}).$$
+These weights implicitly mimic the inverse odds of participation weighting approach when IPD for target data is available. Instead of logistic regression, the coefficients $\alpha$ and $\vec{k}$ in the weight will be estimated to satisfy the equality constraint:
+$$\frac{\sum_{i=1}^{N} w_2\vec{X}_{i}}{\sum_{i=1}^{N}w_2} = \overline{\vec{X}}.$$
 
-For more information, check out the "What If" book on causal inference [@what-if] and the introduction of method of moments by Phillippo et al. [@phillippo2018methods] originally in indirect treatment comparison (ITC) application.
+Once $w_2$ is obtained, the remainder of the analysis proceeds as for inverse odds of participation weighting. For more information, check out the "What If" book on causal inference [@what-if] and the introduction of method of moments by Phillippo et al. [@phillippo2018methods] originally in indirect treatment comparison (ITC) application.
 
 ## References
 

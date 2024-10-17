@@ -48,7 +48,7 @@ generateTestDataTADA <- function() {
                            sex = as.factor(sexStudy), 
                            stress = as.factor(stressStudy), 
                            med2 = as.factor(med2Study), 
-                           toxicGrade = as.factor(toxicGradeStudy),
+                           #toxicGrade = as.factor(toxicGradeStudy),
                            percentBodyFat = percentBodyFatStudy)
   
   
@@ -74,12 +74,12 @@ generateTestDataTADA <- function() {
                            med2_PROP = sum(med2Target)/nTarget, 
                            
                            # ordinal with three subclass
-                           toxicGrade_LOW_prop = as.numeric(table(toxicGradeTarget)["Low"]) / nTarget,
-                           toxicGrade_Medium_COUNT = as.numeric(table(toxicGradeTarget)["Medium"]),
-                           # We don't need to prop for reference level candidate
-                           # like: for male and female we just need to provide one of two and it's informative
-                           # OR: user could provide all AgD for all levels and we could detect the ref level by the first element of factor IPD
-                           toxicGrade_high_prop = as.numeric(table(toxicGradeTarget)["High"]) / nTarget,
+                           # toxicGrade_LOW_prop = as.numeric(table(toxicGradeTarget)["Low"]) / nTarget,
+                           # toxicGrade_Medium_COUNT = as.numeric(table(toxicGradeTarget)["Medium"]),
+                           # # We don't need to prop for reference level candidate
+                           # # like: for male and female we just need to provide one of two and it's informative
+                           # # OR: user could provide all AgD for all levels and we could detect the ref level by the first element of factor IPD
+                           # toxicGrade_high_prop = as.numeric(table(toxicGradeTarget)["High"]) / nTarget,
                            
                            # continuous
                            percentBodyFat_mean = mean(percentBodyFatTarget),
@@ -102,13 +102,13 @@ In this vignette, we demonstrate how to use `TransportHealth` for weighting-base
 
 ## Brief introduction to Target aggregate data adjustment (TADA)
 
-In transportability and generalizability analysis using the TADA method, the process differs from traditional inverse odds of participation weighting (IOPW) or g-computation due to the absence of individual-level data (IPD) in the target population. Firstly, a model of the outcome in terms of treatment, covariates, and effect modifiers is fitted using the source data. Then, instead of using individual-level covariate and effect modifier values from the target data, the aggregate-level data (AgD) from the target population is used to adjust the distribution of these variables in the source model by method of moments. This allows for the calculation of fitted values of the outcome under different treatment scenarios, with the target population characteristics reflected through the aggregate data. Finally, treatment effects are calculated using these adjusted fitted values to obtain an estimate of the treatment effect in the target population.
+In transportability and generalizability analysis using the TADA method, the process differs from traditional inverse odds of participation weighting (IOPW) or g-computation due to the absence of individual-level data (IPD) in the target population. Instead of using logistic regression to obtain weights that balance the distribution of effect modifiers in the source and target data, a method of moments approach using the aggregate-level data (AgD) from the target population instead. This is combined with the usual propensity score weighting approach to adjust for confounding in the source data to fit marginal structural models.
 
 # Example
 
 Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
 
-We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+We know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
 
 *Note that the covariates adjusted for in the study data can also be effect modifiers.*
 
@@ -128,12 +128,6 @@ We wish to know know that the effectiveness of the medication depends on two eff
 
 -   Body fat percentage - `percentBodyFat` (continuous)
 
--   Toxicity Grade - `toxicGrade`
-    
-    -   `Low` for low grade
-    -   `Medium` for medium grade
-    -   `High` for high grade
-
 -   Stress level - `stress`
 
     -   `1` for stressed
@@ -147,7 +141,7 @@ We wish to know know that the effectiveness of the medication depends on two eff
 
 ## Analyses
 
-First, for the implementation of TADA in `TransportHealthR` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only aggregate level summary statistics of covariate and effect modifier such as proportion, count, mean, median and standard deviation. 
+First, for the implementation of TADA in `TransportHealth` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only aggregate level summary statistics of covariate and effect modifier such as proportion, count, mean, median and standard deviation. 
 
 Suppose that we have the study and target data separately as follows.
 
@@ -160,13 +154,13 @@ head(testData$aggregateTargetData)
 
 ```
 
-Here for the target data, We define corresponding canonical suffixes for the aggregate level statistics corresponding to each variable. 
+Here for the target data, the names of the aggregate level statistics corresponding to each variable should be formatted as follows. 
 
--   For continuous variables, the mean of a variable should be named "variable_mean", the standard deviation of a variable should be named "variable_sd", the median of a variable should be named "variable_median". 
+-   For continuous variables, the mean of a variable should be named `variable_mean`, the standard deviation of a variable should be named `variable_sd`, the median of a variable should be named `variable_median`. 
 
--   The proportion or count of a binary variable can be named "variable_prop" or "variable_count" respectively (corresponding to the category labelled as 1 in the study data). 
+-   The proportion or count of a binary variable can be named `variable_prop` or `variable_count` respectively (corresponding to the category labelled as 1 in the study data). 
 
--   The naming method of ordinal variables is specified as "variable_category_AgD". For example, for an ordinal variable "toxicGrade" with three categories (low, medium and high), the proportions of each category recorded in the target data should be named "toxicGrade_low_prop", "toxicGrade_medium_prop" and "toxicGrade_high_prop".
+-   The naming method of categorical variables (with more than two levels) is specified as `variable_category_AgD`. For example, for an ordinal variable `grade` with three categories (low, medium and high), the proportions of each category recorded in the target data should be named `grade_low_prop`, `grade_medium_prop` and `grade_high_prop`. This is just to demonstrate the naming format for categorical variables; this example has no categorical variables.
 
 We can now perform transportability analysis using TADA with the `transportTADA` functions.
 
@@ -235,7 +229,7 @@ result <- transportTADA(
   propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
   
   # Matching covariates
-  matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
+  matchingCovariates = c("stress", "med2"),
   
   # Name of treatment variable
   treatment = "med1", 
@@ -270,13 +264,13 @@ summary(result)
 
 `Positivity` is the assumption that at all observed levels of covariates and effect modifiers, the probabilities of being in the treatment group and being the study are neither 0 nor 1, respectively. 
 
-- To evaluate this assumption for the treatment assignment and study participation, use the `plot` function with `type = "propensityHist"`. This outputs mirrored histogram of probabilities of being in the treatment group for different treatment groups. Non-overlap of the ranges of the histograms suggest violations of the positivity assumption [@positivity]. 
+To evaluate this assumption for the treatment assignment, use the `plot` function with `type = "propensityHist"`. This outputs mirrored histogram of probabilities of being in the treatment group for different treatment groups. Non-overlap of the ranges of the histograms suggest violations of the positivity assumption [@positivity]. 
 
 ```{r TADA-hist, echo = T}
 base::plot(result, type = "propensityHist")
 ```
 
-Use the `plot` function with `type = "participationHist"` will provide the histogram of participation weights and the effective sample size (ESS), which indicates the possible existence of extreme weights and the degree of ESS reduction. These information can justify the suitability of the TADA method.
+The `plot` function with `type = "participationHist"` provides the histogram of participation weights and the effective sample size (ESS), which indicates the possible existence of extreme weights and the degree of ESS reduction. These information can justify the suitability of the TADA method.
 
 ```{r TADA-hist, echo = T}
 base::plot(result, type = "participationHist")
