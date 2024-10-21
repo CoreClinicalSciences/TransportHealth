@@ -59,17 +59,15 @@ In this vignette, we demonstrate how to use `TransportHealth` for g-computation-
 
 ## Brief introduction to g-computation
 
-In transportability and generalizability analysis, g-computation proceeds largely the same as in causal inference. 
-<!-- I don't think "in causal inference" is the right term -- this is still causal inference just using g computation instead of IOPW.  -->
+In transportability and generalizability analysis, g-computation proceeds largely the same as for confounding adjustment. 
+
 Firstly, a model of the outcome in terms of the treatment, covariates and effect modifiers is fitted using the source data. Then, this model is used to calculate fitted values of the outcome when treatment is set to control or treatment for all observations in the target data; in particular, observed covariate and effect modifier values in the target data are used to calculate the fitted values. Finally, treatment effects are calculated using these fitted values to obtain an unbiased estimate of the treatment effect in the target population.
 
 # Example
 
 Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
 
-We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
-
-<!-- This sentence is unclear to me. Do you mean - "We wish to know the effectiveness of the medication in the target population given that it depends on the two identified effect modifiers: 1) stress level; and 2) whether or not the patient is taking medication for something other than high blood pressure." Altenratively, "We wish to know if the effectiveness of the medication depends on two potential effect modifiers: 1) stress level; and 2) whether or not the patient is taking medication for something other than high blood pressure." -->
+We know that the effectiveness of the medication depends on two effect modifiers: 1) stress level, and 2) whether patients are taking another medication.
 
 *Note that the covariates adjusted for in the study data can also be effect modifiers.*
 

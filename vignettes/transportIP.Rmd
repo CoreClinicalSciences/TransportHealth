@@ -76,9 +76,7 @@ Both the IOPW and IPPW approaches are analogous to the propensity score weightin
 
 Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
 
-We wish to know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
-
-<!-- This sentence is unclear to me. Do you mean - "We wish to know the effectiveness of the medication in the target population given that it depends on the two identified effect modifiers: 1) stress level; and 2) whether or not the patient is taking medication for something other than high blood pressure." Altenratively, "We wish to know if the effectiveness of the medication depends on two potential effect modifiers: 1) stress level; and 2) whether or not the patient is taking medication for something other than high blood pressure." -->
+We know that the effectiveness of the medication depends on two effect modifiers: 1) stress level, and 2) whether patients are taking another medication.
 
 *Note that the covariates adjusted for in the study data can also be effect modifiers.*
 
