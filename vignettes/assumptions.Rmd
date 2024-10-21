@@ -1,9 +1,9 @@
 ---
-title: "Assumptions of Transportability and Generalizability Analysis"
+title: "Assumptions of transportability and generalizability analysis"
 output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{Assumptions of Transportability and Generalizability Analysis}
+  %\VignetteIndexEntry{Assumptions of transportability and generalizability analysis}
   %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---

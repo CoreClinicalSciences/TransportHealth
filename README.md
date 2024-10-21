@@ -8,9 +8,9 @@ Transportability and generalizability analyses are types of causal inference met
 
 - Inverse probability (IP) weighting for mergeable individual patient-level datasets (IPDs) of original and target studies
 
-**For the future scope, we are currently developing the following methods.**
+- G-computation for unmergable IPDs of original and target studies
 
-- G-computation for unmergable IPDs of original and target studies 
+**For the future scope, we are currently developing the following methods.**
 
 - Target Aggregate Data Adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of target study
 
