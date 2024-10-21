@@ -22,7 +22,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
+    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
     
     <a class="navbar-brand me-2" href="index.html">TransportHealth</a>
 
@@ -43,7 +43,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <h6 class="dropdown-header" data-toc-skip>Introduction</h6>
     <a class="dropdown-item" href="articles/overview.html">Overview of transportability and generalizability analyses and TransportHealth</a>
-    <a class="dropdown-item" href="articles/assumptions.html">Assumptions of Transportability and Generalizability Analysis</a>
+    <a class="dropdown-item" href="articles/assumptions.html">Assumptions of transportability and generalizability analysis</a>
     <div class="dropdown-divider"></div>
     <h6 class="dropdown-header" data-toc-skip>Inverse Probability Methods</h6>
     <a class="dropdown-item" href="articles/transportIP.html">Inverse probability or odds weighting-based transportability analysis</a>
@@ -83,19 +83,19 @@
 <p>Transportability and generalizability analyses are types of causal inference methods that allow us to quantitatively assess external validity of evidence from randomized clinical trials (RCTs) and other diverse research studies. We assess how applicable the findings from original studies are to settings that the original studies were not conducted in or to the broader population that was not included in the original studies. In transportability analyses, we aim to transport the findings from study sample to an external target population by adjusting for the different distribution of effect modifiers between the study and the target sample. Generalizability analyses are similar but concerns the case where the study sample is a subset of the target population.</p>
 <p><strong>The scope of the current version of our package includes the following analyses.</strong></p>
 <ul>
-<li>Inverse probability (IP) weighting for mergeable individual patient-level datasets (IPDs) of original and target studies</li>
+<li><p>Inverse probability (IP) weighting for mergeable individual patient-level datasets (IPDs) of original and target studies</p></li>
+<li><p>G-computation for unmergable IPDs of original and target studies</p></li>
 </ul>
 <p><strong>For the future scope, we are currently developing the following methods.</strong></p>
 <ul>
-<li><p>G-computation for unmergable IPDs of original and target studies</p></li>
-<li><p>Target Aggregate Data Adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of target study</p></li>
-<li><p>Methods that can transport aggregate data of original study to IPD-level target study</p></li>
-<li><p>Methods that can transport aggregate data of original study to aggregate-level target study data</p></li>
+<li><p>Target Aggregate Data Adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of a target study</p></li>
+<li><p>Methods that can transport aggregate data from the original study to IPD from a target study</p></li>
+<li><p>Methods that can transport aggregate data from the original study to aggregate-level data from a target study data</p></li>
 </ul>
 <div class="section level2">
 <h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
-<p>If you are just getting started with <strong>TransportHealth</strong>, we recommend starting with the tutorial vignettes, the examples provided as part of our package documentation. Future papers, as they are published in preprints or after being peer reviewed, will be added here, as they become availabl.e</p>
+<p>If you are just getting started with <strong>TransportHealth</strong>, we recommend starting with the tutorial vignettes. These are examples provided as part of our package documentation. Future papers, as they are published as preprints or after being peer reviewed, will be added here, as they become available.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>

@@ -22,7 +22,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
+    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">TransportHealth</a>
 
@@ -43,7 +43,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <h6 class="dropdown-header" data-toc-skip>Introduction</h6>
     <a class="dropdown-item" href="../articles/overview.html">Overview of transportability and generalizability analyses and TransportHealth</a>
-    <a class="dropdown-item" href="../articles/assumptions.html">Assumptions of Transportability and Generalizability Analysis</a>
+    <a class="dropdown-item" href="../articles/assumptions.html">Assumptions of transportability and generalizability analysis</a>
     <div class="dropdown-divider"></div>
     <h6 class="dropdown-header" data-toc-skip>Inverse Probability Methods</h6>
     <a class="dropdown-item" href="../articles/transportIP.html">Inverse probability or odds weighting-based transportability analysis</a>
@@ -98,31 +98,32 @@ Sciences</h4>
 <p>In this vignette, we demonstrate how to use
 <code>TransportHealth</code> for weighting-based transportability
 analysis for instances where mergeable individual participant-level data
-(IPD) is available in both the original study and target sample.</p>
+(IPD) are available in both the original study and target sample.</p>
 <div class="section level3">
 <h3 id="brief-introduction-to-iopw-and-ippw">Brief Introduction to IOPW and IPPW<a class="anchor" aria-label="anchor" href="#brief-introduction-to-iopw-and-ippw"></a>
 </h3>
 <p>For transportability scenarios, where the original study population
 is a separate population to the target population of interest, we can
-use
+use the
 <code>inverse odds of participation weighting (IOPW)</code>approach.</p>
 <p>When the original study population is a subset of the target
 population of interest, we refer to this as generalizability scenarios;
-here, we can use
+here, we can use the
 <code>inverse probability of participation weighting (IPPW)</code>
 approach.</p>
 <p>Both the IOPW and IPPW approaches are analogous to the propensity
 score weighting approach, such as
-<code>inverse probability of treatment weighting (IPTW)</code> that aims
-to adjust for confounding typically in a non-randomized study. They are
-analogous in the sense we can use a model such as logistic regression to
-estimate the probability of interest (i.e, study participation or
-propensity to being treated). Under the transportability analysis
-framework, the results from the original study are weighted based on the
-inverse odds or probability that is calculated based on different
-distribution of effect modifiers between the original study and target
-sample data. The weights refer to the conditional probability of
-participation in the target study.</p>
+<code>inverse probability of treatment weighting (IPTW)</code>, that
+aims to adjust for confounding typically present in a non-randomized
+study. These methods are analogous in the sense we can use a model such
+as logistic regression to estimate the probability of interest (i.e,
+probability of study participation or propensity to being treated).
+Under the transportability analysis framework, the results from the
+original study are weighted based on the inverse odds or inverse
+probability (for transportability and generalizability, respectively)
+that is calculated based on differing distributions of effect modifiers
+between the original study and target sample data. The weights refer to
+the conditional probability of participation in the target study.</p>
 </div>
 </div>
 <div class="section level2">
@@ -134,13 +135,13 @@ were only able to conduct an observational study using samples from the
 study population. To obtain unbiased causal effect estimates using the
 study sample, we account for the following covariates: sex, body fat
 percentage, and stress level.</p>
-<p>We wish to know know that the effectiveness of the medication depends
-on two effect modifiers of stress levels and whether patients are taking
+<p>We know that the effectiveness of the medication depends on two
+effect modifiers: 1) stress level, and 2) whether patients are taking
 another medication.</p>
 <p><em>Note that the covariates adjusted for in the study data can also
 be effect modifiers.</em></p>
 <div class="section level3">
-<h3 id="coded-variables">Coded variables:<a class="anchor" aria-label="anchor" href="#coded-variables"></a>
+<h3 id="coded-variables">Coded variables<a class="anchor" aria-label="anchor" href="#coded-variables"></a>
 </h3>
 <ul>
 <li>
@@ -149,7 +150,7 @@ be effect modifiers.</em></p>
 <li>
 <code>1</code> for treated</li>
 <li>
-<code>0</code> for non-treated</li>
+<code>0</code> for untreated</li>
 </ul>
 </li>
 <li><p>Systolic blood pressure (SBP) - <code>sysBloodPressure</code>
@@ -180,7 +181,7 @@ be effect modifiers.</em></p>
 <li>
 <code>1</code> for treated</li>
 <li>
-<code>0</code> for non-treated</li>
+<code>0</code> for untreated</li>
 </ul>
 </li>
 </ul>
@@ -189,23 +190,23 @@ be effect modifiers.</em></p>
 <h3 id="analyses">Analyses<a class="anchor" aria-label="anchor" href="#analyses"></a>
 </h3>
 <p>We can perform this analysis as follows.</p>
-<p>First, the data from the study and target population may be separate
-data frames or a merged data frame in the <code>R</code>
+<p>First, the data from the study and target population may be two
+separate data frames or a single merged data frame in the <code>R</code>
 environment.</p>
 <ul>
 <li><p>If they are separate, put them together in a <code>list</code>
 object; there is no need to name the components, as the package will
 identify the study data as the dataset with response and treatment
 information. Because of this, make sure that the study data has the
-response and treatment columns, while the target data do not (which is
+response and treatment columns, while the target data does not (which is
 the case 99% of the time). If they are merged, make sure that</p></li>
-<li><p>The response and treatment columns for the target data are
+<li><p>The response and treatment column values for the target data are
 <code>NA</code>, and;</p></li>
 <li><p>There is a binary variable indicating which observations are in
 the study data and the target data, with participation being coded as
 <code>1</code> or <code>TRUE</code>.</p></li>
 </ul>
-<p>Suppose that we have the study and target data separately as
+<!-- This is not clear. Do they need to add two variables one for study data and one for target data and then label them? Or do they just need one variable, and if so, which dataset should that variable reference (e.g., "study data" or "target data"?  --><p>Suppose that we have the study and target data separately as
 follows.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">testData</span><span class="op">)</span></span>
@@ -335,13 +336,13 @@ effect modifiers of interest.</p></li>
 <h4 id="producing-statistical-results">Producing statistical results<a class="anchor" aria-label="anchor" href="#producing-statistical-results"></a>
 </h4>
 <p>To show the results of the analysis, we can use the
-<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">base::summary</a></code> function, similarly as one would use the
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">base::summary</a></code> function, similar to how one would use the
 <code>lm</code> function for fitting a linear model.</p>
 <p>This prints out covariate balance tables pre- and post-weighting for
 covariates between treatment groups (using propensity weights only) and
 effect modifiers (using participation weights only) between original
 study and target data, as well as a summary output of the MSM model fit
-with the correct standard errors calculated using bootstrap.</p>
+with the correct standard errors calculated using bootstrapping.</p>
 <p>For the effect modifiers balance table, the weights used are inverse
 odds for study data and 1 for target data in a transportability
 analysis, and inverse probability for all observations in a
@@ -396,11 +397,11 @@ are not as useful as implementing <code>summary</code>.</p>
 <span></span>
 <span><span class="va">msmCoefficients</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">msm</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Positivity</strong> and <strong>conditional
-exchangeability</strong> are two keyassumptions that can affect the
+exchangeability</strong> are two key assumptions that can affect the
 validity of transportability analysis.</p>
 <p><code>Positivity</code> is the assumption that at all observed levels
-of covariates and effect modifiers, the probabilities of being in the
-treatment group and being the study are neither 0 nor 1,
+of covariates and effect modifiers, the probability of being in the
+treatment group and being in the study are neither 0 nor 1,
 respectively.</p>
 <ul>
 <li>To evaluate this assumption for the treatment assignment and study
@@ -423,8 +424,8 @@ histograms suggest violations of the positivity assumption <span class="citation
 that the only possible confounding is due to the controlled covariates
 and effect modifiers. Under this assumption, IOPW estimates will be
 reliable if the weighted distributions of covariates and effect
-modifiers are similar between treatment groups and the study and target
-data, respectively. This can be (partially) evaluated using standardized
+modifiers are similar between treatment groups, and between the study
+and target data. This can be (partially) evaluated using standardized
 mean differences (SMDs), which are shown in table form by the
 <code>summary</code> function. The <code>plot</code> function with
 <code>type = "propensitySMD"</code> or
@@ -446,8 +447,8 @@ calculated by bootstrap.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"msm"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportIP_files/figure-html/IPWeighting-msm-1.png" width="700"></p>
-<p>Note that all plot outputs are designed to be generated with
-<code>ggplot2</code>. They can be customized further.</p>
+<p>Note that as all plot outputs are designed to be generated with
+<code>ggplot2</code>, they can be customized further.</p>
 </div>
 </div>
 <div class="section level3">

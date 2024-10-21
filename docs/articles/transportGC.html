@@ -22,7 +22,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-dark navbar-expand-lg bg-primary" data-bs-theme="dark"><div class="container">
+    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">TransportHealth</a>
 
@@ -43,7 +43,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <h6 class="dropdown-header" data-toc-skip>Introduction</h6>
     <a class="dropdown-item" href="../articles/overview.html">Overview of transportability and generalizability analyses and TransportHealth</a>
-    <a class="dropdown-item" href="../articles/assumptions.html">Assumptions of Transportability and Generalizability Analysis</a>
+    <a class="dropdown-item" href="../articles/assumptions.html">Assumptions of transportability and generalizability analysis</a>
     <div class="dropdown-divider"></div>
     <h6 class="dropdown-header" data-toc-skip>Inverse Probability Methods</h6>
     <a class="dropdown-item" href="../articles/transportIP.html">Inverse probability or odds weighting-based transportability analysis</a>
@@ -82,6 +82,8 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>G-computation-based transportability analysis</h1>
+                        <h4 data-toc-skip class="author">Core Clinical
+Sciences</h4>
             
       
       
@@ -94,22 +96,23 @@
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>In this vignette, we demonstrate how to use
-<code>TransportHealth</code> for weighting-based transportability
-analysis for instances where mergeable individual participant-level data
-(IPD) is available in both the original study and target sample.</p>
+<code>TransportHealth</code> for g-computation-based transportability
+analysis for instances where individual participant-level data (IPD) is
+available in both the original study and target sample, but they are not
+mergable.</p>
 <div class="section level3">
 <h3 id="brief-introduction-to-g-computation">Brief introduction to g-computation<a class="anchor" aria-label="anchor" href="#brief-introduction-to-g-computation"></a>
 </h3>
 <p>In transportability and generalizability analysis, g-computation
-proceeds largely the same as in causal inference. Firstly, a model of
-the outcome in terms of the treatment, covariates and effect modifiers
-is fitted using the source data. Then, this model is used to calculate
-fitted values of the outcome when treatment is set to control or
-treatment for all observations in the target data; in particular,
-observed covariate and effect modifier values in the target data are
-used to calculate the fitted values. Finally, treatment effects are
-calculated using these fitted values to obtain an unbiased estimate of
-the treatment effect in the target population.</p>
+proceeds largely the same as for confounding adjustment.</p>
+<p>Firstly, a model of the outcome in terms of the treatment, covariates
+and effect modifiers is fitted using the source data. Then, this model
+is used to calculate fitted values of the outcome when treatment is set
+to control or treatment for all observations in the target data; in
+particular, observed covariate and effect modifier values in the target
+data are used to calculate the fitted values. Finally, treatment effects
+are calculated using these fitted values to obtain an unbiased estimate
+of the treatment effect in the target population.</p>
 </div>
 </div>
 <div class="section level2">
@@ -121,13 +124,13 @@ were only able to conduct an observational study using samples from the
 study population. To obtain unbiased causal effect estimates using the
 study sample, we account for the following covariates: sex, body fat
 percentage, and stress level.</p>
-<p>We wish to know know that the effectiveness of the medication depends
-on two effect modifiers of stress levels and whether patients are taking
+<p>We know that the effectiveness of the medication depends on two
+effect modifiers: 1) stress level, and 2) whether patients are taking
 another medication.</p>
 <p><em>Note that the covariates adjusted for in the study data can also
 be effect modifiers.</em></p>
 <div class="section level3">
-<h3 id="coded-variables">Coded variables:<a class="anchor" aria-label="anchor" href="#coded-variables"></a>
+<h3 id="coded-variables">Coded variables<a class="anchor" aria-label="anchor" href="#coded-variables"></a>
 </h3>
 <ul>
 <li>
@@ -136,7 +139,7 @@ be effect modifiers.</em></p>
 <li>
 <code>1</code> for treated</li>
 <li>
-<code>0</code> for non-treated</li>
+<code>0</code> for untreated</li>
 </ul>
 </li>
 <li><p>Systolic blood pressure (SBP) - <code>sysBloodPressure</code>
@@ -167,7 +170,7 @@ be effect modifiers.</em></p>
 <li>
 <code>1</code> for treated</li>
 <li>
-<code>0</code> for non-treated</li>
+<code>0</code> for untreated</li>
 </ul>
 </li>
 </ul>
@@ -177,10 +180,10 @@ be effect modifiers.</em></p>
 </h3>
 <p>First, for the implementation of g-computation in
 <code>TransportHealthR</code> specifically, the data from the study and
-target population should be separate data frames in the <code>R</code>
-environment. The study data should contain response, treatment,
-covariate and effect modifier information, while the target data should
-contain only covariate and effect modifier information.</p>
+target population should be in separate data frames in the
+<code>R</code> environment. The study data should contain response,
+treatment, covariate and effect modifier information, while the target
+data should contain only covariate and effect modifier information.</p>
 <p>Suppose that we have the study and target data separately as
 follows.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -299,10 +302,11 @@ the target data to this function.</p>
 </h4>
 <p>To show the results of the analysis, use <code>summary</code> like
 you would for <code>lm</code> when fitting a linear model. Using
-<code>summary</code> will print out the variable names of the treatment
-and the response, and summaries of the fitted outcome model and the
-final marginal structural model (MSM). Note that scientific conclusions
-should only be drawn from the MSM.</p>
+<code>summary</code> will print out the names of the treatment and
+response variables, the transported treatment effect, its estimated
+standard error, and a summary of the fitted outcome model. Note that
+scientific conclusions should only be drawn from the transported effect
+estimate.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Response: sysBloodPressure</span></span>
@@ -336,8 +340,8 @@ should only be drawn from the MSM.</p>
 <span><span class="co">#&gt; AIC: 2817</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
-<p>The workflow is constructed like this to accommodate situations where
-the source data and target data cannot be merged due to privacy
+<p>The workflow is constructed in this way to accommodate situations
+where the source data and target data cannot be merged due to privacy
 concerns. Owners of the source data can apply the
 <code>transportGCPreparedModel</code> function to the source data with
 <code>wipe = T</code> to erase the source data from the
@@ -584,22 +588,34 @@ data cannot be merged, as <code>residuals</code> are also erased in the
 <p>Like inverse odds of participation weighting (IOPW), the validity of
 g-computation depends on untestable causal inference assumptions,
 including stable unit treatment value (SUTVA), conditional
-exchangeability, positivity and consistency <span class="citation">[@ling-review; @degtiar-review]</span>. Unlike IOPW,
-g-computation does not have readily available diagnostics to evaluate if
-these assumptions are likely to hold or not. For conditional
-exchangeability, we suggest conducting sensitivity analyses with respect
-to unmeasured confounding, but this is beyond on the scope of the
-package. For positivity, a simple method would be to examine marginal
-distributions of covariates and effect modifiers in the study and target
-data and compare them: the distributions should overlap between the
-study and target data, but they do not need to be identical.</p>
+exchangeability, positivity and consistency <span class="citation">(Ling
+et al. 2023; Degtiar and Rose 2023)</span>. Unlike IOPW, g-computation
+does not have readily available diagnostics to evaluate if these
+assumptions are likely to hold or not. For conditional exchangeability,
+we suggest conducting sensitivity analyses with respect to unmeasured
+confounding, but this is beyond on the scope of the package. For
+positivity, a simple method would be to examine marginal distributions
+of covariates and effect modifiers in the study and target data and
+compare them: the distributions should overlap between the study and
+target data, but they do not need to be identical.</p>
 </div>
 </div>
 <div class="section level3">
 <h3 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h3>
-<div id="refs">
-
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-degtiar-review" class="csl-entry">
+Degtiar, I, and S Rose. 2023. <span>“A Review of Generalizability and
+Transportability.”</span> <em>Annual Review of Statistics and Its
+Application</em> 10: 501–24. https://doi.org/<a href="https://doi.org/10.1146/annurev-statistics-042522-103837" class="external-link">https://doi.org/10.1146/annurev-statistics-042522-103837</a>.
+</div>
+<div id="ref-ling-review" class="csl-entry">
+Ling, AY, R Jreich, ME Montez-Rath, P Carita, KJ Chandross, L Lucats, Z
+Meng, B Sebastien, K Kappahn, and M Desai. 2023. <span>“An Overview of
+Current Methods for Real-World Applications to Generalize or Transport
+Clinical Trial Findings to Target Populations of Interest.”</span>
+<em>Epidemiology</em> 34: 627–36. <a href="https://doi.org/10.1097/EDE.0000000000001633" class="external-link">https://doi.org/10.1097/EDE.0000000000001633</a>.
+</div>
 </div>
 </div>
 </div>
