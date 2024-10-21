@@ -80,7 +80,7 @@ We know that the effectiveness of the medication depends on two effect modifiers
 
 *Note that the covariates adjusted for in the study data can also be effect modifiers.*
 
-## Coded variables:
+## Coded variables
 
 -   Medication - `med1`
 

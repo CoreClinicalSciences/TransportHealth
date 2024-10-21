@@ -1,5 +1,6 @@
 ---
 title: "Assumptions of transportability and generalizability analysis"
+author: "Core Clinical Sciences"
 output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
@@ -7,11 +8,6 @@ vignette: >
   %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
-
-
-```{r setup}
-library(TransportHealth)
-```
 
 \newcommand{\given}{\,|\,}
 \newcommand{\E}{\mathrm{E}}
