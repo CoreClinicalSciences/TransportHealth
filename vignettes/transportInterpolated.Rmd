@@ -115,9 +115,7 @@ In transportability and generalizability analysis, interpolated g-computation pr
 
 Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct a randomized clinical trial using samples from the a different population.
 
-We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
-
-<!-- This sentence is unclear to me. Do you mean - "We wish to know the effectiveness of the medication in the target population given that it depends on the two identified effect modifiers: 1) stress level; and 2) whether or not the patient is taking medication for something other than high blood pressure." Alternatively, "We wish to know if the effectiveness of the medication depends on two potential effect modifiers: 1) stress level; and 2) whether or not the patient is taking medication for something other than high blood pressure." -->
+We know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
 
 ## Coded variables:
 
@@ -150,13 +148,11 @@ We wish to know know that the effectiveness of the medication depends on two eff
 First, for the implementation of interpolated g-computation in `TransportHealth` specifically, the study data should be aggregate-level. In particular, effect modifiers should be dichotomized. For this case study, body fat percentage has been dichotomized with 17% as the threshold. For clarity, we assume that dichotomized variables are coded as 0-1 with 0 being the baseline. The aggregate-level study data should have:
 
 -   The estimated treatment effect and its estimated standard error
--   The estimated subgroup treatment effect within each (marginal) level of each effect modifier and its estimated standard error <!-- This reads as if we are accomodating categorical and/or ordinal effect modifiers. I don't believe we are. Suggest revising to "within both levels" to make it clear that the effective models are dichotomous -->
+-   The estimated subgroup treatment effect within both (marginal) levels of each effect modifier and its estimated standard error
 -   Proportion of 1s for each effect modifier in the study sample (summary study data)
 -   The sample size of the original study
 
-The subgroup treatment effects should be in a vector. Subgroup effects corresponding to the levels of the same effect modifier should be next to each other with the subgroup effect of the 1-level placed first. Keep a vector that keeps track of the names of the effect modifiers: the subgroup effects vector and the summary study data vector should be in the order of this vector. In our study, the aggregate-level study data is formatted as follows.
-
-<!-- Right now, this paragraph is a bit unclear to me, but I'm not sure if it is because I can't run the study example -->
+The subgroup treatment effects, standard errors and summary study data should be provided in a vector in the same order. Subgroup effects and standard errors corresponding to the levels of the same effect modifier should be next to each other with the subgroup effect of the 1-level placed first. Also, provide a vector which specifies the order in which the subgroup treatment effects and summary study data are provided. In our study, the aggregate-level study data is formatted as follows.
 
 ```{r exampleStudyData, echo = T}
 print("Treatment effect:")
@@ -175,9 +171,9 @@ print("Sample size:")
 print(testData$nStudy)
 ```
 
-On the other hand, the target data may be individual patient-level data or aggregate data. For the former, effect modifiers should still be dichotomized in the target data. For the latter, provide the proportion of 1s for each dichotomized effect modifier, along with the sample size. It is important that effect modifiers are dichotomized the same way in both the study and the target data. If aggregate-level target data is provided, you may also choose a correlation structure of the effect modifiers in the form of a matrix; if desired, provide a correlation (not variance) matrix of the dichotomized effect modifiers. In this example, the target data is formatted as follows.
+Since `testData$effectModifiers` is `c(med2, percentBodyFatDicho)`, the subgroup effects provided in the `testData$subgroupTreatmentEffects` are, in order, those corresponding to the 1 group and the 0 group of `med2`, and then those corresponding to the 1 group and 0 group of `percentBodyFatDicho`. This ordering is the same for `testData$subgroupSEs`. Likewise, `testData$aggregateStudyData` provides proportions of 1s for `med2` and `percentBodyFatDicho`, in this order. The ordering is important for the modelling function to process the data correctly.
 
-<!-- Just want to confirm that we do not require the correlation matrix for any interpolated g-computation analyses? -->
+On the other hand, the target data may be individual patient-level data or aggregate data. For the former, effect modifiers should still be dichotomized in the target data. For the latter, provide the proportion of 1s for each dichotomized effect modifier, along with the sample size, in a named vector; the ordering does not matter as long as the vector is named appropriately. It is important that effect modifiers are dichotomized the same way in both the study and the target data. You may optionally provide a correlation (not variance) matrix of the dichotomized effect modifiers. If a correlation matrix is not provided, the correlation matrix is calculated from the target data when individual patient-level data is provided, and an independent correlation structure is assumed when aggregate data is provided. In this example, the target data is formatted as follows.
 
 ```{r exampleData, echo = T}
 print("Target data:")
