@@ -105,24 +105,24 @@ testData <- generateTestDataInterpolated()
 
 # Introduction
 
-In this vignette, we demonstrate how to use `TransportHealth` for interpolated g-computation, a transportability analysis based on network meta-interpolation [@harari], for instances where only aggregate data is available for the original study sample.
+In this vignette, we demonstrate how to use `TransportHealth` for interpolated g-computation, a transportability analysis method based on network meta-interpolation [@harari] for use when only aggregate data is available for the original study sample.
 
 ## Brief introduction to interpolated g-computation
 
-In transportability and generalizability analysis, interpolated g-computation proceeds largely the same as network meta-interpolation. Firstly, a model of the treatment effect is fitted in terms of dichotomized effect modifiers. Missing effect modifier information is imputed using the best unbiased linear predictor (BLUP) in terms of observed effect modifier information. Then, an estimate of the treatment effect in the target population is calculated with the fitted model using the summary information of effect modifiers in the target sample.
+In transportability and generalizability analysis, interpolated g-computation proceeds in largely the same way as network meta-interpolation. First, a model of the treatment effect is fitted in terms of dichotomized effect modifiers. Missing effect modifier information is imputed using the best linear unbiased predictor (BLUP) in terms of observed effect modifier information. Then, an estimate of the treatment effect in the target population is calculated with the fitted model using the summary information of effect modifiers in the target sample.
 
 # Example
 
-Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct a randomized clinical trial using samples from the study population.
+Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct a randomized clinical trial using samples from the a different population.
 
-We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+We know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
 
 ## Coded variables:
 
 -   Medication - `med1`
 
     -   `1` for treated
-    -   `0` for non-treated
+    -   `0` for untreated
 
 -   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
 
@@ -141,18 +141,18 @@ We wish to know know that the effectiveness of the medication depends on two eff
 -   Medication 2 - `med2`
 
     -   `1` for treated
-    -   `0` for non-treated
-    
+    -   `0` for untreated
+
 ## Analyses
 
-First, for the implementation of interpolated g-computation in `TransportHealth` specifically, the study data should be aggregate-level. In particular, effect modifiers should be first be dichotomized. For this case study, body fat percentage has been dichotomized with 17% as the threshold. For clarity, we assume that dichotomized variables are coded as 0-1 with 0 being the baseline. The aggregate-level study data should have:
+First, for the implementation of interpolated g-computation in `TransportHealth` specifically, the study data should be aggregate-level. In particular, effect modifiers should be dichotomized. For this case study, body fat percentage has been dichotomized with 17% as the threshold. For clarity, we assume that dichotomized variables are coded as 0-1 with 0 being the baseline. The aggregate-level study data should have:
 
-- The estimated treatment effect and its estimated standard error
-- The estimated subgroup treatment effect within each (marginal) level of each effect modifier and its estimated standard error
-- Proportion of 1s for each effect modifier in the study sample (summary study data)
-- The sample size of the original study
+-   The estimated treatment effect and its estimated standard error
+-   The estimated subgroup treatment effect within both (marginal) levels of each effect modifier and its estimated standard error
+-   Proportion of 1s for each effect modifier in the study sample (summary study data)
+-   The sample size of the original study
 
-The subgroup treatment effects should be in a vector. Subgroup effects corresponding to the levels of the same effect modifier should be next to each other with the subgroup effect of the 1 level placed first. Keep a vector that keeps track of the names of the effect modifiers: the subgroup effects vector and the summary study data vector should be in the order of this vector. In our study, the aggregate-level study data is formatted as follows.
+The subgroup treatment effects, standard errors and summary study data should be provided in a vector in the same order. Subgroup effects and standard errors corresponding to the levels of the same effect modifier should be next to each other with the subgroup effect of the 1-level placed first. Also, provide a vector which specifies the order in which the subgroup treatment effects and summary study data are provided. In our study, the aggregate-level study data is formatted as follows.
 
 ```{r exampleStudyData, echo = T}
 print("Treatment effect:")
@@ -171,7 +171,9 @@ print("Sample size:")
 print(testData$nStudy)
 ```
 
-On the other hand, the target data may be individual patient-level data or aggregate data. For the former, effect modifiers should still be dichotomized in the target data. For the latter, provide the proportion of 1s for each dichotomized effect modifier, along with the sample size. It is important that effect modifiers are dichotomized in the same in the study and target data. If aggregate-level target data is provided, you may also choose a correlation structure of the effect modifiers in the form of a matrix; if desired, provide a correlation (not variance) matrix of the dichotomized effect modifiers. In this example, the target data is formatted as follows.
+Since `testData$effectModifiers` is `c(med2, percentBodyFatDicho)`, the subgroup effects provided in the `testData$subgroupTreatmentEffects` are, in order, those corresponding to the 1 group and the 0 group of `med2`, and then those corresponding to the 1 group and 0 group of `percentBodyFatDicho`. This ordering is the same for `testData$subgroupSEs`. Likewise, `testData$aggregateStudyData` provides proportions of 1s for `med2` and `percentBodyFatDicho`, in this order. The ordering is important for the modelling function to process the data correctly.
+
+On the other hand, the target data may be individual patient-level data or aggregate data. For the former, effect modifiers should still be dichotomized in the target data. For the latter, provide the proportion of 1s for each dichotomized effect modifier, along with the sample size, in a named vector; the ordering does not matter as long as the vector is named appropriately. It is important that effect modifiers are dichotomized the same way in both the study and the target data. You may optionally provide a correlation (not variance) matrix of the dichotomized effect modifiers. If a correlation matrix is not provided, the correlation matrix is calculated from the target data when individual patient-level data is provided, and an independent correlation structure is assumed when aggregate data is provided. In this example, the target data is formatted as follows.
 
 ```{r exampleData, echo = T}
 print("Target data:")
@@ -197,30 +199,29 @@ transportInterpolated(link,
 
 The `transportInterpolated` function requires the following arguments:
 
-- `link`: The link function of the outcome in terms of the treatment used in the source study. If mean differences are provided, use `"identity"`. If odds ratios or hazard ratios are provided, use `"log"`.
+-   `link`: The link function of the outcome in terms of the treatment used in the source study. If mean differences are provided, use `"identity"`. If odds ratios or hazard ratios are provided, use `"log"`.
 
-- `effectModifiers`: Vector of names of effect modifiers to adjust for
+-   `effectModifiers`: Vector of names of effect modifiers to adjust for
 
-- `mainTreatmentEffect`, `mainSE`: The estimated treatment effect in the original study and its estimated standard error
+-   `mainTreatmentEffect`, `mainSE`: The estimated treatment effect in the original study and its estimated standard error
 
-- `subgroupTreatmentEffects`, `subgroupSEs`: The vector of estimated subgroup treatment effects for each (marginal) level of each effect modifier and their estimated standard errors, formatted as specified above
+-   `subgroupTreatmentEffects`, `subgroupSEs`: The vector of estimated subgroup treatment effects for each (marginal) level of each effect modifier and their estimated standard errors, formatted as specified above
 
-- `corrStructure`: The correlation matrix of effect modifiers. This is optional to provide if IPD target data is provided, and defaults to an independent structure if aggregate-level target data is provided.
+-   `corrStructure`: The correlation matrix of effect modifiers. This is optional to provide if IPD target data is provided, and defaults to an independent structure if aggregate-level target data is provided.
 
-- `studySampleSize`: Sample size of original study data
+-   `studySampleSize`: Sample size of original study data
 
-- `aggregateStudyData`: Summary data of original study data
+-   `aggregateStudyData`: Summary data of original study data
 
-- `targetData`: IPD or aggregate-level target data.
+-   `targetData`: IPD or aggregate-level target data.
 
 ### Specification of transportability analysis
 
-Recall that: 
-- `sysBloodPressure` is the response
+Recall that: - `sysBloodPressure` is the response
 
-- `med1` is the treatment
+-   `med1` is the treatment
 
-- `med2` (other medication) and `stress` are effect modifiers of interest.
+-   `med2` (other medication) and `stress` are effect modifiers of interest.
 
 We supply arguments to the `transportInterpolated` function as follows. As `sysBloodPressure` is a continuous outcome, the effect estimates are mean differences, so `link = "identity"` will be used.
 
@@ -244,7 +245,7 @@ To show the results of the analysis, use `summary` like you would for `lm` when 
 summary(result)
 ```
 
-We have found via simulation that interpolated g-computation tends to perform worse when the degree of effect modification is large relative to the main treatment effect, so conclusions from `transportInterpolated` in such situations should be made with caution. The magnitude of effect modification can be informally evaluated by looking at forest plots of the original study from which the treatment effects are retrieved, or by looking at the `summary` output of `transportInterpolated`. More specifically, the output contains the subgroup effects provided by the user. Using either method, one should compare the difference in subgroup effects between levels of the same effect modifier with the magnitude of the main treatment effect to evaluate whether the interaction effect is larger than the main effect.
+We have found via simulation that interpolated g-computation tends to perform less well when the degree of effect modification is larger than the main treatment effect, so conclusions from `transportInterpolated` in such situations should be made with caution. The magnitude of effect modification can be informally evaluated by looking at forest plots of the original study from which the treatment effects are retrieved, or by looking at the `summary` output of `transportInterpolated`. More specifically, the output contains the subgroup effects provided by the user. Using either method, one should compare the difference in subgroup effects between levels of the same effect modifier with the magnitude of the main treatment effect to evaluate whether the interaction effect is larger than the main effect.
 
 To obtain a coefficient plot of estimates, use the `plot` function.
 
@@ -254,7 +255,7 @@ plot(result)
 
 Like other methods supported by `TransportHealth`, the validity of interpolated g-computation depends on untestable causal inference assumptions, including stable unit treatment value (SUTVA), conditional exchangeability, positivity and consistency [@ling-review; @degtiar-review]. However, interpolated g-computation does not have readily available diagnostics to evaluate if these assumptions are likely to hold or not. Due to the limited amount of information from the original study, causal inference assumptions should be evaluated using contextual knowledge about study design.
 
-Additionally, it is expected that interpolated g-computation would perform worse than IOPW and g-computation, as a lot of information is lost when only aggregate-level data is available for the original study data. We suggest that only one effect modifier is adjusted for when using interpolated g-computation.
+Additionally, it is expected that interpolated g-computation will perform less well than inverse odds of participation weights and g-computation, as a lot of information is lost when only aggregate-level data is available for the original study data. As a result, we suggest that only one effect modifier is adjusted for when using interpolated g-computation.
 
 ## References
 
