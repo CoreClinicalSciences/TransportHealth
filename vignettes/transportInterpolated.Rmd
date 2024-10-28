@@ -115,7 +115,7 @@ In transportability and generalizability analysis, interpolated g-computation pr
 
 Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct a randomized clinical trial using samples from the a different population.
 
-We know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+We know that the effectiveness of the medication depends on two effect modifiers: 1) stress level, and 2) whether patients are taking another medication.
 
 ## Coded variables:
 

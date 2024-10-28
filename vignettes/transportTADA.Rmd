@@ -108,7 +108,7 @@ In transportability and generalizability analysis using the TADA method, the pro
 
 Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
 
-We know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+We know that the effectiveness of the medication depends on two effect modifiers: 1) stress level, and 2) whether patients are taking another medication.
 
 *Note that the covariates adjusted for in the study data can also be effect modifiers.*
 
