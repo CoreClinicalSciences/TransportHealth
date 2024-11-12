@@ -239,7 +239,7 @@ result <- transportTADA(
   treatment = "med1", 
   
   # Name of response variable
-  response = "sysBloodPressureStudy",
+  response = "sysBloodPressure",
   
   # Type of MSM
   family = gaussian,
@@ -270,13 +270,13 @@ summary(result)
 
 To evaluate this assumption for the treatment assignment, use the `plot` function with `type = "propensityHist"`. This outputs mirrored histogram of probabilities of being in the treatment group for different treatment groups. Non-overlap of the ranges of the histograms suggest violations of the positivity assumption [@positivity].
 
-```{r TADA-hist, echo = T}
+```{r TADA-prop-hist, echo = T}
 base::plot(result, type = "propensityHist")
 ```
 
 The `plot` function with `type = "participationHist"` provides the histogram of participation weights and the effective sample size (ESS), which can be used to assess the suitability of the TADA method. For example, the presence of extreme weights or a large reduction in effective sample size may indicate that the assumptions for TADA are violated.
 
-```{r TADA-hist, echo = T}
+```{r TADA-part-hist, echo = T}
 base::plot(result, type = "participationHist")
 ```
 
