@@ -76,6 +76,14 @@ generateTestDataTADA <- function() {
                            # ordinal with three subclass
                            # toxicGrade_LOW_prop = as.numeric(table(toxicGradeTarget)["Low"]) / nTarget,
                            # toxicGrade_Medium_COUNT = as.numeric(table(toxicGradeTarget)["Medium"]),
+                           
+                           # ===========
+                           # This sentence below doesn't make sense to me. Does it mean that we don't need both proportions?
+                           # What is a reference-level candidate?
+                           # Are we doing categorical effect modifiers and covariates as well? That's what the OR
+                           # seems to imply
+                           #===========
+                           
                            # # We don't need to prop for reference level candidate
                            # # like: for male and female we just need to provide one of two and it's informative
                            # # OR: user could provide all AgD for all levels and we could detect the ref level by the first element of factor IPD
@@ -102,7 +110,7 @@ In this vignette, we demonstrate how to use `TransportHealth` for weighting-base
 
 ## Brief introduction to Target aggregate data adjustment (TADA)
 
-In transportability and generalizability analysis using the TADA method, the process differs from traditional inverse odds of participation weighting (IOPW) or g-computation due to the absence of individual-level data (IPD) in the target population. Instead of using logistic regression to obtain weights that balance the distribution of effect modifiers in the source and target data, a method of moments approach using the aggregate-level data (AgD) from the target population instead. This is combined with the usual propensity score weighting approach to adjust for confounding in the source data to fit marginal structural models.
+In transportability and generalizability analysis using target aggregate data adjustment (TADA), the process differs from traditional inverse odds of participation weighting (IOPW) or g-computation due to the absence of individual-level data (IPD) in the target population. Instead of using logistic regression to obtain weights that balance the distribution of effect modifiers in the source and target data, TADA uses a method of moments approach with the aggregate-level data (AgD) from the target population to account for effect modifiers. This is combined with the usual propensity score weighting approach to adjust for confounding in the source data to fit marginal structural models.
 
 # Example
 
@@ -117,7 +125,7 @@ We know that the effectiveness of the medication depends on two effect modifiers
 -   Medication - `med1`
 
     -   `1` for treated
-    -   `0` for non-treated
+    -   `0` for untreated
 
 -   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
 
@@ -131,17 +139,16 @@ We know that the effectiveness of the medication depends on two effect modifiers
 -   Stress level - `stress`
 
     -   `1` for stressed
-    -   `0` for normal
+    -   `0` for not stressed
 
 -   Medication 2 - `med2`
 
     -   `1` for treated
-    -   `0` for non-treated
-
+    -   `0` for untreated
 
 ## Analyses
 
-First, for the implementation of TADA in `TransportHealth` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only aggregate level summary statistics of covariate and effect modifier such as proportion, count, mean, median and standard deviation. 
+First, for the implementation of TADA in `TransportHealth` specifically, the data from the study and target population should be in separate data frames in the `R` environment. The study data should contain IPS on response, treatment, covariates and effect modifiers, while the target data should contain only aggregate-level summary statistics of covariates and effect modifiers. These summary statistics should be formatted as proportions, counts, means, medians and standard deviations.
 
 Suppose that we have the study and target data separately as follows.
 
@@ -154,13 +161,14 @@ head(testData$aggregateTargetData)
 
 ```
 
-Here for the target data, the names of the aggregate level statistics corresponding to each variable should be formatted as follows. 
+Here for the target data, the names of the aggregate level statistics corresponding to each variable should be formatted as follows.
 
--   For continuous variables, the mean of a variable should be named `variable_mean`, the standard deviation of a variable should be named `variable_sd`, the median of a variable should be named `variable_median`. 
+-   For continuous variables, the mean of a given variable should be named `variable_mean`, the standard deviation should be named `variable_sd`, and the median should be named `variable_median`.
 
--   The proportion or count of a binary variable can be named `variable_prop` or `variable_count` respectively (corresponding to the category labelled as 1 in the study data). 
+-   The proportion or count of a binary variable can be named `variable_prop` or `variable_count`, respectively (corresponding to the non-reference category in the study data).
+<!-- What do you mean by labelled as 1? Do you mean the reference? -->
 
--   The naming method of categorical variables (with more than two levels) is specified as `variable_category_AgD`. For example, for an ordinal variable `grade` with three categories (low, medium and high), the proportions of each category recorded in the target data should be named `grade_low_prop`, `grade_medium_prop` and `grade_high_prop`. This is just to demonstrate the naming format for categorical variables; this example has no categorical variables.
+-   The naming method of categorical variables (with more than two levels) is specified as `variable_category_AgD`. For example, for an ordinal variable `grade` with three categories (low, medium and high), the proportions of each category recorded in the target data should be named `grade_low_prop`, `grade_medium_prop` and `grade_high_prop`. This is just to demonstrate the naming format for categorical variables; there are no categorical variables in this example.
 
 We can now perform transportability analysis using TADA with the `transportTADA` functions.
 
@@ -182,11 +190,11 @@ transportTADA(msmFormula,
 
 This function requires specification of the following arguments:
 
--   `msmFormula`: A formula expressing the marginal structural model (MSM) to be fit. 
+-   `msmFormula`: A formula expressing the marginal structural model (MSM) to be fit.
 
--   `propensityScoreModel`: A formula or a `glm` object expressing the propensity model, i.e. a model of treatment assignment in terms of covariates. 
+-   `propensityScoreModel`: A formula or a `glm` object expressing the propensity model, i.e. a model of treatment assignment in terms of covariates.
 
-If a formula is provided, logistic regression is used by default. Custom propensity weights from other weighting methods can also be provided to the `customPropensity` argument instead; in this case, do not set `propensityScoreModel` because it is `NULL` by default and will be overridden.
+If a formula is provided, logistic regression is used by default. Custom propensity weights from other weighting methods can also be provided to the `customPropensity` argument instead; in this case, do not set `propensityScoreModel` because it is `NULL` by default and will be overridden. Note that as IPD is available for the study data, it is still possible to use logistic regression to estimate propensity scores.
 
 -   `matchingCovariates`: A vector of user-specified covariates which are used for the data matching to obtain participation weights when no custom weights provided.
 
@@ -198,27 +206,23 @@ If a formula is provided, logistic regression is used by default. Custom propens
 
 -   `response`: The name of the variable indicating response.
 
--   `family`: The type of outcome model to be fit.
-
-This can be any of the families that are used in `glm`, one of `"coxph"` or `"survreg"`. The `"coxph"` and `"survreg"` options are for survival analysis and will use default options of these methods from the `survival` package.
+-   `family`: The type of outcome model to be fit. This can be any of the families used in `glm`, one of `"coxph"` or `"survreg"`. The `"coxph"` and `"survreg"` options are for survival analysis and will use default options of these methods from the `survival` package.
 
 -   `studyData`: The individual participant data (IPD) of study population.
 
 -   `aggregateTargetData`: The aggregate-level data (AgD) of target population.
 
+### Specification of transportability analysis
 
-### Specification of transportability analysis 
+These components are put together as follows.
 
-These components are put together as follows. 
+Recall that: - `sysBloodPressure` is the response
 
-Recall that: 
-- `sysBloodPressure` is the response
+-   `med1` is the treatment
 
-- `med1` is the treatment
+-   `sex`, `percentBodyFat`, `toxicGrade`, and `stress` are covariates to be controlled in the original study
 
-- `sex`, `percentBodyFat`, `toxicGrade`, and `stress` are covariates to be controlled in the original study
-
-- `med2` (other medication) and `stress` are effect modifiers of interest. 
+-   `med2` (other medication) and `stress` are effect modifiers of interest.
 
 ```{r TADA, echo = T}
 result <- transportTADA(
@@ -248,29 +252,29 @@ result <- transportTADA(
 
 ```
 
-
 ### Producing statistical results
 
-To show the results of the analysis, we can use the `base::summary` function, similarly as one would use the `lm` function for fitting a linear model. 
+To show the results of the analysis, we can use the `base::summary` function, similar to how one would use the `lm` function for fitting a linear model.
 
-This prints out a table of unweighted and weighted SMDs of covariates between treatment groups, a pre-post weighting table which includes unweighted and weighted aggregate level summary as well as pre- and post- difference values of effect modifiers of interest between study data and target data, and summaries of the fitted outcome model and the final marginal structural model (MSM) fit with the correct standard errors calculated using sandwich estimator or bootstrap. Note that scientific conclusions should only be drawn from the MSM.
+The `base::summary` function prints out a table of unweighted and weighted SMDs of covariates between treatment groups, a pre-post weighting table which includes unweighted and weighted aggregate level summary as well as pre- and post- difference values of effect modifiers of interest between study data and target data, and summaries of the fitted outcome model and the final marginal structural model (MSM) fit with the correct standard errors calculated using bootstrap.
 
+Note that scientific conclusions should only be drawn from the MSM.
 
 ```{r TADA-summary, echo = T}
 summary(result)
 ```
 
-**Positivity** and **conditional exchangeability** are two key assumptions that can affect the validity of transportability analysis. 
+**Positivity** and **conditional exchangeability** are two key assumptions that can affect the validity of transportability analysis.
 
-`Positivity` is the assumption that at all observed levels of covariates and effect modifiers, the probabilities of being in the treatment group and being the study are neither 0 nor 1, respectively. 
+`Positivity` is the assumption that at all observed levels of covariates and effect modifiers, the probabilities of being in the treatment group and being the study are neither 0 nor 1, respectively.
 
-To evaluate this assumption for the treatment assignment, use the `plot` function with `type = "propensityHist"`. This outputs mirrored histogram of probabilities of being in the treatment group for different treatment groups. Non-overlap of the ranges of the histograms suggest violations of the positivity assumption [@positivity]. 
+To evaluate this assumption for the treatment assignment, use the `plot` function with `type = "propensityHist"`. This outputs mirrored histogram of probabilities of being in the treatment group for different treatment groups. Non-overlap of the ranges of the histograms suggest violations of the positivity assumption [@positivity].
 
 ```{r TADA-hist, echo = T}
 base::plot(result, type = "propensityHist")
 ```
 
-The `plot` function with `type = "participationHist"` provides the histogram of participation weights and the effective sample size (ESS), which indicates the possible existence of extreme weights and the degree of ESS reduction. These information can justify the suitability of the TADA method.
+The `plot` function with `type = "participationHist"` provides the histogram of participation weights and the effective sample size (ESS), which can be used to assess the suitability of the TADA method. For example, the presence of extreme weights or a large reduction in effective sample size may indicate that the assumptions for TADA are violated.
 
 ```{r TADA-hist, echo = T}
 base::plot(result, type = "participationHist")
@@ -283,16 +287,15 @@ base::plot(result, type = "propensitySMD")
 
 ```
 
-Model coefficient plots showing confidence intervals of the effect estimates are provided by `plot` function with `type = "msm"`. The standard errors are the correct ones calculated by sandwich estimator or bootstrap.
+Model coefficient plots showing confidence intervals of the effect estimates are provided by `plot` function with `type = "msm"`. The standard errors are the correct ones calculated by bootstrap.
 
 ```{r TADA-msm, echo = T}
 base::plot(result, type = "msm")
 ```
 
-Note that all plot outputs are designed to be generated with `ggplot2`. They can be customized further. 
+Note that all plot outputs are designed to be generated with `ggplot2`. They can be customized further.
 
 ## References
 
 ::: {#refs}
 :::
-
