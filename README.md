@@ -1,4 +1,4 @@
-# TransportHealth
+# TransportHealth <a href="https://coreclinicalsciences.github.io/TransportHealth"><img src="man/figures/logo.png" align="right" height="135" alt="TransportHealth website" /></a>
 
 **TransportHealth** is an R package, which was developed by [Core Clinical Sciences](https://www.coreclinicalsciences.com/), that provides functions to conduct transportability and generalizability analyses. 
 
