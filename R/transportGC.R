@@ -99,7 +99,7 @@ transportGC <- function (effectType = c("meanDiff", "rr", "or", "hr"),
   #   names(transportGCResult$effect) <- colnames(varMatrix) <- rownames(varMatrix) <- preparedModel$responseLevels
   # }
   transportGCResult$var <- varMatrix
-  
+  transportGCResult$bootstrapEstimates <- bootstrapEstimates
   transportGCResult$bootstrapNum <- bootstrapNum
   
   return(transportGCResult)
