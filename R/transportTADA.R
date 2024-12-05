@@ -149,6 +149,8 @@ transportTADA <- function (msmFormula,
                                      return(c(resultBoot$msm$coefficients, resultBoot$msm$zeta))
                                    }))
     
+    if (nrow(bootstrapEstimates) == 1) bootstrapEstimates <- t(bootstrapEstimates)
+    
     # Still okay outside of polr cases because concatenating with a NULL does nothing.
     varMatrix <- stats::var(bootstrapEstimates)
     colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportTADAResult$msm$coefficients), names(transportTADAResult$msm$zeta))
@@ -439,7 +441,7 @@ transportTADAFit <- function(msmFormula,
                                  weight = finalWeights)
     } else {
       method <- match.arg(method, c("logistic", "probit", "loglog", "cloglog", "cauchit"))
-      model <- MASS::polr(msmFormula, data = toAnalyze, weight = finalWeights, method = method)
+      model <- MASS::polr(msmFormula, data = toAnalyze, weight = finalWeights, method = method, Hess = T)
     }
   } else {
 
@@ -447,7 +449,6 @@ transportTADAFit <- function(msmFormula,
                           family = family, 
                           data = toAnalyze, 
                           weight = finalWeights)
-      model$var <- sandwich::vcovBS(model)
     }
   
   transportTADAResult <- list(msm = model, # glm / survreg / coxph / 
