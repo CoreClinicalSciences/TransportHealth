@@ -14,6 +14,7 @@ transportTADA(
   response = NULL,
   family = stats::gaussian,
   method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
+  exOpt = list(propensity = NULL, participation = NULL, final = NULL),
   studyData,
   aggregateTargetData,
   bootstrapNum = 100
@@ -37,6 +38,8 @@ transportTADA(
 \item{family}{Either a \code{family} function as used for \code{glm} such as stats::gaussian(), or one of \code{c("coxph", "survreg", "polr")}.}
 
 \item{method}{Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.}
+
+\item{exOpt}{A list with components \code{propensity}, \code{participation} and \code{final}. Each component specifies whether weights should be trimmed or truncated. Use the functions \code{trim} and \code{trunc} to specify trimming/truncation. Note that only truncation is supported for final weights.}
 
 \item{studyData}{The individual participant data (IPD) of study population.}
 
@@ -64,6 +67,7 @@ A \code{transportTADA} object containing the following components:
 \item \code{processedAgD}: The aggregate-level data (AgD) after analytically pre-processing in format and calibration. \code{NULL} when \code{customParticipation} is \code{TRUE}.
 \item \code{matchingCovariates}: A vector of user-specified covariates which are used for the data matching to obtain participation weights when no custom weights provided.
 \item \code{centeredStudyData}: The data frame with both the processed study data and centered study data.
+\item \code{exOpt}: Provided \code{exOpt} argument.
 }
 }
 \description{

@@ -14,6 +14,7 @@
 #' @param response String indicating name of response variable. If \code{NULL}, it will be auto-detected form \code{msmFormula}.
 #' @param family Either a \code{family} function as used for \code{glm}, or one of \code{c("polr", "coxph", "survreg")}.
 #' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.
+#' @param exOpt A list with components \code{propensity}, \code{participation} and \code{final}. Each component specifies whether weights should be trimmed or truncated. Use the functions \code{trim} and \code{trunc} to specify trimming/truncation. Note that only truncation is supported for final weights.
 #' @param data Either a single data frame containing merged study and target datasets, or a list containing the study dataset and the target dataset. Note that if participationModel is a glm object, the datasets would have been merged, so provide the merged dataset containing response, treatment, covariates controlled for in the original study, study participation and effect modifiers if this is the case. Make sure to code treatment and participation as 0-1 or TRUE-FALSE, with 1 and TRUE representing treatment group and study data, respectively.
 #' @param transport A boolean indicating whether a generalizability analysis (false) or a transportability analysis (true) is done.
 #' @param bootstrapNum Number of bootstrap datasets to simulate to obtain robust variance estimate.
@@ -37,6 +38,7 @@
 #' * \code{participation}: String indicating variable name of participation
 #' * \code{response}: String indicating variable name of response
 #' * \code{data}: Data provided in \code{data} argument. Either a list containing study data and target data or a data frame containing both.
+#' * \code{exOpt}: Provided \code{exOpt} argument.
 #' 
 #' @export
 #'
@@ -51,6 +53,9 @@ transportIP <- function (msmFormula,
                          response = NULL,
                          family = stats::gaussian,
                          method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
+                         exOpt = list(propensity = NULL,
+                                      participation = NULL,
+                                      final = NULL),
                          data, transport = T, bootstrapNum = 500) {
   transportIPResult <- transportIPFit(msmFormula,
                                       propensityScoreModel,
@@ -60,7 +65,7 @@ transportIP <- function (msmFormula,
                                       treatment,
                                       participation,
                                       response,
-                                      family, method, data, transport)
+                                      family, method, exOpt = exOpt, data, transport)
   
   # Correct variance estimates by performing bootstrap, resampling study and target data separately
   
@@ -68,16 +73,18 @@ transportIP <- function (msmFormula,
     # Extract treatment study data, control study data and target data
     propensityScoreModel <- transportIPResult$propensityScoreModel
     studyData <- propensityScoreModel$data
+    if (is.trim(exOpt$propensity)) studyData <- studyData[,-ncol(studyData)]
     treatmentLevels <- levels(as.factor(propensityScoreModel$y))
     treatmentGroupData <- list()
     for (level in treatmentLevels) {
-      treatmentGroupData[[level]] <- studyData[as.character(propensityScoreModel$y) == level, ]
+      treatmentGroupData[[level]] <- studyData[as.character(studyData[[transportIPResult$treatment]]) == level, ]
     }
     nLevels <- sapply(treatmentGroupData, nrow)
     names(nLevels) <- treatmentLevels
     
     participationModel <- transportIPResult$participationModel
-    targetData <- participationModel$data[participationModel$y == 0 | participationModel$y == F, , drop = F]
+    targetData <- participationModel$data[participationModel$data[[transportIPResult$participation]] == 0 | participationModel$data[[transportIPResult$participation]] == F, , drop = F]
+    if (is.trim(exOpt$participation)) targetData <- targetData[,-ncol(targetData)]
     if (transportIPResult$response %in% names(targetData)) targetData[[transportIPResult$response]] <- NULL
     nTarget <- nrow(targetData)
     
@@ -95,15 +102,35 @@ transportIP <- function (msmFormula,
                               
                               targetBoot <- targetData[sample.int(n = nTarget, replace = T), ]
                               
+                              studyBoot[[transportIPResult$participation]] <- 1
+                              targetBoot[[transportIPResult$participation]] <- 0
+                              
+                              for (extraVar in union(names(studyBoot), names(targetBoot))) {
+                                if (!(extraVar %in% names(targetBoot))) targetBoot[[extraVar]] <- NA
+                                if (!(extraVar %in% names(studyBoot))) studyBoot[[extraVar]] <- NA
+                              }
+                              
+                              allBoot <- rbind(studyBoot, targetBoot)
+                              
+                              propensityScoreBoot <- stats::update(propensityScoreModel,
+                                                            formula. = propensityScoreModel$formula,
+                                                            data = studyBoot,
+                                                            weights = NULL)
+                              
+                              participationBoot <- stats::update(participationModel,
+                                                          formula. = participationModel$formula,
+                                                          data = allBoot,
+                                                          weights = NULL)
+                              
                               resultBoot <- suppressWarnings(transportIPFit(msmFormula,
-                                                        propensityScoreModel,
-                                                        participationModel,
+                                                        propensityScoreBoot,
+                                                        participationBoot,
                                                         propensityWeights,
                                                         participationWeights,
                                                         treatment,
                                                         participation,
                                                         response,
-                                                        family, method, data = list(studyBoot, targetBoot), transport))
+                                                        family, method, exOpt = exOpt, data = list(studyBoot, targetBoot), transport))
                               
                               
                               # Add on intercept estimates from polr case. This is okay because concatenating with a NULL does nothing
@@ -137,6 +164,9 @@ transportIPFit <- function(msmFormula,
                         response = NULL,
                         family = stats::gaussian,
                         method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
+                        exOpt = list(propensity = NULL,
+                                     participation = NULL,
+                                     final = NULL),
                         data, transport = T) {
   
   # Auto-detect response, treatment and participation if provided
@@ -167,40 +197,45 @@ transportIPFit <- function(msmFormula,
       studyData <- data[[2]]
       targetData <- data[[1]]
     }
+    
+    # Merge data here
+    if (inherits(participationModel, "glm")) effectModifiers <- all.vars(participationModel$formula)[-1]
+    else effectModifiers <- all.vars(participationModel)[-1]
+    if (length(effectModifiers) != 0) {
+    studyParticipationData <- studyData[, names(studyData) %in% c(effectModifiers, "participation"), drop = F]
+    targetParticipationData <- targetData[, names(targetData) %in% c(effectModifiers, "participation"), drop = F]
+    if (!(participation %in% names(studyParticipationData))) {
+      studyParticipationData$participation <- 1
+      participation <- "participation"
+    }
+    if (!(participation %in% names(targetParticipationData))) {
+      targetParticipationData$participation <- 0
+      participation <- "participation"
+    }
+    allData <- rbind(studyParticipationData, targetParticipationData)
+    participationIndex <- which(names(allData) == participation)
+    allData$participation <- as.factor(allData$participation)
+    }
   } else {
     if (!is.null(treatment)) treatmentIndex <- which(names(data) == treatment)
     if (!is.null(participation)) participationIndex <- which(names(data) == participation)
+    
+    # Extract it regardless for better behavior
+    studyData <- data[data[,participationIndex] == 1 | data[,participationIndex] == T,]
+    targetData <- data[data[,participationIndex] == 0 | data[,participationIndex] == F,]
+    allData <- data
   }
   
 
   # If formula is provided for treatment and participation models, fit models ourselves
   if (inherits(propensityScoreModel, "formula")) {
     # Fit model ourselves then reassign it to propensityScoreModel
-    if (!is.data.frame(data)) propensityScoreModel <- stats::glm(propensityScoreModel, data = studyData, family = stats::binomial())
-    else propensityScoreModel <- stats::glm(propensityScoreModel, data = data[data[,participationIndex] == 1 | data[,participationIndex] == T,], family = stats::binomial())
+    propensityScoreModel <- stats::glm(propensityScoreModel, data = studyData, family = stats::binomial())
   }
   
   if (inherits(participationModel, "formula")) {
     # Fit model ourselves then reassign it to participationModel
-    if (!is.data.frame(data)) {
-      # Handle case when study and target data are not yet merged
-      effectModifiers <- all.vars(participationModel)[-1]
-      studyParticipationData <- studyData[, names(studyData) %in% c(effectModifiers, "participation"), drop = F]
-      targetParticipationData <- targetData[, names(targetData) %in% c(effectModifiers, "participation"), drop = F]
-      if (!(participation %in% names(studyParticipationData))) {
-        studyParticipationData$participation <- 1
-        participation <- "participation"
-      }
-      if (!(participation %in% names(targetParticipationData))) {
-        targetParticipationData$participation <- 0
-        participation <- "participation"
-      }
-      participationData <- rbind(studyParticipationData, targetParticipationData)
-      participationIndex <- which(names(participationData) == participation)
-      participationData$participation <- as.factor(participationData$participation)
-      participationModel <- stats::glm(participationModel, data = participationData, family = stats::binomial())
-    }
-    else participationModel <- stats::glm(participationModel, data = data, family = stats::binomial())
+    participationModel <- stats::glm(participationModel, data = allData, family = stats::binomial())
   }
   
   # If not using custom weights, both propensity and participation models need to be ready at this point
@@ -224,26 +259,70 @@ transportIPFit <- function(msmFormula,
   
   if (!is.null(participationModel) & !is.null(participationWeights)) warning("Both participation model and custom weights are provided, using custom weights.")
   
-  # Calculate actual weights to be used
+  # Calculate actual weights to be used; first two exOpt arguments are addressed here
   
-  if (is.null(propensityWeights)) propensityWeights <- obtainWeights(propensityScoreModel, type = "probability")
-  if (is.null(participationWeights)) participationWeights <- obtainWeights(participationModel, type = ifelse(transport, "odds", "probability"))
+  if (is.null(propensityWeights)) {
+    propensityWeights <- obtainWeights(propensityScoreModel, type = "probability")
+    
+    if (!is.null(exOpt$propensity)) {
+      propensityOpt <- exOpt$propensity
+      if (is.trunc(propensityOpt)) propensityWeights <- truncWeights(propensityWeights, propensityOpt)
+      else if (is.trim(propensityOpt)) {
+        retainedObsIndPropensity <- trimInd(propensityScoreModel, propensityOpt)
+        propensityScoreModel <- stats::update(propensityScoreModel,
+                                       formula. = propensityScoreModel$formula,
+                                       data = cbind(propensityScoreModel$data,
+                                                    data.frame(retainedObsIndPropensity = retainedObsIndPropensity)),
+                                       weights = retainedObsIndPropensity)
+        propensityWeights <- obtainWeights(propensityScoreModel, type = "probability") * retainedObsIndPropensity
+      }
+    }
+  }
   
-  # Makeshift solution to account for generalizability analysis
-  
-  if (!transport & length(participationWeights) > length(propensityWeights))
-    participationWeights <- participationWeights[participationModel$data[, participationIndex] == 1 |
-                                                   participationModel$data[, participationIndex] == T]
+  if (is.null(participationWeights)) {
+    participationWeights <- obtainWeights(participationModel, type = ifelse(transport, "odds", "probability"))
+    # Makeshift solution to account for generalizability analysis
+    
+    if (!transport & length(participationWeights) > length(propensityWeights))
+      participationWeights <- participationWeights[allData[, participationIndex] == 1 |
+                                                     allData[, participationIndex] == T]
+    
+    if (!is.null(exOpt$participation)) {
+      participationOpt <- exOpt$participation
+      if (is.trunc(participationOpt)) participationWeights <- truncWeights(participationWeights, participationOpt)
+      else if (is.trim(participationOpt)) {
+        retainedObsIndParticipation <- trimInd(participationModel, participationOpt)
+        participationModel <- stats::update(participationModel,
+                                     formula. = participationModel$formula,
+                                     data = cbind(participationModel$data,
+                                                  data.frame(retainedObsIndParticipation = retainedObsIndParticipation)),
+                                     x = TRUE,
+                                     weights = retainedObsIndParticipation)
+        participationWeights <- obtainWeights(participationModel, type = ifelse(transport, "odds", "probability"))
+        
+        if (!transport & length(participationWeights) > length(propensityWeights))
+          participationWeights <- participationWeights[allData[, participationIndex] == 1 |
+                                                         allData[, participationIndex] == T]
+        
+        participationWeights <- participationWeights * retainedObsIndParticipation[allData[, participationIndex] == 1 |
+                                                                                     allData[, participationIndex] == T]
+      }
+    }
+  }
   
   finalWeights <-  propensityWeights * participationWeights
+  
+  if (!is.null(exOpt$final)) {
+    if (is.trunc(exOpt$final)) finalWeights <- truncWeights(finalWeights, exOpt$final)
+    else if (is.trim(exOpt$final)) warning("trim argument provided for final weights. Note that only truncating final weights is supported.")
+  }
               
   if (!customPropensity) if (!(treatment %in% all.vars(msmFormula)[-1])) stop("Treatment is not included in MSM.")
   
   # Fit MSM
   
   # Extract study data because data frames don't behave well with ifelse
-  if (!is.data.frame(data)) toAnalyze <- studyData
-  else toAnalyze <- data[data[,participationIndex] == 1 | data[,participationIndex] == T,]
+  toAnalyze <- studyData
   
   # The model fitting functions require weights to be part of the data frame
   toAnalyze$finalWeights <- finalWeights
@@ -276,6 +355,7 @@ transportIPFit <- function(msmFormula,
                             treatment = treatment,
                             participation = participation,
                             response = response,
+                            exOpt = exOpt,
                             data = data,
                             transport = transport)
   
@@ -291,7 +371,8 @@ obtainWeights <- function(model, type = c("probability", "odds")) {
   if (type == "probability") {
     return(ifelse(model$y == T | model$y == 1, 1 / model$fitted.values, 1 / (1 - model$fitted.values)))
   } else {
-    participationProb <- stats::predict(model, newdata = model$data[model$y == 1 | model$y == T,], type = "response")
+    responseName <- all.vars(model$formula)[1]
+    participationProb <- stats::predict(model, newdata = model$data[model$data[[responseName]] == 1 | model$data[[responseName]] == T,], type = "response")
     return((1-participationProb) / participationProb)
   }
 }
@@ -417,7 +498,7 @@ summary.transportIP <- function(object, covariates = NULL, effectModifiers = NUL
   
   msm <- transportIPResult$msm
   
-  msmSummary <- summary(msm)
+  msmSummary <- suppressWarnings(summary(msm))
   
   if (inherits(msmSummary, "summary.glm")) {
     if (!is.null(msm$var)) msmSummary$cov.scaled <- msm$var

@@ -41,6 +41,77 @@ test_that("Scenario 1: without custom weights, formula provided for propensitySc
   
   testPlot + ggplot2::scale_fill_manual(values = c("#073660", "#2FB9AB")) + ggplot2::theme(text = ggplot2::element_text(size = 15))
   
+  # Testing trimming/truncation
+  expect_no_error(testResult <- suppressWarnings(transportTADA(msmFormula = sysBloodPressure ~ med1,
+                                                               propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                               
+                                                               matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
+                                                               
+                                                               propensityWeights = NULL, 
+                                                               participationWeights = NULL, 
+                                                               
+                                                               treatment = NULL, # med1Study
+                                                               response = NULL, # sysBloodPressureStudy
+                                                               
+                                                               family = gaussian,
+                                                               
+                                                               exOpt = list(propensity = trunc("quantile", 0.99),
+                                                                            participation = trunc("quantile", 0.99),
+                                                                            final = trunc("quantile", 0.99)),
+                                                               
+                                                               studyData = data$studyData,
+                                                               aggregateTargetData = data$aggregateTargetData)))
+  
+  expect_true(is.transportTADA(testResult))
+  
+  expect_no_error(testSummary <- summary(testResult))
+  
+  expect_no_error(testResult <- suppressWarnings(transportTADA(msmFormula = sysBloodPressure ~ med1,
+                                                               propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                               
+                                                               matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
+                                                               
+                                                               propensityWeights = NULL, 
+                                                               participationWeights = NULL, 
+                                                               
+                                                               treatment = NULL, # med1Study
+                                                               response = NULL, # sysBloodPressureStudy
+                                                               
+                                                               family = gaussian,
+                                                               
+                                                               exOpt = list(propensity = trunc("raw", 5),
+                                                                            participation = trunc("raw", 5),
+                                                                            final = trunc("raw", 5)),
+                                                               
+                                                               studyData = data$studyData,
+                                                               aggregateTargetData = data$aggregateTargetData)))
+  
+  expect_true(is.transportTADA(testResult))
+  
+  expect_no_error(testSummary <- summary(testResult))
+  
+  expect_no_error(testResult <- suppressWarnings(transportTADA(msmFormula = sysBloodPressure ~ med1,
+                                                               propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                               
+                                                               matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
+                                                               
+                                                               propensityWeights = NULL, 
+                                                               participationWeights = NULL, 
+                                                               
+                                                               treatment = NULL, # med1Study
+                                                               response = NULL, # sysBloodPressureStudy
+                                                               
+                                                               family = gaussian,
+                                                               
+                                                               exOpt = list(propensity = trim(0.1)),
+                                                               
+                                                               studyData = data$studyData,
+                                                               aggregateTargetData = data$aggregateTargetData)))
+  
+  expect_true(is.transportTADA(testResult))
+  
+  expect_no_error(testSummary <- summary(testResult))
+  
 })
 
 test_that("Scenario 2: without custom weights, glm provided for propensityScoreModel", {
@@ -87,6 +158,76 @@ test_that("Scenario 2: without custom weights, glm provided for propensityScoreM
   expect_true(ggplot2::is.ggplot(testPlot))
   
   testPlot + ggplot2::scale_fill_manual(values = c("#073660", "#2FB9AB")) + ggplot2::theme(text = ggplot2::element_text(size = 15))
+  
+  expect_no_error(testResult <- suppressWarnings(transportTADA(msmFormula = sysBloodPressure ~ med1,
+                                                               propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                               
+                                                               matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
+                                                               
+                                                               propensityWeights = NULL, 
+                                                               participationWeights = NULL, 
+                                                               
+                                                               treatment = NULL, # med1Study
+                                                               response = NULL, # sysBloodPressureStudy
+                                                               
+                                                               family = gaussian,
+                                                               
+                                                               exOpt = list(propensity = trunc("quantile", 0.99),
+                                                                            participation = trunc("quantile", 0.99),
+                                                                            final = trunc("quantile", 0.99)),
+                                                               
+                                                               studyData = data$studyData,
+                                                               aggregateTargetData = data$aggregateTargetData)))
+  
+  expect_true(is.transportTADA(testResult))
+  
+  expect_no_error(testSummary <- summary(testResult))
+  
+  expect_no_error(testResult <- suppressWarnings(transportTADA(msmFormula = sysBloodPressure ~ med1,
+                                                               propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                               
+                                                               matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
+                                                               
+                                                               propensityWeights = NULL, 
+                                                               participationWeights = NULL, 
+                                                               
+                                                               treatment = NULL, # med1Study
+                                                               response = NULL, # sysBloodPressureStudy
+                                                               
+                                                               family = gaussian,
+                                                               
+                                                               exOpt = list(propensity = trunc("raw", 5),
+                                                                            participation = trunc("raw", 5),
+                                                                            final = trunc("raw", 5)),
+                                                               
+                                                               studyData = data$studyData,
+                                                               aggregateTargetData = data$aggregateTargetData)))
+  
+  expect_true(is.transportTADA(testResult))
+  
+  expect_no_error(testSummary <- summary(testResult))
+  
+  expect_no_error(testResult <- suppressWarnings(transportTADA(msmFormula = sysBloodPressure ~ med1,
+                                                               propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                               
+                                                               matchingCovariates = c("sex", "stress", "med2", "toxicGrade", "percentBodyFat"),
+                                                               
+                                                               propensityWeights = NULL, 
+                                                               participationWeights = NULL, 
+                                                               
+                                                               treatment = NULL, # med1Study
+                                                               response = NULL, # sysBloodPressureStudy
+                                                               
+                                                               family = gaussian,
+                                                               
+                                                               exOpt = list(propensity = trim(0.1)),
+                                                               
+                                                               studyData = data$studyData,
+                                                               aggregateTargetData = data$aggregateTargetData)))
+  
+  expect_true(is.transportTADA(testResult))
+  
+  expect_no_error(testSummary <- summary(testResult))
   
 })
 
