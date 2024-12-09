@@ -1,6 +1,9 @@
 ---
 title: "G-computation-based transportability analysis"
+author: "Core Clinical Sciences"
 output: rmarkdown::html_vignette
+bibliography: references.bib
+
 vignette: >
   %\VignetteIndexEntry{G-computation-based transportability analysis}
   %\VignetteEngine{knitr::knitr}
@@ -53,26 +56,28 @@ testData <- generateTestData()
 
 # Introduction
 
-In this vignette, we demonstrate how to use `TransportHealth` for weighting-based transportability analysis for instances where mergeable individual participant-level data (IPD) is available in both the original study and target sample.
+In this vignette, we demonstrate how to use `TransportHealth` for g-computation-based transportability analysis for instances where individual participant-level data (IPD) is available in both the original study and target sample, but they are not mergable.
 
 ## Brief introduction to g-computation
 
-In transportability and generalizability analysis, g-computation proceeds largely the same as in causal inference. Firstly, a model of the outcome in terms of the treatment, covariates and effect modifiers is fitted using the source data. Then, this model is used to calculate fitted values of the outcome when treatment is set to control or treatment for all observations in the target data; in particular, observed covariate and effect modifier values in the target data are used to calculate the fitted values. Finally, treatment effects are calculated using these fitted values to obtain an unbiased estimate of the treatment effect in the target population.
+In transportability and generalizability analysis, g-computation proceeds largely the same as for confounding adjustment. 
+
+Firstly, a model of the outcome in terms of the treatment, covariates and effect modifiers is fitted using the source data. Then, this model is used to calculate fitted values of the outcome when treatment is set to control or treatment for all observations in the target data; in particular, observed covariate and effect modifier values in the target data are used to calculate the fitted values. Finally, treatment effects are calculated using these fitted values to obtain an unbiased estimate of the treatment effect in the target population.
 
 # Example
 
 Suppose we are interested in estimating the causal effect of a medication on systolic blood pressure in a target population, but we were only able to conduct an observational study using samples from the study population. To obtain unbiased causal effect estimates using the study sample, we account for the following covariates: sex, body fat percentage, and stress level.
 
-We wish to know know that the effectiveness of the medication depends on two effect modifiers of stress levels and whether patients are taking another medication.
+We know that the effectiveness of the medication depends on two effect modifiers: 1) stress level, and 2) whether patients are taking another medication.
 
 *Note that the covariates adjusted for in the study data can also be effect modifiers.*
 
-## Coded variables:
+## Coded variables
 
 -   Medication - `med1`
 
     -   `1` for treated
-    -   `0` for non-treated
+    -   `0` for untreated
 
 -   Systolic blood pressure (SBP) - `sysBloodPressure` (continuous)
 
@@ -91,11 +96,11 @@ We wish to know know that the effectiveness of the medication depends on two eff
 -   Medication 2 - `med2`
 
     -   `1` for treated
-    -   `0` for non-treated
+    -   `0` for untreated
     
 ## Analyses
 
-First, for the implementation of g-computation in `TransportHealthR` specifically, the data from the study and target population should be separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only covariate and effect modifier information.
+First, for the implementation of g-computation in `TransportHealthR` specifically, the data from the study and target population should be in separate data frames in the `R` environment. The study data should contain response, treatment, covariate and effect modifier information, while the target data should contain only covariate and effect modifier information.
 
 Suppose that we have the study and target data separately as follows.
 
@@ -179,13 +184,13 @@ result <- TransportHealth::transportGC("meanDiff", # Type of effect estimate (me
 
 ### Producing statistical results
 
-To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the variable names of the treatment and the response, and summaries of the fitted outcome model and the final marginal structural model (MSM). Note that scientific conclusions should only be drawn from the MSM.
+To show the results of the analysis, use `summary` like you would for `lm` when fitting a linear model. Using `summary` will print out the names of the treatment and response variables, the transported treatment effect, its estimated standard error, and a summary of the fitted outcome model. Note that scientific conclusions should only be drawn from the transported effect estimate.
 
 ```{r GComputation-summary, echo = T}
 summary(result)
 ```
 
-The workflow is constructed like this to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. See below for a comparison of `transportGCPreparedModel` objects with `wipe = T` and `wipe = F`.
+The workflow is constructed in this way to accommodate situations where the source data and target data cannot be merged due to privacy concerns. Owners of the source data can apply the `transportGCPreparedModel` function to the source data with `wipe = T` to erase the source data from the `transportGCPreparedModel` object and send this object to the owners of the target data in an `.rds` file. Then the owners of the target data can extract the object to conduct g-computation using `transportGC`. See below for a comparison of `transportGCPreparedModel` objects with `wipe = T` and `wipe = F`.
 
 ```{r GComputation-wipeCompare, echo = T}
 preparedModelNoWipe <- TransportHealth::transportGCPreparedModel(sysBloodPressure ~ med1 + sex + stress + percentBodyFat + med1:stress + med1:med2,

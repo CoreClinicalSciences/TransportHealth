@@ -142,6 +142,7 @@ transportIP <- function (msmFormula,
     # Still okay outside of polr cases because concatenating with a NULL does nothing.
     varMatrix <- stats::var(bootstrapEstimates)
     if (!is.null(nrow(varMatrix))) colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportIPResult$msm$coefficients), names(transportIPResult$msm$zeta))
+    transportIPResult$msm$bootstrapEstimates <- bootstrapEstimates
     transportIPResult$msm$var <- varMatrix
   } else {
     warning("Custom weights are being used. Variance estimates may be biased.")
@@ -333,7 +334,7 @@ transportIPFit <- function(msmFormula,
     model <- survival::survreg(msmFormula, data = toAnalyze, weight = finalWeights)
     } else if (family == "polr") {
     method <- match.arg(method, c("logistic", "probit", "loglog", "cloglog", "cauchit"))
-    model <- MASS::polr(msmFormula, data = toAnalyze, weights = finalWeights, method = method)
+    model <- MASS::polr(msmFormula, data = toAnalyze, weights = finalWeights, method = method, Hess = T)
     }
   } else {
     model <- stats::glm(msmFormula, family = family, data = toAnalyze, weight = finalWeights)

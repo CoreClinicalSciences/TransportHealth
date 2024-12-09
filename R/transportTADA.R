@@ -15,6 +15,7 @@
 #' @param exOpt A list with components \code{propensity}, \code{participation} and \code{final}. Each component specifies whether weights should be trimmed or truncated. Use the functions \code{trim} and \code{trunc} to specify trimming/truncation. Note that only truncation is supported for final weights.
 #' @param studyData The individual participant data (IPD) of study population.
 #' @param aggregateTargetData The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.
+#' @param bootstrapNum Number of bootstrap datasets to simulate to obtain robust variance estimate.
 #'
 #' @details
 #' The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For each of these models, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights.
@@ -47,7 +48,128 @@
 #' @export
 #'
 #' @md
-transportTADA <- function(msmFormula, 
+transportTADA <- function (msmFormula, 
+                           
+                           propensityScoreModel = NULL, 
+                           matchingCovariates = NULL, # User-specified matching covariates inputs
+                           
+                           propensityWeights = NULL, # vector of (custom) propensity weights
+                           participationWeights = NULL, # vector of (custom) participation weights
+                           
+                           treatment = NULL, # string, name of treatment
+                           response = NULL, # string, name of response
+                           
+                           family = stats::gaussian, # any available family for glm such as "gaussian", OR, "coxph" / "survreg"
+                           method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
+                           exOpt = list(propensity = NULL,
+                                      participation = NULL,
+                                      final = NULL),
+                           studyData, # data of study population (studyData): N rows, data.frame with responses and variables
+                           aggregateTargetData,  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
+                           
+                           bootstrapNum = 100) {
+  transportTADAResult <- transportTADAFit(msmFormula,
+                                      propensityScoreModel,
+                                      matchingCovariates,
+                                      propensityWeights,
+                                      participationWeights,
+                                      treatment,
+                                      response,
+                                      family, method, exOpt, studyData, aggregateTargetData)
+  
+  # Correct variance estimates by performing bootstrap, resampling study data non-parametrically and resampling target data parametrically
+  
+  if (!transportTADAResult$customPropensity & !transportTADAResult$customParticipation) {
+    # Extract treatment study data, control study data
+    propensityScoreModel <- transportTADAResult$propensityScoreModel
+    studyData <- propensityScoreModel$data
+    treatmentLevels <- levels(as.factor(propensityScoreModel$y))
+    treatmentGroupData <- list()
+    for (level in treatmentLevels) {
+      treatmentGroupData[[level]] <- studyData[as.character(propensityScoreModel$y) == level, ]
+    }
+    nLevels <- sapply(treatmentGroupData, nrow)
+    names(nLevels) <- treatmentLevels
+    
+    bootstrapEstimates <- t(sapply(1:bootstrapNum,
+                                   function (x) {
+                                     # Resample study data by study group
+                                     treatmentGroupBoot <- list()
+                                     for (level in treatmentLevels) {
+                                       nSample <- nLevels[level]
+                                       treatmentGroupBoot[[level]] <- treatmentGroupData[[level]][sample.int(nSample, replace = T), ]
+                                     }
+                                     for (level in treatmentLevels) {
+                                       if (!exists("studyBoot")) studyBoot <- treatmentGroupBoot[[level]]
+                                       else studyBoot <- rbind(studyBoot, treatmentGroupBoot[[level]])
+                                     }
+                                     
+                                     # Resample target data parametrically, assuming a normal distribution for continuous covariates
+                                     aggregateTargetBoot <- aggregateTargetRef <- transportTADAResult$aggregateTargetData
+                                     varNames <- names(aggregateTargetRef) |> strsplit("_") |> sapply(function(x) x[1]) |> unique()
+                                     
+                                     for (varName in varNames) {
+                                       if (varName == "N") {
+                                         aggregateTargetBoot$N <- aggregateTargetRef$N
+                                       } else {
+                                       aggregateVarNames <- grep(paste0("^",varName,"_"), names(aggregateTargetRef), value = T)
+                                       
+                                       if (any(grepl("_PROP$", aggregateVarNames))) {
+                                         propName <- paste0(varName, "_PROP")
+                                         aggregateTargetBoot[[propName]][1] <- stats::rbinom(1, aggregateTargetRef$N, aggregateTargetRef[[propName]][1]) / aggregateTargetRef$N
+                                       } else if (any(grepl("_(MEAN|MEDIAN|SD)$", aggregateVarNames))) {
+                                         meanName <- paste0(varName, "_MEAN")
+                                         medianName <- paste0(varName, "_MEDIAN")
+                                         sdName <- paste0(varName, "_SD")
+                                         
+                                         meanIdx <- which(names(aggregateTargetRef) == meanName)
+                                         medianIdx <- which(names(aggregateTargetRef) == medianName)
+                                         sdIdx <- which(names(aggregateTargetRef) == sdName)
+                                         
+                                         if (length(meanIdx) == 0 & length(medianIdx) == 0) stop("Please provide mean or median of continuous covariate in target data.")
+                                         
+                                         meanBoot <- ifelse(length(meanIdx) == 1, aggregateTargetRef[1, meanIdx], aggregateTargetRef[1, medianIdx])
+                                         sdBoot <- ifelse(length(sdIdx) == 1, aggregateTargetRef[1, sdIdx], 1)
+                                         
+                                         bootData <- stats::rnorm(aggregateTargetRef$N, meanBoot, sdBoot)
+                                         
+                                         if (length(meanIdx) == 1) aggregateTargetBoot[1,meanIdx] <- mean(bootData)
+                                         if (length(medianIdx) == 1) aggregateTargetBoot[1,medianIdx] <- stats::median(bootData)
+                                         if (length(sdIdx) == 1) aggregateTargetBoot[1, sdIdx] <- stats::sd(bootData)
+                                          }
+                                       }
+                                    }
+                                     
+                                     suppressWarnings(resultBoot <- transportTADAFit(msmFormula,
+                                                                    propensityScoreModel,
+                                                                    matchingCovariates,
+                                                                    propensityWeights,
+                                                                    participationWeights,
+                                                                    treatment,
+                                                                    response,
+                                                                    family, method, exOpt, studyBoot, aggregateTargetBoot))
+                                     
+                                     
+                                     # Add on intercept estimates from polr case. This is okay because concatenating with a NULL does nothing
+                                     return(c(resultBoot$msm$coefficients, resultBoot$msm$zeta))
+                                   }))
+    
+    if (nrow(bootstrapEstimates) == 1) bootstrapEstimates <- t(bootstrapEstimates)
+    
+    # Still okay outside of polr cases because concatenating with a NULL does nothing.
+    varMatrix <- stats::var(bootstrapEstimates)
+    colnames(varMatrix) <- rownames(varMatrix) <- c(names(transportTADAResult$msm$coefficients), names(transportTADAResult$msm$zeta))
+    transportTADAResult$msm$var <- varMatrix
+  } else {
+    warning("Custom weights are being used. Variance estimates may be biased.")
+  }
+  
+  transportTADAResult$bootstrapNum = bootstrapNum
+  
+  return(transportTADAResult)
+}
+
+transportTADAFit <- function(msmFormula, 
                             
                           propensityScoreModel = NULL, 
                           matchingCovariates = NULL, # User-specified matching covariates inputs
@@ -64,7 +186,6 @@ transportTADA <- function(msmFormula,
                           exOpt = list(propensity = NULL,
                                        participation = NULL,
                                        final = NULL),
-                          
                           studyData, # data of study population (studyData): N rows, data.frame with responses and variables
                           aggregateTargetData  # data of target population (aggregateTargetData): 1 row, data.frame with only aggregate variables
                           
@@ -101,15 +222,11 @@ transportTADA <- function(msmFormula,
     # If there are any covariates in the user input that don't match, give a warning and remove them
     if (length(validCov) != length(matchingCovariates)) {
       removedCov <- setdiff(matchingCovariates, validCov)
-      cat("The following user-specfied matching covariates were not found in neither studyData or aggregateTargetData and have been removed:",
-          toString(removedCov), "\n")
+      warning(cat("The following user-specfied matching covariates were not found in neither studyData or aggregateTargetData and have been removed:",
+          toString(removedCov), "\n"))
     }
 
     matchingCovariates <- validCov
-    
-    # Notice for user to double check the validity of matching covariates ready-to-use
-    warning(cat("The following covariates are being used for matching:", toString(matchingCovariates),
-                ". Please ensure that these covariates are meaningful", "\n"))
   } 
   
   #  If formula is provided for treatment and participation models, fit models ourselves
@@ -340,7 +457,7 @@ transportTADA <- function(msmFormula,
   
   if (is.character(family)) {
     
-    if (!(family %in% c("coxph", "survreg"))) {
+    if (!(family %in% c("coxph", "survreg", "polr"))) {
       stop("Please check the family input and set it as one of the following in character: coxph, survreg.")
       }
 
@@ -350,17 +467,14 @@ transportTADA <- function(msmFormula,
       model <- survival::coxph(msmFormula, 
                                data = toAnalyze, 
                                weight = finalWeights)
-      model$var <- sandwich::vcovBS(model)
     } 
     else if (family == "survreg") {
       model <- survival::survreg(msmFormula, 
                                  data = toAnalyze, 
                                  weight = finalWeights)
-      model$var <- sandwich::vcovBS(model)
-    } else if (family == "polr") {
+    } else {
       method <- match.arg(method, c("logistic", "probit", "loglog", "cloglog", "cauchit"))
-      model <- MASS::polr(msmFormula, data = toAnalyze, weights = finalWeights, method = method)
-      model$var <- sandwich::vcovBS(model)
+      model <- MASS::polr(msmFormula, data = toAnalyze, weight = finalWeights, method = method, Hess = T)
     }
   } else {
 
@@ -368,7 +482,6 @@ transportTADA <- function(msmFormula,
                           family = family, 
                           data = toAnalyze, 
                           weight = finalWeights)
-      model$var <- sandwich::vcovBS(model)
     }
   
   transportTADAResult <- list(msm = model, # glm / survreg / coxph / 
