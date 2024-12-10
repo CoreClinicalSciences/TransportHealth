@@ -1,6 +1,7 @@
 test_that("Scenario 1: separate study and target data, formula provided for propensityScoreModel and participationModel", {
   set.seed(20240429)
   data <- generateTestData()
+  
   expect_no_warning(testResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
                                                propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
                                                participationModel = participation ~ stress + med2,
@@ -93,13 +94,13 @@ test_that("Scenario 1: separate study and target data, formula provided for prop
   expect_no_warning(testTruncSummary <- summary(testTruncResult))
   
   expect_no_warning(testTrimResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
-                                                  propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
-                                                  participationModel = participation ~ stress + med2,
-                                                  family = gaussian,
-                                                  data = data,
-                                                  exOpt = list(propensity = trim(0.1),
-                                                               participation = trim(0.1)),
-                                                  transport = T))
+                                propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                participationModel = participation ~ stress + med2,
+                                family = gaussian,
+                                data = data,
+                                exOpt = list(propensity = trim(0.1),
+                                             participation = trim(0.1)),
+                                transport = T))
   
   expect_true(is.transportIP(testTrimResult))
   expect_true(!testTrimResult$customPropensity & !testTrimResult$customParticipation)

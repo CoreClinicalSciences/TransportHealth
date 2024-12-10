@@ -35,7 +35,7 @@ truncWeights <- function(weights,
 }
 
 is.trunc <- function(trunc) {
-  if (!all(names(trunc) %in% c("type", "value"))) return(F)
+  if (!all(c("type", "value") %in% names(trunc))) return(F)
   return(inherits(trunc, "trunc") &
            trunc$type %in% c("quantile", "raw") &
            is.numeric(trunc$value))

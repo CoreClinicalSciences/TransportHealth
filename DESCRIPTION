@@ -20,7 +20,6 @@ Imports:
     MASS (>= 7.3),
     modelsummary (>= 2.0.0),
     rlang,
-    sandwich (>= 3.1),
     smd (>= 0.6.7),
     survival (>= 3.5-8)
 Depends:
