@@ -170,6 +170,49 @@ test_that("Scenario 2: merged study and target data, formula provided for propen
   
   expect_no_warning(testPlot <- plot(testResult, type = "msm"))
   expect_true(ggplot2::is.ggplot(testPlot))
+  
+  # Testing if trimming and truncation works as expected
+  
+  expect_no_warning(testTruncResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                   propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                   participationModel = participation ~ stress + med2,
+                                                   family = gaussian,
+                                                   data = data,
+                                                   exOpt = list(propensity = trunc("quantile", 0.99),
+                                                                participation = trunc("quantile", 0.99),
+                                                                final = trunc("quantile", 0.99)),
+                                                   transport = T))
+  
+  expect_true(is.transportIP(testTruncResult))
+  expect_true(!testTruncResult$customPropensity & !testTruncResult$customParticipation)
+  expect_false(is.data.frame(testTruncResult$data))
+  
+  expect_no_warning(testTruncSummary <- summary(testTruncResult))
+  
+  expect_no_warning(testTruncResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                   propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                   participationModel = participation ~ stress + med2,
+                                                   family = gaussian,
+                                                   data = data,
+                                                   exOpt = list(propensity = trunc("raw", 5),
+                                                                participation = trunc("raw", 5),
+                                                                final = trunc("raw", 10)),
+                                                   transport = T))
+  
+  expect_true(is.transportIP(testTruncResult))
+  expect_true(!testTruncResult$customPropensity & !testTruncResult$customParticipation)
+  expect_false(is.data.frame(testTruncResult$data))
+  
+  expect_no_warning(testTruncSummary <- summary(testTruncResult))
+  
+  expect_no_warning(testTrimResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                  propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                  participationModel = participation ~ stress + med2,
+                                                  family = gaussian,
+                                                  data = data,
+                                                  exOpt = list(propensity = trim(0.1),
+                                                               participation = trim(0.1)),
+                                                  transport = T))
 })
 
 test_that("Scenario 3: glm provided for propensityScoreModel and participationModel (so merged data is provided)", {
@@ -237,6 +280,49 @@ test_that("Scenario 3: glm provided for propensityScoreModel and participationMo
   
   expect_no_warning(testPlot <- plot(testResult, type = "msm"))
   expect_true(ggplot2::is.ggplot(testPlot))
+  
+  # Testing if trimming and truncation works as expected
+  
+  expect_no_warning(testTruncResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                   propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                   participationModel = participation ~ stress + med2,
+                                                   family = gaussian,
+                                                   data = data,
+                                                   exOpt = list(propensity = trunc("quantile", 0.99),
+                                                                participation = trunc("quantile", 0.99),
+                                                                final = trunc("quantile", 0.99)),
+                                                   transport = T))
+  
+  expect_true(is.transportIP(testTruncResult))
+  expect_true(!testTruncResult$customPropensity & !testTruncResult$customParticipation)
+  expect_false(is.data.frame(testTruncResult$data))
+  
+  expect_no_warning(testTruncSummary <- summary(testTruncResult))
+  
+  expect_no_warning(testTruncResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                   propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                   participationModel = participation ~ stress + med2,
+                                                   family = gaussian,
+                                                   data = data,
+                                                   exOpt = list(propensity = trunc("raw", 5),
+                                                                participation = trunc("raw", 5),
+                                                                final = trunc("raw", 10)),
+                                                   transport = T))
+  
+  expect_true(is.transportIP(testTruncResult))
+  expect_true(!testTruncResult$customPropensity & !testTruncResult$customParticipation)
+  expect_false(is.data.frame(testTruncResult$data))
+  
+  expect_no_warning(testTruncSummary <- summary(testTruncResult))
+  
+  expect_no_warning(testTrimResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                  propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                  participationModel = participation ~ stress + med2,
+                                                  family = gaussian,
+                                                  data = data,
+                                                  exOpt = list(propensity = trim(0.1),
+                                                               participation = trim(0.1)),
+                                                  transport = T))
 })
 
 test_that("Scenario 4: separate study and target data, glm provided for propensityScoreModel, but not participationModel", {
@@ -302,6 +388,49 @@ test_that("Scenario 4: separate study and target data, glm provided for propensi
   
   expect_no_warning(testPlot <- plot(testResult, type = "msm"))
   expect_true(ggplot2::is.ggplot(testPlot))
+  
+  # Testing if trimming and truncation works as expected
+  
+  expect_no_warning(testTruncResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                   propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                   participationModel = participation ~ stress + med2,
+                                                   family = gaussian,
+                                                   data = data,
+                                                   exOpt = list(propensity = trunc("quantile", 0.99),
+                                                                participation = trunc("quantile", 0.99),
+                                                                final = trunc("quantile", 0.99)),
+                                                   transport = T))
+  
+  expect_true(is.transportIP(testTruncResult))
+  expect_true(!testTruncResult$customPropensity & !testTruncResult$customParticipation)
+  expect_false(is.data.frame(testTruncResult$data))
+  
+  expect_no_warning(testTruncSummary <- summary(testTruncResult))
+  
+  expect_no_warning(testTruncResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                   propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                   participationModel = participation ~ stress + med2,
+                                                   family = gaussian,
+                                                   data = data,
+                                                   exOpt = list(propensity = trunc("raw", 5),
+                                                                participation = trunc("raw", 5),
+                                                                final = trunc("raw", 10)),
+                                                   transport = T))
+  
+  expect_true(is.transportIP(testTruncResult))
+  expect_true(!testTruncResult$customPropensity & !testTruncResult$customParticipation)
+  expect_false(is.data.frame(testTruncResult$data))
+  
+  expect_no_warning(testTruncSummary <- summary(testTruncResult))
+  
+  expect_no_warning(testTrimResult <- transportIP(msmFormula = sysBloodPressure ~ med1,
+                                                  propensityScoreModel = med1 ~ sex + percentBodyFat + stress,
+                                                  participationModel = participation ~ stress + med2,
+                                                  family = gaussian,
+                                                  data = data,
+                                                  exOpt = list(propensity = trim(0.1),
+                                                               participation = trim(0.1)),
+                                                  transport = T))
 })
 
 test_that("Scenario 5: custom weights", {
