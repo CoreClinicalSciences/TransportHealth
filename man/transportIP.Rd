@@ -15,6 +15,7 @@ transportIP(
   response = NULL,
   family = stats::gaussian,
   method = c("logistic", "probit", "loglog", "cloglog", "cauchit"),
+  exOpt = list(propensity = NULL, participation = NULL, final = NULL),
   data,
   transport = T,
   bootstrapNum = 500
@@ -41,6 +42,8 @@ transportIP(
 
 \item{method}{Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.}
 
+\item{exOpt}{A list with components \code{propensity}, \code{participation} and \code{final}. Each component specifies whether weights should be trimmed or truncated. Use the functions \code{trim} and \code{trunc} to specify trimming/truncation. Note that only truncation is supported for final weights.}
+
 \item{data}{Either a single data frame containing merged study and target datasets, or a list containing the study dataset and the target dataset. Note that if participationModel is a glm object, the datasets would have been merged, so provide the merged dataset containing response, treatment, covariates controlled for in the original study, study participation and effect modifiers if this is the case. Make sure to code treatment and participation as 0-1 or TRUE-FALSE, with 1 and TRUE representing treatment group and study data, respectively.}
 
 \item{transport}{A boolean indicating whether a generalizability analysis (false) or a transportability analysis (true) is done.}
@@ -62,6 +65,7 @@ A \code{transportIP} object containing the following components:
 \item \code{participation}: String indicating variable name of participation
 \item \code{response}: String indicating variable name of response
 \item \code{data}: Data provided in \code{data} argument. Either a list containing study data and target data or a data frame containing both.
+\item \code{exOpt}: Provided \code{exOpt} argument.
 }
 }
 \description{

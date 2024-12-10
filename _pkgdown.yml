@@ -30,11 +30,16 @@ articles:
     contents: 
       - transportIP
       - transportIPMath
-  - title: G-computation
-    navbar: G-computation
+  - title: G-computation methods
+    navbar: G-computation methods
     contents:
       - transportGC
       - transportGCMath
+  - title: Target aggregate data adjustment (TADA) methods
+    navbar: Target aggregate data adjustment (TADA) methods
+    contents:
+      - transportTADA
+      - transportTADAMath
 # @ Quang, similar to simIDM, i want us to put coverage report eventually in. 
 
    # reports: 
@@ -60,3 +65,13 @@ reference:
       - summary.transportGC
       - plot.transportGC
       - is.transportGC
+  - title: Target aggregate data adjustment (TADA) methods
+    contents: 
+      - transportTADA
+      - summary.transportTADA
+      - plot.transportTADA
+      - is.transportTADA
+  - title: Weight trimming and truncating utilities
+    contents:
+      - trim
+      - trunc
