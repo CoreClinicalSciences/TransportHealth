@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Theory of inverse probability or odds weighting • TransportHealth</title>
+<title>Theory of target aggregate data adjustment transportability analysis • TransportHealth</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
@@ -16,7 +16,7 @@
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Theory of inverse probability or odds weighting">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Theory of target aggregate data adjustment transportability analysis">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -76,13 +76,13 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Theory of inverse probability or odds weighting</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Theory of target aggregate data adjustment transportability analysis</h1>
                         <h4 data-toc-skip class="author">Core Clinical
 Sciences</h4>
             
       
 
-      <div class="d-none name"><code>transportIPMath.Rmd</code></div>
+      <div class="d-none name"><code>transportTADAMath.Rmd</code></div>
     </div>
 
     
@@ -91,13 +91,13 @@ Sciences</h4>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
 be the outcome of interest,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
-be the (binary, coded as 0 for control and 1 for treatment) treatment,
+be the binary treatment (coded as 0 for control and 1 for treatment).
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
 be the indicator for study participation (so that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">S=1</annotation></semantics></math>
 means that the subject is in the population of the original study, while
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S = 0</annotation></semantics></math>
-means that the subject is in the target population),
+means that the subject is in the target population).
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐋</mi><annotation encoding="application/x-tex">\mathbf{L}</annotation></semantics></math>
 be covariates to control for confounding in the original study and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐄</mi><annotation encoding="application/x-tex">\mathbf{E}</annotation></semantics></math>
@@ -107,7 +107,7 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>Y</mi><mn>1</mn></msup><annotation encoding="application/x-tex">Y^1</annotation></semantics></math>
 be counterfactual outcomes associated with control and treatment,
 respectively. The primary objective of transportability analysis is to
-estimate the ATE in the target population:
+estimate the average treatment effect (ATE) in the target population:
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>T</mi><mi>E</mi><mo>=</mo><mi mathvariant="normal">E</mi><mrow><mo stretchy="true" form="prefix">[</mo><msup><mi>Y</mi><mn>1</mn></msup><mo>−</mo><msup><mi>Y</mi><mn>0</mn></msup><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">|</mo><mspace width="0.167em"></mspace><mi>S</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">ATE = \mathrm{E}[Y^1 - Y^0 \,|\,S = 0].</annotation></semantics></math></p>
 <p>Simply taking the difference in sample means using the original study
 data will only unbiasedly estimate the quantity
@@ -135,9 +135,44 @@ in the same manner as IP weighting: more specifically, the marginal
 structural model coefficients are estimated by fitting regression models
 on the original study data with the weights
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mn>1</mn></msub><msub><mi>w</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">w_1w_2</annotation></semantics></math>.</p>
-<p>For more information, check out the “What If” book on causal
-inference <span class="citation">(Hernán and Robins 2024)</span> and
-Ling, et al.’s application of IOPW to transportability analysis <span class="citation">(Ling et al. 2022)</span>.</p>
+<p>Assume that there is individual patient-level data (IPD) available
+for the study data, but only aggregate-level data (AgD) is available for
+the target data. The first set of weights,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mn>1</mn></msub><annotation encoding="application/x-tex">w_1</annotation></semantics></math>
+can be obtained using logistic regression on the study data. However,
+this is not possible for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mn>2</mn></msub><annotation encoding="application/x-tex">w_2</annotation></semantics></math>,
+so we use a method of moments (MoM) approach to obtain it instead. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>
+denote effect modifiers that we wish to adjust for. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\mathbf{X}_{i}</annotation></semantics></math>
+be the value of the effect modifiers for each individual patient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+in study sample. Let
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>𝐗</mi><mo accent="true">¯</mo></mover><annotation encoding="application/x-tex">\overline{\mathbf{X}}</annotation></semantics></math>
+be the mean of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐗</mi><annotation encoding="application/x-tex">\mathbf{X}</annotation></semantics></math>
+in the target sample.</p>
+<p>We assume that the weight for individual patient
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+is
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>w</mi><mi>i</mi><mtext mathvariant="bold">𝐌𝐨𝐌</mtext></msubsup><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>α</mi><mo>+</mo><msub><mi>X</mi><mi>i</mi></msub><mo>⋅</mo><mi>𝐤</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">w_i^\textbf{MoM} = \exp(\alpha + X_{i}\cdot \mathbf{k}).</annotation></semantics></math>
+These weights implicitly mimic the inverse odds of participation
+weighting approach when IPD for target data is available. Instead of
+logistic regression, the coefficients
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐤</mi><annotation encoding="application/x-tex">\mathbf{k}</annotation></semantics></math>
+in the weight will be estimated to satisfy the equality constraint:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><msub><mi>w</mi><mn>2</mn></msub><msub><mi>𝐗</mi><mi>i</mi></msub></mrow><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><msub><mi>w</mi><mn>2</mn></msub></mrow></mfrac><mo>=</mo><mover><mi>𝐗</mi><mo accent="true">¯</mo></mover><mi>.</mi></mrow><annotation encoding="application/x-tex">\frac{\sum_{i=1}^{N} w_2\mathbf{X}_{i}}{\sum_{i=1}^{N}w_2} = \overline{\mathbf{X}}.</annotation></semantics></math></p>
+<p>Once
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mn>2</mn></msub><annotation encoding="application/x-tex">w_2</annotation></semantics></math>
+is obtained, the remainder of the analysis proceeds as for inverse odds
+of participation weighting. For more information, check out the “What
+If” book on causal inference <span class="citation">(Hernán and Robins
+2024)</span> and the introduction of method of moments by Phillippo et
+al. <span class="citation">(Phillippo et al. 2018)</span> originally in
+indirect treatment comparison (ITC) application.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
@@ -146,11 +181,11 @@ Ling, et al.’s application of IOPW to transportability analysis <span class="c
 Hernán, MA, and JM Robins. 2024. <em>Causal Inference: What If?</em>
 Boca Raton: Chapman &amp; Hall/CRC.
 </div>
-<div id="ref-ling" class="csl-entry">
-Ling, AY, R Jreich, ME Montez-Rath, Z Meng, K Kappahn, KJ Chandross, and
-M Desai. 2022. <span>“Transporting Observational Sutdy Results to a
-Target Population of Interest Using Inverse Odds of Particpation
-Weighting.”</span> <em>PLoS ONE</em> 17: e0278842. https://doi.org/<a href="https://doi.org/10.1371/journal.pone.0278842" class="external-link">https://doi.org/10.1371/journal.pone.0278842</a>.
+<div id="ref-phillippo2018methods" class="csl-entry">
+Phillippo, David M, Anthony E Ades, Sofia Dias, Stephen Palmer, Keith R
+Abrams, and Nicky J Welton. 2018. <span>“Methods for Population-Adjusted
+Indirect Comparisons in Health Technology Appraisal.”</span> <em>Medical
+Decision Making</em> 38 (2): 200–211.
 </div>
 </div>
 </div>

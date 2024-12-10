@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">TransportHealth</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,9 +48,13 @@
     <li><a class="dropdown-item" href="../articles/transportIP.html">Inverse probability or odds weighting-based transportability analysis</a></li>
     <li><a class="dropdown-item" href="../articles/transportIPMath.html">Theory of inverse probability or odds weighting</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>G-computation</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>G-computation methods</h6></li>
     <li><a class="dropdown-item" href="../articles/transportGC.html">G-computation-based transportability analysis</a></li>
     <li><a class="dropdown-item" href="../articles/transportGCMath.html">Theory of g-computation</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Target aggregate data adjustment (TADA) methods</h6></li>
+    <li><a class="dropdown-item" href="../articles/transportTADA.html">Target aggregate data adjustment transportability analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/transportTADAMath.html">Theory of target aggregate data adjustment transportability analysis</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -83,6 +87,11 @@ Sciences</h4>
 
     
     
+<pre><code><span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'TransportHealth'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     trunc</span></span></code></pre>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -177,7 +186,7 @@ treatment, covariate and effect modifier information, while the target
 data should contain only covariate and effect modifier information.</p>
 <p>Suppose that we have the study and target data separately as
 follows.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">testData</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "studyData"  "targetData"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Study data:"</span><span class="op">)</span></span>
@@ -203,7 +212,7 @@ follows.</p>
 <p>We can now perform transportability analysis using g-computation with
 the <code>transportGCPreparedModel</code> and <code>transportGC</code>
 functions.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/transportGCPreparedModel.html">transportGCPreparedModel</a></span><span class="op">(</span><span class="va">outcomeModel</span>,</span>
 <span>                         <span class="va">treatment</span>,</span>
 <span>                         <span class="va">family</span>,</span>
@@ -271,7 +280,7 @@ terms of the effect modifiers. We need to wrap the results using the
 <code>transportGCPreparedModel</code> function to be able to use the
 <code>transportGC</code> function, as follows. Note that we only provide
 the study data to this function.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">preparedModel</span> <span class="op">&lt;-</span> <span class="fu">TransportHealth</span><span class="fu">::</span><span class="fu"><a href="../reference/transportGCPreparedModel.html">transportGCPreparedModel</a></span><span class="op">(</span><span class="va">sysBloodPressure</span> <span class="op">~</span> <span class="va">med1</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">stress</span> <span class="op">+</span> <span class="va">percentBodyFat</span> <span class="op">+</span> <span class="va">med1</span><span class="op">:</span><span class="va">stress</span> <span class="op">+</span> <span class="va">med1</span><span class="op">:</span><span class="va">med2</span>, <span class="co"># Formula for outcome model</span></span>
 <span>                                          treatment <span class="op">=</span> <span class="st">"med1"</span>, <span class="co"># Name of treatment variable</span></span>
 <span>                                          family <span class="op">=</span> <span class="va">gaussian</span>, <span class="co"># Type of model</span></span>
@@ -282,7 +291,7 @@ the study data to this function.</p>
 systolic blood pressure in the target population, we can use the
 <code>transportGC</code> function as follows. Note that we only provide
 the target data to this function.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">TransportHealth</span><span class="fu">::</span><span class="fu"><a href="../reference/transportGC.html">transportGC</a></span><span class="op">(</span><span class="st">"meanDiff"</span>, <span class="co"># Type of effect estimate (mean difference, relative risk, etc)</span></span>
 <span>                      <span class="va">preparedModel</span>, <span class="co"># transportGCPreparedModel object</span></span>
 <span>                      <span class="va">testData</span><span class="op">$</span><span class="va">targetData</span> <span class="co"># Target data</span></span>
@@ -298,7 +307,7 @@ response variables, the transported treatment effect, its estimated
 standard error, and a summary of the fitted outcome model. Note that
 scientific conclusions should only be drawn from the transported effect
 estimate.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Response: sysBloodPressure</span></span>
 <span><span class="co">#&gt; Treatment: med1</span></span>
@@ -342,7 +351,7 @@ of the target data can extract the object to conduct g-computation using
 <code>transportGC</code>. See below for a comparison of
 <code>transportGCPreparedModel</code> objects with <code>wipe = T</code>
 and <code>wipe = F</code>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">preparedModelNoWipe</span> <span class="op">&lt;-</span> <span class="fu">TransportHealth</span><span class="fu">::</span><span class="fu"><a href="../reference/transportGCPreparedModel.html">transportGCPreparedModel</a></span><span class="op">(</span><span class="va">sysBloodPressure</span> <span class="op">~</span> <span class="va">med1</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">stress</span> <span class="op">+</span> <span class="va">percentBodyFat</span> <span class="op">+</span> <span class="va">med1</span><span class="op">:</span><span class="va">stress</span> <span class="op">+</span> <span class="va">med1</span><span class="op">:</span><span class="va">med2</span>,</span>
 <span>                                          treatment <span class="op">=</span> <span class="st">"med1"</span>,</span>
 <span>                                          family <span class="op">=</span> <span class="va">gaussian</span>,</span>
@@ -561,13 +570,13 @@ dataset to obtain bootstrap samples of the MSM coefficient
 estimates.</p>
 <p>To obtain a coefficient plot of estimates, use the <code>plot</code>
 function.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportGC_files/figure-html/GComputation-plot-1.png" width="700"></p>
 <p>One can assess the appropriateness of the outcome model by performing
 usual diagnostic techniques on the outcome model. For example, we can
 look at the residual plot of the outcome model.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">preparedModel</span><span class="op">$</span><span class="va">outcomeModel</span>, which <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportGC_files/figure-html/OutcomeModelResidualPlot-1.png" width="700"></p>
 <p>In our example, the residual plot of the outcome model is

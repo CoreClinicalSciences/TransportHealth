@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">TransportHealth</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,9 +48,13 @@
     <li><a class="dropdown-item" href="../articles/transportIP.html">Inverse probability or odds weighting-based transportability analysis</a></li>
     <li><a class="dropdown-item" href="../articles/transportIPMath.html">Theory of inverse probability or odds weighting</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>G-computation</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>G-computation methods</h6></li>
     <li><a class="dropdown-item" href="../articles/transportGC.html">G-computation-based transportability analysis</a></li>
     <li><a class="dropdown-item" href="../articles/transportGCMath.html">Theory of g-computation</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Target aggregate data adjustment (TADA) methods</h6></li>
+    <li><a class="dropdown-item" href="../articles/transportTADA.html">Target aggregate data adjustment transportability analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/transportTADAMath.html">Theory of target aggregate data adjustment transportability analysis</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -83,6 +87,11 @@ Sciences</h4>
 
     
     
+<pre><code><span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'TransportHealth'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     trunc</span></span></code></pre>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -199,7 +208,7 @@ the study data and the target data, with participation being coded as
 </ul>
 <!-- This is not clear. Do they need to add two variables one for study data and one for target data and then label them? Or do they just need one variable, and if so, which dataset should that variable reference (e.g., "study data" or "target data"?  --><p>Suppose that we have the study and target data separately as
 follows.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">testData</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "studyData"  "targetData"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Study data:"</span><span class="op">)</span></span>
@@ -226,7 +235,7 @@ follows.</p>
 based on the IOPW approach using the <code>transportIP</code>
 function.</p>
 <!-- Quang, insert blank function here -->
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/transportIP.html">transportIP</a></span><span class="op">(</span><span class="va">msmFormula</span>,</span>
 <span>            <span class="va">propensityScoreModel</span>,</span>
 <span>            <span class="va">participationModel</span>,</span>
@@ -303,7 +312,7 @@ study</p></li>
 <li><p><code>med2</code> (other medication) and <code>stress</code> are
 effect modifiers of interest.</p></li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">TransportHealth</span><span class="fu">::</span><span class="fu"><a href="../reference/transportIP.html">transportIP</a></span><span class="op">(</span></span>
 <span>  <span class="co"># MSM formula</span></span>
 <span>  msmFormula <span class="op">=</span> <span class="va">sysBloodPressure</span> <span class="op">~</span> <span class="va">med1</span>, </span>
@@ -341,7 +350,7 @@ generalizability analysis.</p>
 <p>Note that if custom participation weights are provided, the balance
 tables default to transportability analysis since only the weights for
 observations in the study data are provided.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Absolute SMDs of covariates between treatments before and after weighting:</span></span>
 <span><span class="co">#&gt;                       variable          smd   method</span></span>
@@ -365,8 +374,8 @@ observations in the study data are provided.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept)  116.715      0.169  690.31  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; med11         -1.771      0.497   -3.56  0.00039 ***</span></span>
+<span><span class="co">#&gt; (Intercept)  116.715      0.128  915.37  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; med11         -1.771      0.232   -7.63  5.3e-14 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -383,7 +392,7 @@ the propensity model, the participation model and the MSM. You can use
 methods like <code>coef</code> and <code>residuals</code> on these
 objects themselves. This is not implemented by the package because they
 are not as useful as implementing <code>summary</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">msmResiduals</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">msm</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">msmCoefficients</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">msm</span><span class="op">)</span></span></code></pre></div>
@@ -404,10 +413,10 @@ different treatment groups or of participating in the study for the
 study and target data, respectively. Non-overlap of the ranges of the
 histograms suggest violations of the positivity assumption <span class="citation">(Wizard, n.d.b)</span>.</li>
 </ul>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"propensityHist"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportIP_files/figure-html/IPWeighting-hist-1.png" width="700"></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"participationHist"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportIP_files/figure-html/IPWeighting-hist-2.png" width="700"></p>
@@ -424,10 +433,10 @@ mean differences (SMDs), which are shown in table form by the
 these tables. A general guideline is that an SMD of below 0.1 indicates
 balance, but this threshold is arbitrary and left to the choice of the
 analyst <span class="citation">(Wizard, n.d.a)</span>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"propensitySMD"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportIP_files/figure-html/IPWeighting-smd-1.png" width="700"></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"participationSMD"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportIP_files/figure-html/IPWeighting-smd-2.png" width="700"></p>
@@ -435,7 +444,7 @@ analyst <span class="citation">(Wizard, n.d.a)</span>.</p>
 estimates are provided by <code>plot</code> function with
 <code>type = "msm"</code>. The standard errors are the correct ones
 calculated by bootstrap.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span>, type <span class="op">=</span> <span class="st">"msm"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportIP_files/figure-html/IPWeighting-msm-1.png" width="700"></p>
 <p>Note that as all plot outputs are designed to be generated with

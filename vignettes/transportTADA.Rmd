@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, echo = FALSE}
+```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
 library(TransportHealth)
 
 expit <- function(x) 1/(1+exp(-x))

@@ -7,6 +7,8 @@
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportGCMath.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportIP.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportIPMath.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportTADA.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportTADAMath.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/authors.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/index.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/LICENSE-text.html</loc></url>
@@ -16,12 +18,18 @@
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportGC.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportGCPreparedModel.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportTADA.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportGC.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportTADA.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/summary.transportGC.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/summary.transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/summary.transportTADA.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportGC.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportGCPreparedModel.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportTADA.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/trim.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/trunc.html</loc></url>
 </urlset>
 
