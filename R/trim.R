@@ -25,7 +25,7 @@ trimInd <- function(weightGLM, trim) {
 }
 
 is.trim <- function(trim) {
-  if (!all(names(trim) %in% c("value"))) return(F)
+  if (!all(c("value") %in% names(trim))) return(F)
   return(inherits(trim, "trim") &
            is.numeric(trim$value))
 }
