@@ -1,75 +1,27 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/404.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/articles/assumptions.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/articles/overview.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportGC.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportGCMath.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportIP.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportIPMath.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/index.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportGC.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportGCPreparedModel.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportIP.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportGC.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportIP.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/summary.transportGC.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/summary.transportIP.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportGC.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportGCPreparedModel.html</loc>
-  </url>
-  <url>
-    <loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportIP.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/404.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/assumptions.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/index.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/overview.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportGC.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportGCMath.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportIPMath.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/authors.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/index.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/LICENSE-text.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/LICENSE.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/news/index.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/index.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportGC.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportGCPreparedModel.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportGC.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/summary.transportGC.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/summary.transportIP.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportGC.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportGCPreparedModel.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/transportIP.html</loc></url>
 </urlset>
+
