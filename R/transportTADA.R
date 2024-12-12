@@ -1250,7 +1250,7 @@ plot.transportTADA <- function(x, type = "propensityHist", bins = 50, maxWeight 
 #' @export
 #'
 is.transportTADA <- function (transportTADAResult) {
-  return((inherits(transportTADAResult$msm, "glm") | inherits(transportTADAResult$msm, "coxph") | inherits(transportTADAResult$msm, "survreg")) &
+  return((inherits(transportTADAResult$msm, "glm") | inherits(transportTADAResult$msm, "coxph") | inherits(transportTADAResult$msm, "survreg") | inherits(transportTADAResult$msm, "polr")) &
            
          (inherits(transportTADAResult$propensityScoreModel, "glm") | is.null(transportTADAResult$propensityScoreModel)) & 
            
