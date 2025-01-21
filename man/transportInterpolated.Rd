@@ -59,5 +59,8 @@ A \code{transportInterpolated} object with the following components:
 Estimates the average treatment effect (ATE) using interpolated g-computation in a generalizability or transportability analysis. In particular, the estimators should be unbiased for the ATE in the superpopulation or the target population, respectively.
 }
 \details{
-This function transports the ATE estimate from the original study data to the target data by utilizing subgroup effect estimates in the same way as network meta-interpolation (cite Ofir's paper). As standard errors are transported manually, no bootstrapping is done, unlike other methods supported by \code{TransportHealthR}.
+This function transports the ATE estimate from the original study data to the target data by utilizing subgroup effect estimates in the same way as network meta-interpolation \insertCite{harari}{TransportHealth}. As standard errors are transported manually, no bootstrapping is done, unlike other methods supported by \code{TransportHealthR}.
+}
+\references{
+\insertAllCited{}
 }

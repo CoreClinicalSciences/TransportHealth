@@ -15,8 +15,10 @@
 #' @param aggregateStudyData Vector of proportions of dichotomized effect modifiers in study data. Please provide proportions of only one category for each effect modifier. This category should correspond to the the first ATE and SE provided for each effect modifier.
 #' @param targetData May be IPD or aggregate. If aggregate, provide proportions of only one category of dichotomized effect modifiers in a named vector (not a data frame)
 #'
+#' @importFrom Rdpack reprompt
+#'
 #' @details
-#' This function transports the ATE estimate from the original study data to the target data by utilizing subgroup effect estimates in the same way as network meta-interpolation (cite Ofir's paper). As standard errors are transported manually, no bootstrapping is done, unlike other methods supported by \code{TransportHealthR}.
+#' This function transports the ATE estimate from the original study data to the target data by utilizing subgroup effect estimates in the same way as network meta-interpolation \insertCite{harari}{TransportHealth}. As standard errors are transported manually, no bootstrapping is done, unlike other methods supported by \code{TransportHealthR}.
 #' 
 #' @return
 #' A \code{transportInterpolated} object with the following components:
@@ -32,6 +34,9 @@
 #' * \code{studySampleSize}: Sample size of original study
 #' * \code{aggregateStudyData}: Aggregate-level study data, as provided
 #' * \code{targetData}: Target data, as provided
+#' 
+#' @references
+#'  \insertAllCited{}
 #' 
 #' @export
 #' 

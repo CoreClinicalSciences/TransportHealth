@@ -1,6 +1,6 @@
 Package: TransportHealth
 Title: Transportability Analysis
-Version: 0.3.0
+Version: 1.0.0
 Authors@R: c(
     person("Core Clinical Sciences", , , "ccs@coreclinicalsciences.com", role = "aut"),
     person("Quang", "Vuong", , "quang@coreclinicalsciences.com", role = c("cre", "ctb")),
@@ -12,7 +12,7 @@ Description: Perform generalizability and transportability analysis for mergable
 License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Imports:
     ggplot2 (>= 3.5.1),
     halfmoon (>= 0.1.0),
@@ -21,10 +21,12 @@ Imports:
     modelsummary (>= 2.0.0),
     rlang,
     smd (>= 0.6.7),
-    survival (>= 3.5-8)
+    survival (>= 3.5-8),
+    Rdpack
 Depends:
     R (>= 4.3.0)
 Suggests: 
+    geex,
     knitr,
     markdown,
     rmarkdown,
@@ -32,3 +34,4 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+RdMacros: Rdpack
