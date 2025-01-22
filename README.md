@@ -10,11 +10,9 @@ Transportability and generalizability analyses are types of causal inference met
 
 - G-computation for unmergable IPDs of original and target studies
 
-- Target aggregate data adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of a target study
-
 - Target Aggregate Data Adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of a target study
 
-- Methods that can transport aggregate data from the original study to IPD from a target study
+- Interpolated g-computation that can transport aggregate data from the original study to IPD or aggregate data from a target study
 
 ## Getting Started
 
