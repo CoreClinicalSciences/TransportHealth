@@ -21,8 +21,7 @@ Imports:
     modelsummary (>= 2.0.0),
     rlang,
     smd (>= 0.6.7),
-    survival (>= 3.5-8),
-    Rdpack
+    survival (>= 3.5-8)
 Depends:
     R (>= 4.3.0)
 Suggests: 
@@ -34,4 +33,3 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-RdMacros: Rdpack

@@ -18,7 +18,7 @@
 #' @importFrom Rdpack reprompt
 #'
 #' @details
-#' This function transports the ATE estimate from the original study data to the target data by utilizing subgroup effect estimates in the same way as network meta-interpolation \insertCite{harari}{TransportHealth}. As standard errors are transported manually, no bootstrapping is done, unlike other methods supported by \code{TransportHealthR}.
+#' This function transports the ATE estimate from the original study data to the target data by utilizing subgroup effect estimates in the same way as network meta-interpolation (Harari et al., 2023). As standard errors are transported manually, no bootstrapping is done, unlike other methods supported by \code{TransportHealthR}.
 #' 
 #' @return
 #' A \code{transportInterpolated} object with the following components:
@@ -36,7 +36,7 @@
 #' * \code{targetData}: Target data, as provided
 #' 
 #' @references
-#'  \insertAllCited{}
+#' Harari O, Soltanifar M, Cappelleri JC, et al. Network meta-interpolation: Effect modification adjustment in network meta-analysis using subgroup analyses. Res Syn Meth. 2023; 14(2): 211-233. doi:10.1002/jrsm.1608
 #' 
 #' @export
 #' 

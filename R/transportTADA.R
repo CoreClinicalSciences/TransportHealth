@@ -20,7 +20,7 @@
 #' @importFrom Rdpack reprompt
 #' 
 #' @details
-#' The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For the propensity score model, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights. The weights that adjust for effect modifiers are calculated in a manner analogous to matching-adjusted indirect comparison (MAIC) \insertCite{phillippo2018methods}{TransportHealth}; this is supported by helper functions based on those used in the \code{maicplus} package \insertCite{maicplus}{TransportHealth}.
+#' The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For the propensity score model, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights. The weights that adjust for effect modifiers are calculated in a manner analogous to matching-adjusted indirect comparison (MAIC) (Phillipo et al., 2018); this is supported by helper functions based on those used in the \code{maicplus} package (Chen et al., 2024).
 #' 
 #' The MSM-fitting functions do not provide correct standard errors as-is. Bootstrap is used to calculate robust bootstrap variance estimators of the parameter estimators. The function replaces the variance component in \code{summary.glm}, \code{coxph} and \code{survreg} with the robust variance estimators directly. This does not seem to behave well with \code{predict.glm} yet, but prediction is not of primary interest in a transportability analysis.
 #' 
@@ -47,12 +47,11 @@
 #' * \code{centeredStudyData}: The data frame with both the processed study data and centered study data. 
 #' * \code{exOpt}: Provided \code{exOpt} argument.
 #' 
-<<<<<<< HEAD
-=======
 #' @references
-#'\insertAllCited{}
-#'  
->>>>>>> dev
+#' Chen G, Seo M, Gravestock I (2024). maicplus: Matching Adjusted Indirect Comparison. R package version 0.1.1, <https://CRAN.R-project.org/package=maicplus>.
+#' 
+#' Phillippo DM, Ades AE, Dias S, Palmer S, Abrams KR, Welton NJ. Methods for Population-Adjusted Indirect Comparisons in Health Technology Appraisal. Medical Decision Making. 2018;38(2):200-211. doi:10.1177/0272989X17725740
+#' 
 #' @export
 #'
 #' @md
