@@ -40,6 +40,11 @@ articles:
     contents:
       - transportTADA
       - transportTADAMath
+  - title: Interpolated g-computation methods
+    navbar: Interpolated g-computation methods
+    contents:
+      - transportInterpolated
+      - transportInterpolatedMath
 # @ Quang, similar to simIDM, i want us to put coverage report eventually in. 
 
    # reports: 
@@ -71,6 +76,12 @@ reference:
       - summary.transportTADA
       - plot.transportTADA
       - is.transportTADA
+  - title: Interpolated g-computation methods
+    contents: 
+      - transportInterpolated
+      - summary.transportInterpolated
+      - plot.transportInterpolated
+      - is.transportInterpolated
   - title: Weight trimming and truncating utilities
     contents:
       - trim

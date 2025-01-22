@@ -1,6 +1,7 @@
 ---
 title: "Theory of interpolated g-computation"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{transportInterpolatedMath}
   %\VignetteEngine{knitr::knitr}
@@ -46,3 +47,8 @@ $$\hat{\Delta}' = (\vec{p}')^T(M_1^TM_1)^{-1}M_1^T\vec{\Delta},$$
 and its estimated standard error is
 $$\hat{\sigma}' = \sqrt{(\vec{p}'')^TM_2^T(M_2M_2^T)^{-1}\vec{\sigma}^2}.$$
 In other words, regression models of the treatment effects and their standard errors against effect modifiers are fit using the original study data, and the fitted models are used to calculate estimated treatment effects and standard errors at the proportions of 1s of effect modifiers in the target data.
+
+## References
+
+::: {#refs}
+:::

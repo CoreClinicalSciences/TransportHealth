@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">TransportHealth</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,10 @@
     <li><h6 class="dropdown-header" data-toc-skip>Target aggregate data adjustment (TADA) methods</h6></li>
     <li><a class="dropdown-item" href="../articles/transportTADA.html">Target aggregate data adjustment transportability analysis</a></li>
     <li><a class="dropdown-item" href="../articles/transportTADAMath.html">Theory of target aggregate data adjustment transportability analysis</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Interpolated g-computation methods</h6></li>
+    <li><a class="dropdown-item" href="../articles/transportInterpolated.html">Transportability analysis with interpolated g-computation</a></li>
+    <li><a class="dropdown-item" href="../articles/transportInterpolatedMath.html">Theory of interpolated g-computation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -153,9 +157,14 @@
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For each of these models, if a formula is provided, logistic regression is used by default. If a <code>glm</code> object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights.</p>
+    <p>The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For the propensity score model, if a formula is provided, logistic regression is used by default. If a <code>glm</code> object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights. The weights that adjust for effect modifiers are calculated in a manner analogous to matching-adjusted indirect comparison (MAIC) (Phillipo et al., 2018); this is supported by helper functions based on those used in the <code>maicplus</code> package (Chen et al., 2024).</p>
 <p>The MSM-fitting functions do not provide correct standard errors as-is. Bootstrap is used to calculate robust bootstrap variance estimators of the parameter estimators. The function replaces the variance component in <code>summary.glm</code>, <code>coxph</code> and <code>survreg</code> with the robust variance estimators directly. This does not seem to behave well with <code>predict.glm</code> yet, but prediction is not of primary interest in a transportability analysis.</p>
-<p>Ensure the binary variables are labelled as 0-1 format</p>
+<p>Ensure the binary variables are labelled as 0-1 format.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Chen G, Seo M, Gravestock I (2024). maicplus: Matching Adjusted Indirect Comparison. R package version 0.1.1, <a href="https://CRAN.R-project.org/package=maicplus" class="external-link">https://CRAN.R-project.org/package=maicplus</a>.</p>
+<p>Phillippo DM, Ades AE, Dias S, Palmer S, Abrams KR, Welton NJ. Methods for Population-Adjusted Indirect Comparisons in Health Technology Appraisal. Medical Decision Making. 2018;38(2):200-211. doi:10.1177/0272989X17725740</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

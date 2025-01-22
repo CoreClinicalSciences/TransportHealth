@@ -6,11 +6,13 @@ articles:
   overview: overview.html
   transportGC: transportGC.html
   transportGCMath: transportGCMath.html
+  transportInterpolated: transportInterpolated.html
+  transportInterpolatedMath: transportInterpolatedMath.html
   transportIP: transportIP.html
   transportIPMath: transportIPMath.html
   transportTADA: transportTADA.html
   transportTADAMath: transportTADAMath.html
-last_built: 2024-12-10T21:30Z
+last_built: 2025-01-22T00:30Z
 urls:
   reference: https://coreclinicalsciences.github.io/TransportHealth/reference
   article: https://coreclinicalsciences.github.io/TransportHealth/articles
