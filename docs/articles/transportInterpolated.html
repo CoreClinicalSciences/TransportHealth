@@ -89,11 +89,6 @@
 
     
     
-<pre><code><span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'TransportHealth'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     trunc</span></span></code></pre>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -198,7 +193,7 @@ modifier should be next to each other with the subgroup effect of the
 in which the subgroup treatment effects and summary study data are
 provided. In our study, the aggregate-level study data is formatted as
 follows.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Treatment effect:"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Treatment effect:"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">testData</span><span class="op">$</span><span class="va">mainTreatmentEffect</span><span class="op">)</span></span>
@@ -252,7 +247,7 @@ the correlation matrix is calculated from the target data when
 individual patient-level data is provided, and an independent
 correlation structure is assumed when aggregate data is provided. In
 this example, the target data is formatted as follows.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"Target data:"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Target data:"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">testData</span><span class="op">$</span><span class="va">targetData</span><span class="op">)</span></span>
@@ -265,7 +260,7 @@ this example, the target data is formatted as follows.</p>
 <span><span class="co">#&gt; 6   0      1    0       27.64520                   1 1500</span></span></code></pre></div>
 <p>We can now perform transportability analysis using interpolated
 g-computation with the <code>transportInterpolated</code> function.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/transportInterpolated.html">transportInterpolated</a></span><span class="op">(</span><span class="va">link</span>,</span>
 <span>                      <span class="va">effectModifiers</span>,</span>
 <span>                      <span class="va">mainTreatmentEffect</span>,</span>
@@ -320,7 +315,7 @@ effect modifiers of interest.</p></li>
 function as follows. As <code>sysBloodPressure</code> is a continuous
 outcome, the effect estimates are mean differences, so
 <code>link = "identity"</code> will be used.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/transportInterpolated.html">transportInterpolated</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"identity"</span>,</span>
 <span>                                effectModifiers <span class="op">=</span> <span class="va">testData</span><span class="op">$</span><span class="va">effectModifiers</span>,</span>
 <span>                                mainTreatmentEffect <span class="op">=</span> <span class="va">testData</span><span class="op">$</span><span class="va">mainTreatmentEffect</span>,</span>
@@ -340,7 +335,7 @@ you would for <code>lm</code> when fitting a linear model. Using
 its estimated standard error, the link function, and summaries of the
 data provided to the function. Note that scientific conclusions should
 only be drawn from this output.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Transported ATE: -3.95921451963891</span></span>
 <span><span class="co">#&gt; Standard error: 0.304971797066218</span></span>
@@ -374,7 +369,7 @@ the main treatment effect to evaluate whether the interaction effect is
 larger than the main effect.</p>
 <p>To obtain a coefficient plot of estimates, use the <code>plot</code>
 function.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div>
 <p><img src="transportInterpolated_files/figure-html/GComputation-plot-1.png" width="700"></p>
 <p>Like other methods supported by <code>TransportHealth</code>, the
