@@ -3,7 +3,7 @@
 \name{summary.transportGC}
 \alias{summary.transportGC}
 \alias{print.summary.transportGC}
-\title{Summarize results of a fitted MSM object using g-computation}
+\title{Summarize results of transportability analysis using g-computation}
 \usage{
 \method{summary}{transportGC}(object, ...)
 
@@ -29,5 +29,5 @@ The \code{summary.transportGC} function returns a \code{summary.transportGC} obj
 }
 }
 \description{
-Returns summary object which contains summary objects for the MSM and the outcome model, as well as information about response and treatment variables. In the MSM summary object, the correct variance estimators are calculated.
+Returns summary object which contains the transported effect estimate and the outcome model summary object, as well as information about response and treatment variables. In the MSM summary object, the correct variance estimators are calculated.
 }

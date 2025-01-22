@@ -17,12 +17,14 @@
 #' @param aggregateTargetData The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.
 #' @param bootstrapNum Number of bootstrap datasets to simulate to obtain robust variance estimate.
 #'
+#' @importFrom Rdpack reprompt
+#' 
 #' @details
-#' The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For each of these models, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights.
+#' The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For the propensity score model, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights. The weights that adjust for effect modifiers are calculated in a manner analogous to matching-adjusted indirect comparison (MAIC) \insertCite{phillippo2018methods}{TransportHealth}; this is supported by helper functions based on those used in the \code{maicplus} package \insertCite{maicplus}{TransportHealth}.
 #' 
 #' The MSM-fitting functions do not provide correct standard errors as-is. Bootstrap is used to calculate robust bootstrap variance estimators of the parameter estimators. The function replaces the variance component in \code{summary.glm}, \code{coxph} and \code{survreg} with the robust variance estimators directly. This does not seem to behave well with \code{predict.glm} yet, but prediction is not of primary interest in a transportability analysis.
 #' 
-#' Ensure the binary variables are labelled as 0-1 format
+#' Ensure the binary variables are labelled as 0-1 format.
 #' 
 #' @return
 #' A \code{transportTADA} object containing the following components:
@@ -45,6 +47,12 @@
 #' * \code{centeredStudyData}: The data frame with both the processed study data and centered study data. 
 #' * \code{exOpt}: Provided \code{exOpt} argument.
 #' 
+<<<<<<< HEAD
+=======
+#' @references
+#'\insertAllCited{}
+#'  
+>>>>>>> dev
 #' @export
 #'
 #' @md
@@ -1250,7 +1258,11 @@ plot.transportTADA <- function(x, type = "propensityHist", bins = 50, maxWeight 
 #' @export
 #'
 is.transportTADA <- function (transportTADAResult) {
+<<<<<<< HEAD
   return((inherits(transportTADAResult$msm, "glm") | inherits(transportTADAResult$msm, "coxph") | inherits(transportTADAResult$msm, "survreg")) &
+=======
+  return((inherits(transportTADAResult$msm, "glm") | inherits(transportTADAResult$msm, "coxph") | inherits(transportTADAResult$msm, "survreg") | inherits(transportTADAResult$msm, "polr")) &
+>>>>>>> dev
            
          (inherits(transportTADAResult$propensityScoreModel, "glm") | is.null(transportTADAResult$propensityScoreModel)) & 
            

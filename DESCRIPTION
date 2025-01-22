@@ -1,6 +1,6 @@
 Package: TransportHealth
 Title: Transportability Analysis
-Version: 0.3.0
+Version: 1.0.0
 Authors@R: c(
     person("Core Clinical Sciences", , , "ccs@coreclinicalsciences.com", role = "aut"),
     person("Quang", "Vuong", , "quang@coreclinicalsciences.com", role = c("cre", "ctb")),
@@ -21,10 +21,12 @@ Imports:
     modelsummary (>= 2.0.0),
     rlang,
     smd (>= 0.6.7),
-    survival (>= 3.5-8)
+    survival (>= 3.5-8),
+    Rdpack
 Depends:
     R (>= 4.3.0)
 Suggests: 
+    geex,
     knitr,
     markdown,
     rmarkdown,
@@ -32,3 +34,4 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+RdMacros: Rdpack
