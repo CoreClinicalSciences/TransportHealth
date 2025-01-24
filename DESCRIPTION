@@ -33,8 +33,5 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-<<<<<<< HEAD
 URL: https://coreclinicalsciences.github.io/TransportHealth
-=======
 LazyData: true
->>>>>>> dev
