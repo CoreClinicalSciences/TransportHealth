@@ -19,7 +19,7 @@ navbar:
       icon: fa-github
       href: https://github.com/CoreClinicalSciences/TransportHealth
     coverage:
-      text: Unit testing coverage
+      text: Codecov
       href: https://app.codecov.io/gh/CoreClinicalSciences/TransportHealth
     
 
