@@ -9,3 +9,5 @@
 ^TransportHealth-report_files$
 ^vignettes/articles$
 ^TransportHealth-Logo.png$
+^codecov\.yml$
+^\.github$
