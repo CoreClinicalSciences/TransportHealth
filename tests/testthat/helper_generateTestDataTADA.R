@@ -56,25 +56,25 @@ generateTestDataTADA <- function() {
   targetData <- data.frame(N = nTarget,
                            
                            # binary
-                           sex_count = sum(sexTarget), # count of Male
-                           sex_prop = 0.93, # an incorrect value to test the replacement function, the new prop should be calculated based on 
+                           sex_COUNT = sum(sexTarget), # count of Male
+                           sex_PROP = 0.93, # an incorrect value to test the replacement function, the new prop should be calculated based on 
                            
-                           stress_prop = sum(stressTarget)/nTarget, # proportion of stress
+                           stress_PROP = sum(stressTarget)/nTarget, # proportion of stress
                            
                            med2_PROP = sum(med2Target)/nTarget, 
                            
                            # ordinal with three subclass
-                           toxicGrade_LOW_prop = as.numeric(table(toxicGradeTarget)["Low"]) / nTarget,
+                           toxicGrade_LOW_PROP = as.numeric(table(toxicGradeTarget)["Low"]) / nTarget,
                            toxicGrade_Medium_COUNT = as.numeric(table(toxicGradeTarget)["Medium"]),
                            # We don't need to prop for reference level candidate
                            # like: for male and female we just need to provide one of two and it's informative
                            # OR: user could provide all AgD for all levels and we could detect the ref level by the first element of factor IPD
-                           toxicGrade_high_prop = as.numeric(table(toxicGradeTarget)["High"]) / nTarget,
+                           toxicGrade_high_PROP = as.numeric(table(toxicGradeTarget)["High"]) / nTarget,
                            
                            # continuous
-                           percentBodyFat_mean = mean(percentBodyFatTarget),
-                           percentBodyFat_sd = sd(percentBodyFatTarget),
-                           percentBodyFat_median = median(percentBodyFatTarget)
+                           percentBodyFat_MEAN = mean(percentBodyFatTarget),
+                           percentBodyFat_SD = sd(percentBodyFatTarget),
+                           percentBodyFat_MEDIAN = median(percentBodyFatTarget)
                            )
   
 

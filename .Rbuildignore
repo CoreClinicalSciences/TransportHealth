@@ -5,3 +5,7 @@
 ^docs$
 ^pkgdown$
 ^data-raw$
+^TransportHealth-report.html$
+^TransportHealth-report_files$
+^vignettes/articles$
+^TransportHealth-Logo.png$

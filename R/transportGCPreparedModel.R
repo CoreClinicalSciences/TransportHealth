@@ -47,9 +47,9 @@ transportGCPreparedModel <- function(outcomeModel,
     formula <- outcomeModel
   }
   
-  if (inherits(outcomeModel, "glm")) {
+  if (inherits(outcomeModel, "glm") | inherits(outcomeModel, "polr") | inherits(outcomeModel, "survreg")) {
     if (is.null(formula)) formula <- outcomeModel$formula
-    if (is.null(studyData)) studyData <- outcomeModel$data
+    if (is.null(studyData)) studyData <- outcomeModel$model
   }
   
   if (is.null(response)) {

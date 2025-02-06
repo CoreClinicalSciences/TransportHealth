@@ -1,10 +1,13 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/404.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/articles/coverage.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/assumptions.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/coverage.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/index.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/overview.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportGC.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportGCMath.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/TransportHealth-report.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportInterpolated.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportInterpolatedMath.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/articles/transportIP.html</loc></url>
@@ -22,6 +25,7 @@
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportInterpolated.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportIP.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/is.transportTADA.html</loc></url>
+<url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/mockData.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportGC.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportInterpolated.html</loc></url>
 <url><loc>https://coreclinicalsciences.github.io/TransportHealth/reference/plot.transportIP.html</loc></url>

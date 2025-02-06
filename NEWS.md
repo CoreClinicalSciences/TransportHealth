@@ -1,3 +1,7 @@
+# TransportHealth 1.0.1
+
+- Fixed bootstrap implementation in `transportTADA` while requiring stricter naming conventions. See the documentation for details.
+
 # TransportHealth 1.0.0
 
 - First complete version of package.

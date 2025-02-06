@@ -1,6 +1,6 @@
 Package: TransportHealth
 Title: Transportability Analysis
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
     person("Core Clinical Sciences", , , "ccs@coreclinicalsciences.com", role = "aut"),
     person("Quang", "Vuong", , "quang@coreclinicalsciences.com", role = c("cre", "ctb")),
@@ -35,3 +35,4 @@ VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://coreclinicalsciences.github.io/TransportHealth
 LazyData: true
+Config/Needs/website: rmarkdown

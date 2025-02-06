@@ -20,6 +20,8 @@ test_that("Scenario 1: separate study and target data, formula provided for prop
   expect_true(inherits(testSummary$participationSMD, "data.frame"))
   expect_true(inherits(testSummary$msmSummary, "summary.glm"))
   
+  expect_no_warning(print(testSummary))
+  
   expect_no_warning(testPlot <- plot(testResult, type = "propensityHist"))
   expect_true(ggplot2::is.ggplot(testPlot))
   
@@ -156,6 +158,8 @@ test_that("Scenario 2: merged study and target data, formula provided for propen
   expect_equal(testSummary$propensitySMD$smd, compareSummary$propensitySMD$smd)
   expect_equal(testSummary$participationSMD$smd, compareSummary$participationSMD$smd)
   
+  expect_no_warning(print(testSummary))
+  
   expect_no_warning(testPlot <- plot(testResult, type = "propensityHist"))
   expect_true(ggplot2::is.ggplot(testPlot))
   
@@ -266,6 +270,8 @@ test_that("Scenario 3: glm provided for propensityScoreModel and participationMo
   expect_equal(testSummary$propensitySMD$smd, compareSummary$propensitySMD$smd)
   expect_equal(testSummary$participationSMD$smd, compareSummary$participationSMD$smd)
   
+  expect_no_warning(print(testSummary))
+  
   expect_no_warning(testPlot <- plot(testResult, type = "propensityHist"))
   expect_true(ggplot2::is.ggplot(testPlot))
   
@@ -374,6 +380,8 @@ test_that("Scenario 4: separate study and target data, glm provided for propensi
   expect_equal(testSummary$propensitySMD$smd, compareSummary$propensitySMD$smd)
   expect_equal(testSummary$participationSMD$smd, compareSummary$participationSMD$smd)
   
+  expect_no_warning(print(testSummary))
+  
   expect_no_warning(testPlot <- plot(testResult, type = "propensityHist"))
   expect_true(ggplot2::is.ggplot(testPlot))
   
@@ -457,6 +465,8 @@ test_that("Scenario 5: custom weights", {
   expect_true(inherits(testSummary$propensitySMD, "data.frame"))
   expect_true(inherits(testSummary$participationSMD, "data.frame"))
   expect_true(inherits(testSummary$msmSummary, "summary.glm"))
+  
+  expect_no_warning(print(testSummary))
   
   expect_error(testPlot <- plot(testResult, type = "propensityHist", covariates = c("sex", "percentBodyFat", "stress"), effectModifiers = c("stress", "med2")))
   

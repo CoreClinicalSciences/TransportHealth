@@ -1,0 +1,33 @@
+Package: TransportHealth
+Title: Transportability Analysis
+Version: 1.0.0
+Authors@R: c(
+    person("Core Clinical Sciences", , , "ccs@coreclinicalsciences.com", role = "aut"),
+    person("Quang", "Vuong", , "quang@coreclinicalsciences.com", role = c("cre", "ctb")),
+    person("Richard", "Yan", , "richard@coreclinicalsciences.com", role = "ctb"),
+    person("Rebecca", "Metcalfe", , "rebecca@coreclinicalsciences.com", role = "ctb"),
+    person("Jay", "Park", , "jay@coreclinicalsciences.com", role = "ctb")
+  )
+Description: Perform generalizability and transportability analysis for mergable and unmergable individual patient data, as well as aggregate treatment-level data. This package supports basic IP weighting, g-computation and (insert aggregate data method here) approaches, with some room for customization.
+License: GPL (>= 3) + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: ggplot2 (>= 3.5.1), halfmoon (>= 0.1.0), Hmisc (>= 5.1), MASS
+        (>= 7.3), modelsummary (>= 2.0.0), rlang, smd (>= 0.6.7),
+        survival (>= 3.5-8)
+Depends: R (>= 4.3.0)
+Suggests: geex, knitr, markdown, rmarkdown, simsurv, testthat (>=
+        3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+URL: https://coreclinicalsciences.github.io/TransportHealth
+LazyData: true
+Config/Needs/website: rmarkdown
+Author: Core Clinical Sciences [aut],
+  Quang Vuong [cre, ctb],
+  Richard Yan [ctb],
+  Rebecca Metcalfe [ctb],
+  Jay Park [ctb]
+Maintainer: Quang Vuong <quang@coreclinicalsciences.com>
+Built: R 4.4.0; ; 2025-02-06 17:18:40 UTC; windows

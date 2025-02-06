@@ -27,6 +27,8 @@ test_that("Scenario 1: without custom weights, formula provided for propensitySc
   expect_true(inherits(testSummary$prePostTable, "data.frame"))
   expect_true(inherits(testSummary$msmSummary, "summary.glm"))
   
+  expect_no_warning(print(testSummary))
+  
   expect_no_error(testPlot <- plot(testResult, type = "propensityHist"))
   expect_true(ggplot2::is.ggplot(testPlot))
   
@@ -145,6 +147,8 @@ test_that("Scenario 2: without custom weights, glm provided for propensityScoreM
   expect_true(inherits(testSummary$prePostTable, "data.frame"))
   expect_true(inherits(testSummary$msmSummary, "summary.glm"))
   
+  expect_no_warning(print(testSummary))
+  
   expect_no_error(testPlot <- plot(testResult, type = "propensityHist"))
   expect_true(ggplot2::is.ggplot(testPlot))
   
@@ -259,6 +263,8 @@ test_that("Scenario 3: customize both propensity weights and participation weigh
   expect_true(inherits(testSummary$propensitySMD, "data.frame"))
   expect_true(inherits(testSummary$prePostTable, "data.frame"))
   expect_true(inherits(testSummary$msmSummary, "summary.glm"))
+  
+  expect_no_warning(print(testSummary))
   
   expect_error(testPlot <- plot(testResult, type = "propensityHist")) # expect error when custom propensity weights 
   #expect_true(ggplot2::is.ggplot(testPlot))

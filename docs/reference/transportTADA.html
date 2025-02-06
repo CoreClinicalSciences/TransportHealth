@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">TransportHealth</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,7 @@
     <li><a class="dropdown-item" href="../articles/transportInterpolatedMath.html">Theory of interpolated g-computation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/TransportHealth-report.html">Unit testing coverage</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/CoreClinicalSciences/TransportHealth"><span class="fa fa-github"></span></a></li>
@@ -127,7 +128,7 @@
 
 
 <dt id="arg-aggregatetargetdata">aggregateTargetData<a class="anchor" aria-label="anchor" href="#arg-aggregatetargetdata"></a></dt>
-<dd><p>The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.</p></dd>
+<dd><p>The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData; 3. Use one of the following allowable suffixes: MEAN, MEDIAN, SD, PROP, COUNT. The column N should be included for the sample size.</p></dd>
 
 
 <dt id="arg-bootstrapnum">bootstrapNum<a class="anchor" aria-label="anchor" href="#arg-bootstrapnum"></a></dt>

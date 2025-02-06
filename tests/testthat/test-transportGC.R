@@ -37,6 +37,8 @@ test_that("Outcome model provided as formula", {
   expect_true(is.character(transportGCSummary$treatment))
   expect_true(is.character(transportGCSummary$treatmentLevels))
   
+  expect_no_error(print(transportGCSummary))
+  
   expect_no_error(transportGCPlot <- plot(transportGCResult))
   
   expect_true(ggplot2::is.ggplot(transportGCPlot))
@@ -81,6 +83,8 @@ test_that("Outcome model provided as glm", {
   expect_true(is.character(transportGCSummary$treatment))
   expect_true(is.character(transportGCSummary$treatmentLevels))
   
+  expect_no_error(print(transportGCSummary))
+  
   expect_no_error(transportGCPlot <- plot(transportGCResult))
   
   expect_true(ggplot2::is.ggplot(transportGCPlot))
@@ -111,11 +115,44 @@ test_that("Other outcomes", {
   
   expect_true(inherits(transportGCResult, "transportGC"))
   
+  preparedModel <- transportGCPreparedModel(outcomeModel = ht ~ med1 + sex + stress + percentBodyFat + med2 + med1:stress + med1:med2,
+                                            treatment = "med1",
+                                            family = binomial,
+                                            studyData = studyData)
+  
+  expect_true(is.transportGCPreparedModel(preparedModel))
+  
+  expect_no_error(transportGCResult <- transportGC("or",
+                                                   preparedModel,
+                                                   targetData))
+  
+  expect_true(inherits(transportGCResult, "transportGC"))
+  
+  expect_no_error(transportGCResult <- transportGC("rr",
+                                                   preparedModel,
+                                                   targetData))
+  
+  expect_true(inherits(transportGCResult, "transportGC"))
+  
   preparedModel <- transportGCPreparedModel(outcomeModel = htStage ~ med1 + sex + stress + percentBodyFat + med2 + med1:stress + med1:med2,
                                                             treatment = "med1",
                                                             family = "polr",
                                                             studyData = studyData,
                                             wipe = F)
+  
+  expect_true(is.transportGCPreparedModel(preparedModel))
+  
+  expect_no_error(transportGCResult <- transportGC("or",
+                                                   preparedModel,
+                                                   targetData))
+  
+  expect_true(inherits(transportGCResult, "transportGC"))
+  
+  preparedModel <- transportGCPreparedModel(outcomeModel = htStage ~ med1 + sex + stress + percentBodyFat + med2 + med1:stress + med1:med2,
+                                            treatment = "med1",
+                                            family = "polr",
+                                            studyData = studyData,
+                                            wipe = T)
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   
@@ -143,6 +180,19 @@ test_that("Other outcomes", {
                                                             family = "survreg",
                                                             studyData = studyData,
                                             wipe = F)
+  
+  expect_true(is.transportGCPreparedModel(preparedModel))
+  
+  expect_no_error(transportGCResult <- transportGC("hr",
+                                                   preparedModel,
+                                                   targetData))
+  
+  expect_true(inherits(transportGCResult, "transportGC"))
+  
+  preparedModel <- transportGCPreparedModel(outcomeModel = survival::Surv(os, rep(1, nrow(testData$studyData))) ~ med1 + sex + stress + percentBodyFat + med2 + med1:stress + med1:med2,
+                                            treatment = "med1",
+                                            family = "survreg",
+                                            studyData = studyData)
   
   expect_true(is.transportGCPreparedModel(preparedModel))
   

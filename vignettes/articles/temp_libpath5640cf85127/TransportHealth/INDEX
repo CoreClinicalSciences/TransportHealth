@@ -1,0 +1,37 @@
+is.transportGC          Check validity of g-computation result object
+is.transportGCPreparedModel
+                        Check validity of prepared model object for
+                        g-computation
+is.transportIP          Check validity of IOPW result object
+is.transportInterpolated
+                        Check validity of interpolated g-computation
+                        result object
+is.transportTADA        Check validity of TADA result object
+plot.transportGC        Visually represent results of transportability
+                        analysis using g-computation
+plot.transportIP        Plot graphs relevant to transportability
+                        analysis using IOPW
+plot.transportInterpolated
+                        Visually represent results of transportability
+                        analysis using interpolated g-computation
+plot.transportTADA      Plot graphs relevant to transportability
+                        analysis using TADA
+summary.transportGC     Summarize results of transportability analysis
+                        using g-computation
+summary.transportIP     Summarize results of a fitted MSM using the
+                        IOPW approach
+summary.transportInterpolated
+                        Summarize results of transportability analysis
+                        using interpolated g-computation
+summary.transportTADA   Summarize results of a fitted MSM using the
+                        TADA approach
+transportGC             Transportability analysis using g-computation
+transportGCPreparedModel
+                        Prepare an outcome model object for
+                        'transportGC'
+transportIP             Transportability analysis using IOPW
+transportInterpolated   Transportability analysis using interpolated
+                        g-computation
+transportTADA           Transportability analysis using TADA
+trim                    Trimming specification object
+trunc                   Truncation specification object

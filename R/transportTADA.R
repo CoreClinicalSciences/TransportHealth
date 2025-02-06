@@ -14,10 +14,8 @@
 #' @param method Link function used for \code{polr}, one of \code{c("logistic", "probit", "loglog", "cloglog", "cauchit")}.
 #' @param exOpt A list with components \code{propensity}, \code{participation} and \code{final}. Each component specifies whether weights should be trimmed or truncated. Use the functions \code{trim} and \code{trunc} to specify trimming/truncation. Note that only truncation is supported for final weights.
 #' @param studyData The individual participant data (IPD) of study population.
-#' @param aggregateTargetData The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.
+#' @param aggregateTargetData The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData; 3. Use one of the following allowable suffixes: MEAN, MEDIAN, SD, PROP, COUNT. The column N should be included for the sample size.
 #' @param bootstrapNum Number of bootstrap datasets to simulate to obtain robust variance estimate.
-#'
-#' @importFrom Rdpack reprompt
 #' 
 #' @details
 #' The function fits models of treatment assignment and study participation in order to calculate the weights used to fit the MSM. For the propensity score model, if a formula is provided, logistic regression is used by default. If a \code{glm} object is provided, the function extracts the necessary weights from the object. The function does not support other weighting methods, so if they are required, provide custom weights. The weights that adjust for effect modifiers are calculated in a manner analogous to matching-adjusted indirect comparison (MAIC) (Phillipo et al., 2018); this is supported by helper functions based on those used in the \code{maicplus} package (Chen et al., 2024).
@@ -113,7 +111,7 @@ transportTADA <- function (msmFormula,
                                      
                                      # Resample target data parametrically, assuming a normal distribution for continuous covariates
                                      aggregateTargetBoot <- aggregateTargetRef <- transportTADAResult$aggregateTargetData
-                                     varNames <- names(aggregateTargetRef) |> strsplit("_") |> sapply(function(x) x[1]) |> unique()
+                                     varNames <- names(aggregateTargetRef) |> gsub("_(MEAN|MEDIAN|SD|PROP|COUNT)$", "", x = _) |> unique()
                                      
                                      for (varName in varNames) {
                                        if (varName == "N") {
@@ -121,10 +119,10 @@ transportTADA <- function (msmFormula,
                                        } else {
                                        aggregateVarNames <- grep(paste0("^",varName,"_"), names(aggregateTargetRef), value = T)
                                        
-                                       if (any(grepl("_PROP$", aggregateVarNames))) {
+                                       if (any(grepl("_PROP$", aggregateVarNames, ignore.case = T))) {
                                          propName <- paste0(varName, "_PROP")
                                          aggregateTargetBoot[[propName]][1] <- stats::rbinom(1, aggregateTargetRef$N, aggregateTargetRef[[propName]][1]) / aggregateTargetRef$N
-                                       } else if (any(grepl("_(MEAN|MEDIAN|SD)$", aggregateVarNames))) {
+                                       } else if (any(grepl("_(MEAN|MEDIAN|SD)$", aggregateVarNames, ignore.case = T))) {
                                          meanName <- paste0(varName, "_MEAN")
                                          medianName <- paste0(varName, "_MEDIAN")
                                          sdName <- paste0(varName, "_SD")

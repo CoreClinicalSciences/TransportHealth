@@ -12,12 +12,16 @@ template:
 
 navbar: 
   structure: 
-    left: [intro, reference, articles, news]
-    right: [search, github, lightswith]
+    left: [intro, reference, articles, news, coverage]
+    right: [search, github, lightswitch]
   components:
     github:
       icon: fa-github
       href: https://github.com/CoreClinicalSciences/TransportHealth
+    coverage:
+      text: Unit testing coverage
+      href: articles/TransportHealth-report.html
+    
 
 articles:
   - title: Introduction
@@ -86,3 +90,6 @@ reference:
     contents:
       - trim
       - trunc
+  - title: Example data for transportability analysis
+    contents:
+      - mockData

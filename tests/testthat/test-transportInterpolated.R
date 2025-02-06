@@ -21,6 +21,8 @@ test_that("Scenario 1: aggregate study data, IPD target data", {
   expect_false(is.data.frame(testSummary$aggregateStudyData))
   expect_false(is.data.frame(testSummary$aggregateTargetData))
   
+  expect_no_warning(print(testSummary))
+  
   expect_no_warning(testPlot <- plot(testResult))
   expect_true(ggplot2::is.ggplot(testPlot))
 })
@@ -59,6 +61,8 @@ test_that("Scenario 2: aggregate study data, aggregate target data", {
   expect_true(is.data.frame(testSummary$subgroupEffects))
   expect_false(is.data.frame(testSummary$aggregateStudyData))
   expect_false(is.data.frame(testSummary$aggregateTargetData))
+  
+  expect_no_warning(print(testSummary))
   
   expect_no_warning(testPlot <- plot(testResult))
   expect_true(ggplot2::is.ggplot(testPlot))

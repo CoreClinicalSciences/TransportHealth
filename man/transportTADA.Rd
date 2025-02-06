@@ -43,7 +43,7 @@ transportTADA(
 
 \item{studyData}{The individual participant data (IPD) of study population.}
 
-\item{aggregateTargetData}{The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData.}
+\item{aggregateTargetData}{The aggregate-level data (AgD) of target population. Ensure that: 1. Name columns of mean of continuous variables or proportion of binary variable baselines exactly the same as the column names in the study (IPD) data; 2. Only continuous variables are allowed to consider matching standard deviation (SD) and name the SD column as "variable_SD" in the aggregateTargetData; 3. Use one of the following allowable suffixes: MEAN, MEDIAN, SD, PROP, COUNT. The column N should be included for the sample size.}
 
 \item{bootstrapNum}{Number of bootstrap datasets to simulate to obtain robust variance estimate.}
 }
