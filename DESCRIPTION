@@ -2,11 +2,11 @@ Package: TransportHealth
 Title: Transportability Analysis
 Version: 1.0.1
 Authors@R: c(
-    person("Core Clinical Sciences", , , "ccs@coreclinicalsciences.com", role = "aut"),
-    person("Quang", "Vuong", , , role = c("cre", "ctb")),
-    person("Richard", "Yan", , , role = "ctb"),
-    person("Rebecca", "Metcalfe", , , role = "ctb"),
-    person("Jay", "Park", , , role = "ctb")
+    person("Core Clinical Sciences", email = "ccs@coreclinicalsciences.com", role = c("aut","cre")),
+    person("Quang", "Vuong", role = c("aut","ctb")),
+    person("Richard", "Yan",  role = "ctb"),
+    person("Rebecca", "Metcalfe", role = "ctb"),
+    person("Jay", "Park", role = "ctb")
   )
 Description: Perform generalizability and transportability analysis for mergable and unmergable individual patient data, as well as aggregate treatment-level data. This package supports basic IP weighting, g-computation and (insert aggregate data method here) approaches, with some room for customization.
 License: GPL (>= 3) + file LICENSE
@@ -34,5 +34,6 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 URL: https://coreclinicalsciences.github.io/TransportHealth
+BugsReports: https://github.com/CoreClinicalSciences/TransportHealth/issues
 LazyData: true
 Config/Needs/website: rmarkdown
