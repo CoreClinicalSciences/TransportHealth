@@ -8,7 +8,7 @@ Authors@R: c(
     person("Rebecca", "Metcalfe", role = "ctb"),
     person("Jay", "Park", role = "ctb")
   )
-Description: Perform generalizability and transportability analysis for mergable and unmergable individual patient data, as well as aggregate treatment-level data. This package supports basic IP weighting, g-computation and (insert aggregate data method here) approaches, with some room for customization.
+Description: Perform generalizability and transportability analysis for mergeable and unmergeable individual patient data, as well as aggregate treatment-level data. This package supports basic IP weighting, g-computation and (insert aggregate data method here) approaches, with some room for customization.
 License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
