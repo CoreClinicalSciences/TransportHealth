@@ -153,13 +153,13 @@ transportGCFit <- function (effectType = c("meanDiff", "rr", "or", "hr"),
     nCounterfactual <- nrow(targetDataCounterfactualFrame)
     targetDataCounterfactualFrame[[response]] <- double(nCounterfactual)
     
-    # Get max survival time for survmean
-    maxTime <- survival:::survmean(survival::survfit(preparedModel$outcomeModel, newdata = targetDataCounterfactualFrame), rmean = "common")$end.time
+    # Get max survival time
+    maxTime <- summary(survival::survfit(preparedModel$outcomeModel, newdata = targetDataCounterfactualFrame), rmean = "common")$end.time
     
     # For each observation in counterfactual frame, calculate the fitted survival curve
     for (i in 1:nCounterfactual) {
       counterfactualSurvCurve <- survival::survfit(preparedModel$outcomeModel, newdata = targetDataCounterfactualFrame[i, , drop = F])
-      targetDataCounterfactualFrame[[response]][i] <- survival:::survmean(counterfactualSurvCurve, rmean = maxTime)$matrix["rmean"]
+      targetDataCounterfactualFrame[[response]][i] <- summary(counterfactualSurvCurve, rmean = maxTime)$rmean
     }
   }
   
