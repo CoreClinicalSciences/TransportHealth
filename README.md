@@ -1,4 +1,4 @@
-# TransportHealth <a href="https://coreclinicalsciences.github.io/TransportHealth"><img src="man/figures/logo.png" align="right" height="135" alt="TransportHealth website" /></a>
+# TransportHealth <a href="https://coreclinicalsciences.github.io/TransportHealth/"><img src="man/figures/logo.png" align="right" height="135" alt="TransportHealth website" /></a>
 
 **TransportHealth** is an R package, which was developed by [Core Clinical Sciences](https://www.coreclinicalsciences.com/), that provides functions to conduct transportability and generalizability analyses. 
 
@@ -8,7 +8,7 @@ Transportability and generalizability analyses are types of causal inference met
 
 - Inverse probability (IP) weighting for mergeable individual patient-level datasets (IPDs) of original and target studies
 
-- G-computation for unmergable IPDs of original and target studies
+- G-computation for unmergeable IPDs of original and target studies
 
 - Target Aggregate Data Adjustment (TADA) method that can transport findings from the original IPD study to aggregate (summary-level) data of a target study
 
@@ -20,7 +20,7 @@ If you are just getting started with **TransportHealth**, we recommend starting 
 
 ## Installation
 
-Install the latest development version from [GitHub](CoreClinicalSciences/TransportHealth)
+Install the latest development version from [GitHub](https://github.com/CoreClinicalSciences/TransportHealth/)
 
 ``` r
 if (!require("devtools")) {
